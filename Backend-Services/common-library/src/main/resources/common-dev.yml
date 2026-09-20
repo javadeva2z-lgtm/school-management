@@ -1,0 +1,23 @@
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: ${DEV_DB_URL:jdbc:mysql://localhost:3306/school_management?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true}
+    username: ${DEV_DB_USERNAME:root}
+    password: ${DEV_DB_PASSWORD:root}
+  jpa:
+    hibernate:
+      ddl-auto: ${DEV_JPA_DDL_AUTO:validate}
+    show-sql: ${DEV_JPA_SHOW_SQL:false}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${DEV_EUREKA_URL:http://localhost:8761/eureka/}
+
+app:
+  base-url: ${DEV_APP_BASE_URL:http://localhost:8000/ui}
+  jwt-secret-key: ${DEV_JWT_SECRET_KEY:dev-only-change-this-secret-with-32-chars}
+  corsallowed: ${DEV_CORS_ALLOWED_ORIGINS:http://localhost:4200,http://localhost:8000,http://192.168.1.10:4200}
+  jwt-expiration-ms: ${DEV_JWT_EXPIRATION_MS:86400000}

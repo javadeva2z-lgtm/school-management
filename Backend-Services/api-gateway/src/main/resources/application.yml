@@ -1,0 +1,198 @@
+server:
+  port: ${API_GATEWAY_PORT:8000}
+  forward-headers-strategy: ${FORWARD_HEADERS_STRATEGY:framework}
+
+spring:
+  config:
+    import: optional:classpath:/common-dev.yml,optional:classpath:/common-uat.yml,optional:classpath:/common-prod.yml,classpath:/common.yml
+  application:
+    name: api-gateway
+  main:
+    web-application-type: servlet
+    allow-bean-definition-overriding: true
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceTransactionManagerAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
+      - org.springframework.boot.jdbc.autoconfigure.DataSourceTransactionManagerAutoConfiguration
+      - org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.reactive.ReactiveSecurityAutoConfiguration
+      - org.springframework.boot.actuate.autoconfigure.security.reactive.ReactiveManagementWebSecurityAutoConfiguration
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: false
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: ${GATEWAY_CORS_ALLOWED_ORIGINS:http://192.168.1.10:4200}
+            allowedMethods: ${GATEWAY_CORS_ALLOWED_METHODS:GET,POST,PUT,PATCH,DELETE,OPTIONS}
+            allowedHeaders: ${GATEWAY_CORS_ALLOWED_HEADERS:*}
+            allowCredentials: ${GATEWAY_CORS_ALLOW_CREDENTIALS:true}
+      server:
+        webmvc:
+          routes:
+            - id: user-service-openapi
+              uri: lb://user-service
+              predicates:
+                - Path=/v3/api-docs/user-service
+              filters:
+                - SetPath=/v3/api-docs
+            - id: academic-service-openapi
+              uri: lb://academic-service
+              predicates:
+                - Path=/v3/api-docs/academic-service
+              filters:
+                - SetPath=/v3/api-docs
+            - id: payment-service-openapi
+              uri: lb://payment-service
+              predicates:
+                - Path=/v3/api-docs/payment-service
+              filters:
+                - SetPath=/v3/api-docs
+            - id: notification-service-openapi
+              uri: lb://notification-service
+              predicates:
+                - Path=/v3/api-docs/notification-service
+              filters:
+                - SetPath=/v3/api-docs
+            - id: communication-service-openapi
+              uri: lb://communication-service
+              predicates:
+                - Path=/v3/api-docs/communication-service
+              filters:
+                - SetPath=/v3/api-docs
+            - id: utility-service-openapi
+              uri: lb://utility-service
+              predicates:
+                - Path=/v3/api-docs/utility-service
+              filters:
+                - SetPath=/v3/api-docs
+            - id: user-service
+              uri: lb://user-service
+              predicates:
+                - Path=/user-service/**
+              filters:
+                - StripPrefix=1
+                - name: CircuitBreaker
+                  args:
+                    id: userServiceCircuitBreaker
+                    name: userServiceCircuitBreaker
+                    fallbackUri: forward:/fallback
+            - id: academic-service
+              uri: lb://academic-service
+              predicates:
+                - Path=/academic-service/**
+              filters:
+                - StripPrefix=1
+                - name: CircuitBreaker
+                  args:
+                    id: academicServiceCircuitBreaker
+                    name: academicServiceCircuitBreaker
+                    fallbackUri: forward:/fallback
+            - id: payment-service
+              uri: lb://payment-service
+              predicates:
+                - Path=/payment-service/**
+              filters:
+                - StripPrefix=1
+                - name: CircuitBreaker
+                  args:
+                    id: paymentServiceCircuitBreaker
+                    name: paymentServiceCircuitBreaker
+                    fallbackUri: forward:/fallback
+            - id: notification-service
+              uri: lb://notification-service
+              predicates:
+                - Path=/notification-service/**
+              filters:
+                - StripPrefix=1
+                - name: CircuitBreaker
+                  args:
+                    id: notificationServiceCircuitBreaker
+                    name: notificationServiceCircuitBreaker
+                    fallbackUri: forward:/fallback
+            - id: communication-service
+              uri: lb://communication-service
+              predicates:
+                - Path=/communication-service/**
+              filters:
+                - StripPrefix=1
+                - name: CircuitBreaker
+                  args:
+                    id: communicationServiceCircuitBreaker
+                    name: communicationServiceCircuitBreaker
+                    fallbackUri: forward:/fallback
+            - id: utility-service
+              uri: lb://utility-service
+              predicates:
+                - Path=/utility-service/**
+              filters:
+                - StripPrefix=1
+                - name: CircuitBreaker
+                  args:
+                    id: utilityServiceCircuitBreaker
+                    name: utilityServiceCircuitBreaker
+                    fallbackUri: forward:/fallback
+
+springdoc:
+  swagger-ui:
+    urls-primary-name: gateway
+    urls:
+      - name: gateway
+        url: /v3/api-docs
+      - name: user-service
+        url: /v3/api-docs/user-service
+      - name: academic-service
+        url: /v3/api-docs/academic-service
+      - name: payment-service
+        url: /v3/api-docs/payment-service
+      - name: notification-service
+        url: /v3/api-docs/notification-service
+      - name: communication-service
+        url: /v3/api-docs/communication-service
+      - name: utility-service
+        url: /v3/api-docs/utility-service
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-type: COUNT_BASED
+        sliding-window-size: ${CIRCUIT_BREAKER_SLIDING_WINDOW_SIZE:10}
+        minimum-number-of-calls: ${CIRCUIT_BREAKER_MINIMUM_NUMBER_OF_CALLS:5}
+        failure-rate-threshold: ${CIRCUIT_BREAKER_FAILURE_RATE_THRESHOLD:50}
+        wait-duration-in-open-state: ${CIRCUIT_BREAKER_WAIT_DURATION:10s}
+    instances:
+      userServiceCircuitBreaker:
+        base-config: default
+      academicServiceCircuitBreaker:
+        base-config: default
+      paymentServiceCircuitBreaker:
+        base-config: default
+      notificationServiceCircuitBreaker:
+        base-config: default
+      communicationServiceCircuitBreaker:
+        base-config: default
+      utilityServiceCircuitBreaker:
+        base-config: default
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway,circuitbreakers,circuitbreakerevents
+  endpoint:
+    health:
+      show-details: when_authorized
+

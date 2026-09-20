@@ -1,0 +1,21 @@
+# Maven build output
+target/
+
+# Generated Maven sources
+generated-sources/
+generated-test-sources/
+
+# Eclipse metadata
+.classpath
+.project
+.factorypath
+.settings/
+
+# Generated files and local artifacts
+*.log
+*.jar
+
+# Local runtime logs
+.run-logs/
+.sh
+deployment/

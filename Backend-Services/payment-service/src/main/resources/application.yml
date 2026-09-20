@@ -1,0 +1,14 @@
+server:
+  port: ${PAYMENT_SERVICE_PORT:8003}
+
+spring:
+  config:
+    import: optional:classpath:/common-dev.yml,optional:classpath:/common-uat.yml,optional:classpath:/common-prod.yml,classpath:/common.yml
+  application:
+    name: payment-service
+  payment:
+    reminder:
+      days-before-due: ${PAYMENT_REMINDER_DAYS_BEFORE_DUE:3}
+      days-after-due: ${PAYMENT_REMINDER_DAYS_AFTER_DUE:7}
+      days-after-due-14: ${PAYMENT_REMINDER_DAYS_AFTER_DUE_14:14}
+

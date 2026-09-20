@@ -1,0 +1,16 @@
+server:
+  port: ${UTILITY_SERVICE_PORT:8006}
+
+spring:
+  config:
+    import: optional:classpath:/common-dev.yml,optional:classpath:/common-uat.yml,optional:classpath:/common-prod.yml,classpath:/common.yml
+  application:
+    name: utility-service
+  cloud:
+    gcp:
+      storage:
+        enabled: ${GCP_STORAGE_ENABLED:false}
+
+app:
+  storage:
+    bucket: ${GCS_BUCKET:school-files}

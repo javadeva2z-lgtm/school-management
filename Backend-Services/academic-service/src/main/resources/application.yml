@@ -1,0 +1,16 @@
+server:
+  port: ${ACADEMIC_SERVICE_PORT:8002}
+
+spring:
+  config:
+    import: optional:classpath:/common-dev.yml,optional:classpath:/common-uat.yml,optional:classpath:/common-prod.yml,classpath:/common.yml
+  application:
+    name: academic-service
+
+app:
+  homework:
+    storage:
+      path: ${HOMEWORK_STORAGE_PATH:./deployment/homework}
+    download:
+      base-url: ${HOMEWORK_DOWNLOAD_BASE_URL:/rest/academic-service}
+  base-url: ${APP_BASE_URL:http://localhost:8000/ui}

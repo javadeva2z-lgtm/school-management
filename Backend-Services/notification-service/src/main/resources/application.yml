@@ -1,0 +1,18 @@
+server:
+  port: ${NOTIFICATION_SERVICE_PORT:8004}
+
+spring:
+  config:
+    import: optional:classpath:/common-dev.yml,optional:classpath:/common-uat.yml,optional:classpath:/common-prod.yml,classpath:/common.yml
+  application:
+    name: notification-service
+app:
+  notification:
+    twilio:
+      account-sid: ${TWILIO_ACCOUNT_SID:}
+      auth-token: ${TWILIO_AUTH_TOKEN:}
+      whatsapp-number: ${TWILIO_WHATSAPP_NUMBER:}
+    email:
+      from: ${NOTIFICATION_EMAIL_FROM:noreply@school-management.com}
+      smtp-server: ${NOTIFICATION_SMTP_SERVER:smtp.gmail.com}
+

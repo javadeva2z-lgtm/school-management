@@ -1,0 +1,125 @@
+<main class="dashboard leave-page">
+  <a class="back-link" routerLink="/" queryParamsHandling="preserve">&#8592; Back to workspace</a>
+
+  <section class="leave-heading">
+    <p class="eyebrow">Teacher workspace</p>
+    <h1>Leave management</h1>
+    <p>Apply leave on behalf of a student and review every application in one place.</p>
+  </section>
+
+  <div class="leave-tabs" role="tablist" aria-label="Leave management sections">
+    <button type="button" role="tab" [class.active]="activeTab() === 'apply'"
+      [attr.aria-selected]="activeTab() === 'apply'" (click)="selectTab('apply')">Apply leave</button>
+    <button type="button" role="tab" [class.active]="activeTab() === 'applied'"
+      [attr.aria-selected]="activeTab() === 'applied'" (click)="selectTab('applied')">Applied leave <span>{{
+        applications().length }}</span></button>
+  </div>
+
+  @if (activeTab() === 'apply') {
+  <section class="leave-form-panel">
+    <div class="leave-section-heading">
+      <div>
+        <p class="eyebrow">New application</p>
+        <h2>Apply leave for a student</h2>
+      </div>
+    </div>
+    <div class="leave-form">
+      <label>Class
+        <select name="teacherLeaveClass" [ngModel]="selectedClass()" (ngModelChange)="onClassChange($event)">
+          <option value="">Select a class</option>
+          @for (option of classOptions(); track option.classId) {
+          <option [value]="option.classId">Class {{ option.classId }}</option>
+          }
+        </select>
+      </label>
+      <label>Section
+        <select name="teacherLeaveSection" [ngModel]="selectedSection()" (ngModelChange)="onSectionChange($event)">
+          <option value="">Select a section</option>
+          @for (section of sectionOptions(); track section.sectionName) {
+          <option [value]="section.sectionName">Section {{ section.sectionName }}</option>
+          }
+        </select>
+      </label>
+      <label>Student
+        <select name="teacherLeaveStudent" [ngModel]="selectedStudentId()" (ngModelChange)="onStudentChange($event)">
+          <option value="">Select a student</option>
+          @for (student of students(); track student.admissionNumber) { <option [value]="student.admissionNumber">{{
+            student.name }}
+          </option> }
+        </select>
+      </label>
+      <label>Leave type
+        <select name="teacherLeaveType" [ngModel]="leaveType()" (ngModelChange)="onLeaveTypeChange($event)">
+          <option>Medical</option>
+          <option>Personal</option>
+          <option>Family</option>
+          <option>Other</option>
+        </select>
+      </label>
+      <label>From date<input type="date" [value]="startDate()" (change)="onStartDateChange($event)" /></label>
+      <label>To date<input type="date" [value]="endDate()" (change)="onEndDateChange($event)" /></label>
+      <label class="full-width">Reason<textarea rows="4" placeholder="Add the reason for this leave" [value]="reason()"
+          (input)="onReasonChange($event)"></textarea></label>
+    </div>
+    <div class="leave-form-footer"><span>Applications start as Pending.</span><button class="apply-leave-button"
+        type="button" [disabled]="isSubmitting()" (click)="submitLeave()">{{ isSubmitting() ? 'Applying...' : 'Apply
+        leave' }}</button></div>
+    @if (message()) {
+    <p class="leave-message">{{ message() }}</p> }
+  </section>
+  }
+
+  @if (activeTab() === 'applied') {
+  <section class="leave-list-panel" aria-labelledby="leave-list-title">
+    <div class="leave-section-heading">
+      <div>
+        <p class="eyebrow">Teacher review</p>
+        <h2 id="leave-list-title">Applied leave</h2>
+      </div><span>{{ applications().length }} applications</span>
+    </div>
+    <div class="leave-form" style="display: flex; flex-wrap: wrap; align-items: end; gap: 16px;">
+      <label style="flex: 1 1 180px; min-width: 180px;">Class
+        <select name="teacherLeaveReviewClass" [ngModel]="selectedClass()" (ngModelChange)="onClassChange($event)">
+          <option value="">Select a class</option>
+          @for (option of classOptions(); track option.classId) {
+          <option [value]="option.classId">Class {{ option.classId }}</option>
+          }
+        </select>
+      </label>
+      <label style="flex: 1 1 180px; min-width: 180px;">Section
+        <select name="teacherLeaveReviewSection" [ngModel]="selectedSection()"
+          (ngModelChange)="onSectionChange($event)">
+          <option value="">Select a section</option>
+          @for (section of sectionOptions(); track section.sectionName) {
+          <option [value]="section.sectionName">Section {{ section.sectionName }}</option>
+          }
+        </select>
+      </label>
+      <label style="display: inline-flex; align-items: center; gap: 8px; margin-top: 4px; min-width: 220px;">
+        <input type="checkbox" (change)="showAllLeave($event.target.checked)" />
+        <span>Show applications In All Status</span>
+      </label>
+    </div>
+    @if (applicationsForSelectedClassSection().length) {
+    <div class="leave-list">
+      @for (application of applicationsForSelectedClassSection(); track application.id) {
+      <article class="leave-item">
+        <div class="leave-student"><span class="student-avatar">{{ application.admissionNumber }}</span>
+          <div><strong>{{ application.admissionNumber }}</strong><small>{{ application.leaveType }} · {{
+              application.fromDate }} to {{ application.toDate }}</small></div>
+        </div>
+        <p>{{ application.reason }}</p>
+        <div class="leave-status-actions"><span class="leave-status" [class]="application.status.toLowerCase()">{{
+            statusLabel(application.status) }}</span><button type="button"
+            [disabled]="application.status === 'APPROVED'"
+            (click)="changeStatus(application, 'APPROVED')">Approve</button><button type="button"
+            [disabled]="application.status === 'REJECTED'"
+            (click)="changeStatus(application, 'REJECTED')">Reject</button></div>
+      </article>
+      }
+    </div>
+    } @else { <p class="empty-students">No leave applications found.</p> }
+  </section>
+  }
+</main>
+<footer><span>Oakridge School</span><span>Learning together since 1987</span></footer>
