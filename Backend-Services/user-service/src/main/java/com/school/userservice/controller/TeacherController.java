@@ -12,8 +12,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.school.common.enums.TeacherClassLevel;
 import com.school.common.response.ApiResponse;
 import com.school.userservice.dto.TeacherDTO;
 import com.school.userservice.service.TeacherService;
@@ -88,6 +90,15 @@ public class TeacherController {
     public ResponseEntity<ApiResponse<List<TeacherDTO>>> getAllTeachers() {
         log.info("Get all teachers request received");
         List<TeacherDTO> response = teacherService.getAllTeachers();
+        return ResponseEntity.ok(ApiResponse.success(response));
+    }
+
+    @GetMapping("/level/{level}")
+    @Operation(summary = "Get all my teachers based on my class level eg. Pre Primary, Primary, Upper Primary, Secondary,Higher Secondary")
+    public ResponseEntity<ApiResponse<List<TeacherDTO>>> getMyTeachers(
+            @RequestParam(defaultValue = "PRIMARY") TeacherClassLevel level) {
+        log.info("Get all teachers request received");
+        List<TeacherDTO> response = teacherService.byLevel(level);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 }

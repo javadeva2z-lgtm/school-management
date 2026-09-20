@@ -9,9 +9,13 @@ import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import com.school.common.enums.TeacherClassLevel;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -73,12 +77,15 @@ public class Teacher {
     @Column(name = "updated_at")
     @LastModifiedDate
     private LocalDateTime updatedAt;
-    
+
     @Column(name = "created_by", updatable = false)
     @CreatedBy
     private String createdBy;
-    
+
     @Column(name = "updated_by", nullable = false)
     @LastModifiedBy
     private String updatedBy;
+
+    @Enumerated(EnumType.STRING)
+    private TeacherClassLevel level;
 }

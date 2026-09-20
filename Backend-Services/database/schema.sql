@@ -132,6 +132,7 @@ CREATE TABLE IF NOT EXISTS teachers (
     updated_at DATETIME,
     created_by VARCHAR(255),
     updated_by VARCHAR(255) NOT NULL,
+    level VARCHAR(255),
     PRIMARY KEY (id),
     UNIQUE KEY uk_teachers_email (email),
     UNIQUE KEY uk_teachers_username (username),

@@ -8,6 +8,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
+import com.school.common.enums.TeacherClassLevel;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -34,4 +36,6 @@ public class TeacherDTO {
     private String address;
     @NotBlank(message = "Phone number is required")
     private String phone;
+    private TeacherClassLevel level;
+
 }

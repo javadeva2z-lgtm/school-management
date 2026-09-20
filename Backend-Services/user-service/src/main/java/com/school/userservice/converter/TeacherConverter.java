@@ -26,6 +26,7 @@ public class TeacherConverter {
                 .email(teacher.getEmail())
                 .address(teacher.getAddress())
                 .phone(teacher.getPhone())
+                .level(teacher.getLevel())
                 .build();
     }
 
@@ -46,6 +47,7 @@ public class TeacherConverter {
                 .experienceYears(teacherDTO.getExperienceYears())
                 .address(teacherDTO.getAddress())
                 .phone(teacherDTO.getPhone())
+                .level(teacherDTO.getLevel())
                 .build();
     }
 }
