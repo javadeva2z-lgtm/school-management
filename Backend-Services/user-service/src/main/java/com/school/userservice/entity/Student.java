@@ -19,6 +19,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -71,7 +72,11 @@ public class Student {
 
     @Column(name = "parent_phone")
     private String parentPhone;
-
+    
+    @Column(name = "is_ews")
+    @Default
+    private Boolean isEWS = false;
+    
     @Column(name = "created_at", nullable = false, updatable = false)
     @CreatedDate
     private LocalDateTime createdAt;

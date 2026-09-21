@@ -25,4 +25,6 @@ public class UserRegistrationDTO {
 
     @NotBlank(message = "Role is required")
     private String role; // ADMIN, TEACHER, STUDENT
+
+    private String token;
 }

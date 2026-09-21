@@ -154,6 +154,9 @@ public class TeacherService {
                         ? record.get(Constants.IMPORT_TEACHER_COLUMN_GENDER)
                         : "";
 
+               String levelStr = record.get(Constants.IMPORT_TEACHER_COLUMN_LEVEL);
+                TeacherClassLevel level  = TeacherClassLevel.valueOf(levelStr.toUpperCase());
+
                 teachersToSave.add(Teacher.builder()
                         .id(id > 0 ? id : null)
                         .name(name)
@@ -170,6 +173,7 @@ public class TeacherService {
                                 : null)
                         .address(address)
                         .phone(phone)
+                        .level(level)
                         .build());
 
                 userService.createLoginUser(userName,
@@ -200,7 +204,8 @@ public class TeacherService {
                     Constants.IMPORT_TEACHER_COLUMN_EXPERIENCE_YEARS,
                     Constants.IMPORT_TEACHER_COLUMN_JOINING_DATE,
                     Constants.IMPORT_TEACHER_COLUMN_PHONE,
-                    Constants.IMPORT_TEACHER_COLUMN_ADDRESS).build();
+                    Constants.IMPORT_TEACHER_COLUMN_ADDRESS,
+                    Constants.IMPORT_TEACHER_COLUMN_LEVEL).build();
 
             List<Teacher> teachers = teacherRepository.findAll();
             csvFormat.print(writer).printRecords(teachers.stream().map(t -> new Object[] {
@@ -215,7 +220,8 @@ public class TeacherService {
                     t.getExperienceYears(),
                     t.getJoiningDate(),
                     t.getPhone(),
-                    t.getAddress()
+                    t.getAddress(),
+                    t.getLevel()
             }).toList());
         } catch (Exception e) {
             throw new RuntimeException("Failed to export teachers to CSV: " + e.getMessage());

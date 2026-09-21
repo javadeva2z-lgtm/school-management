@@ -1,11 +1,14 @@
 package com.school.paymentservice.dto;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+
+import com.school.common.enums.PaymentReminderType;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import java.math.BigDecimal;
-import java.time.LocalDate;
 
 @Data
 @AllArgsConstructor
@@ -13,12 +16,11 @@ import java.time.LocalDate;
 @Builder
 public class PaymentReminderDTO {
     private Long id;
-    private Long feeId;
+    private Long monthlyFeeId;
     private Long studentId;
-    private String reminderType;
-    private LocalDate reminderDate;
-    private Boolean isSent;
-    private String feeType;
-    private BigDecimal amount;
+    private PaymentReminderType reminderType;
+    private Double amount;
     private LocalDate dueDate;
+    private Boolean sent;
+    private LocalDateTime sentAt;
 }

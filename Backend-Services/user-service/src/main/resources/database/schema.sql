@@ -3,23 +3,6 @@
 -- Cross-service identifiers remain scalar columns because the entities do not
 -- declare JPA relationships and each service owns its own aggregate.
 
--- Change this value to deploy the schema to a different database.
-SET @schema_name = 'school_management';
-
-SET @create_schema_sql = CONCAT(
-    'CREATE DATABASE IF NOT EXISTS `',
-    REPLACE(@schema_name, '`', '``'),
-    '` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci'
-);
-PREPARE create_schema_statement FROM @create_schema_sql;
-EXECUTE create_schema_statement;
-DEALLOCATE PREPARE create_schema_statement;
-
--- MySQL does not allow USE to be executed through a prepared statement.
--- Keep this literal in sync with @schema_name when changing the target.
--- Alternatively, select the target database in the client before execution.
-USE school_management;
-
 CREATE TABLE IF NOT EXISTS schools (
     id BIGINT NOT NULL AUTO_INCREMENT,
     school_code VARCHAR(255) NOT NULL,

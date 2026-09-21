@@ -3,10 +3,12 @@ package com.school.paymentservice.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Builder.Default;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import com.school.common.enums.PaymentReminderType;
 
 @Entity
 @Table(name = "payment_reminders")
@@ -19,32 +21,25 @@ public class PaymentReminder {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "fee_id", nullable = false)
-    private Long feeId;
+    @Column(name = "monthly_fee_id", nullable = false)
+    private Long monthlyFeeId;
 
     @Column(name = "student_id", nullable = false)
     private Long studentId;
 
     @Column(name = "reminder_type", nullable = false)
-    private String reminderType; // DUE_DATE, OVERDUE_7DAYS, OVERDUE_14DAYS
+    private PaymentReminderType reminderType;
 
-    @Column(name = "reminder_date", nullable = false)
-    private LocalDate reminderDate;
+    @Column(name = "amount", nullable = false)
+    private Double amount;
+
+    @Column(name = "due_date", nullable = false)
+    private LocalDate dueDate;
 
     @Column(name = "is_sent")
-    private Boolean isSent = false;
+    @Default
+    private Boolean sent = false;
 
     @Column(name = "sent_at")
     private LocalDateTime sentAt;
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
-
-    @Column(name = "updated_at")
-    private LocalDateTime updatedAt = LocalDateTime.now();
-
-    @PreUpdate
-    public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 }

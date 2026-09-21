@@ -18,7 +18,6 @@ public class Constants {
     public static final String IMPORT_STUDENT_COLUMN_IS_DELETE = "isDelete";
 
     // Add constants for Teacher import columns
-    //id,name,username,employeeId,qualification,specialization,joiningDate,experienceYears
     public static final String IMPORT_TEACHER_COLUMN_ID = "id";
     public static final String IMPORT_TEACHER_COLUMN_NAME = "name";
     public static final String IMPORT_TEACHER_COLUMN_GENDER = "gender";
@@ -31,6 +30,7 @@ public class Constants {
     public static final String IMPORT_TEACHER_COLUMN_EXPERIENCE_YEARS = "experienceYears";
     public static final String IMPORT_TEACHER_COLUMN_ADDRESS = "address";
     public static final String IMPORT_TEACHER_COLUMN_PHONE = "phone";
+    public static final String IMPORT_TEACHER_COLUMN_LEVEL = "level";
 
     // Add constants for Section import columns
     public static final String IMPORT_SECTION_COLUMN_ID = "id";

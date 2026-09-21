@@ -4,7 +4,7 @@ public enum UserRole {
     ADMIN("ADMIN"),
     TEACHER("TEACHER"),
     STUDENT("STUDENT"),
-    PARENT("PARENT");
+    SUPER_ADMIN("SUPER_ADMIN");
 
     private final String value;
 

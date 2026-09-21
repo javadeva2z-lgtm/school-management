@@ -10,6 +10,8 @@ import jakarta.validation.constraints.NotBlank;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.school.common.enums.PaymentStatus;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -17,27 +19,19 @@ import java.time.LocalDateTime;
 public class PaymentDTO {
     private Long id;
 
-    @NotNull(message = "Fee ID is required")
-    private Long feeId;
-
-    @NotNull(message = "Student ID is required")
     private Long studentId;
 
-    @NotNull(message = "Amount paid is required")
-    @DecimalMin(value = "0.01", message = "Amount must be greater than 0")
-    private BigDecimal amountPaid;
+    private Long monthlyFeeId;
 
-    @NotBlank(message = "Payment method is required")
-    private String paymentMethod; // CASH, CARD, UPI, BANK_TRANSFER, CHEQUE
+    private String monthYear;
 
     private String transactionId;
 
-    @NotNull(message = "Payment date is required")
+    private String paymentMethod; // "UPI", "CASH", "CREDIT_CARD", "NET_BANKING"
+
+    private Double amountPaid;
+
     private LocalDateTime paymentDate;
 
-    private String receiptUrl;
-
-    private String status; // COMPLETED, PENDING, FAILED, REFUNDED
-
-    private String remarks;
+    private PaymentStatus status;
 }

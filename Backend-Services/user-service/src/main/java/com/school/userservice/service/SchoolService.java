@@ -24,6 +24,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class SchoolService extends BaseService {
     private final SchoolRepository schoolRepository;
     private final SchoolConverter schoolConverter;
+    private final TenantSchemaProvisioner schemaProvisioner;
 
     public List<SchoolDTO> getAllSchools() {
         log.info("Fetching all schools");
@@ -43,13 +44,15 @@ public class SchoolService extends BaseService {
     public SchoolDTO createSchool(SchoolDTO schoolDTO) {
         log.info("Creating school: {}", schoolDTO.getSchoolName());
 
-        if (!schoolRepository.findAll().isEmpty()) {
+        if (!schoolRepository.findBySchoolCode(schoolDTO.getSchoolCode()).isEmpty()) {
             throw new DuplicateResourceException("School", "schoolCode", schoolDTO.getSchoolCode());
         }
 
         School school = schoolConverter.dtoToEntity(schoolDTO);
         school = schoolRepository.save(school);
         log.info("School created successfully with id: {}", school.getId());
+
+        schemaProvisioner.provisionSchema(schoolDTO.getSchoolCode());
         return schoolConverter.entityToDTO(school);
     }
 

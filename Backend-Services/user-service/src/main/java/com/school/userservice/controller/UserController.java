@@ -39,14 +39,38 @@ public class UserController {
 
     @PostMapping("/register/admin/{token}")
     @Operation(summary = "Register a new user")
-    public ResponseEntity<ApiResponse<LoginResponseDTO>> registerAdminForSchool(@Valid @RequestBody UserRegistrationDTO registrationDTO, @PathVariable String token) {
+    public ResponseEntity<ApiResponse<LoginResponseDTO>> registerAdminForSchool(
+            @Valid @RequestBody UserRegistrationDTO registrationDTO, @PathVariable String token) {
         log.info("Register request received for username: {}", registrationDTO.getUsername());
-        
+
         LoginResponseDTO response = userService.registerAdmin(registrationDTO, token);
         // Clear the token after successful registration to prevent reuse
         schoolService.clearToken();
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response, "Admin registered successfully"));
+    }
+
+    @PostMapping("/password/reset-password")
+    @Operation(summary = "Register a new user")
+    public ResponseEntity<ApiResponse<String>> resetPassword(
+            @Valid @RequestBody UserRegistrationDTO registrationDTO) {
+        log.info("Register request received for username: {}", registrationDTO.getUsername());
+
+        userService.resetPassword(registrationDTO);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success("Password reset successfully"));
+    }
+
+    @GetMapping("/password/reset-password/{username}")
+    @Operation(summary = "Register a new user")
+    public ResponseEntity<ApiResponse<String>> getResetPasswordToken(
+            @PathVariable String username) {
+
+        userService.setResetPasswordToken(username);
+
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(ApiResponse.success("Password reset successfully"));
     }
 
     @GetMapping("/register/admin/token")
@@ -67,15 +91,15 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    @PreAuthorize ("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Register a new user")
-    public ResponseEntity<ApiResponse<LoginResponseDTO>> register(@Valid @RequestBody UserRegistrationDTO registrationDTO) {
+    public ResponseEntity<ApiResponse<LoginResponseDTO>> register(
+            @Valid @RequestBody UserRegistrationDTO registrationDTO) {
         log.info("Register request received for username: {}", registrationDTO.getUsername());
         LoginResponseDTO response = userService.register(registrationDTO);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response, "User registered successfully"));
     }
-    
 
     @GetMapping("/disable/user/{username}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -86,7 +110,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK)
                 .body(ApiResponse.success("Login disabled successfully"));
     }
-    
+
     @GetMapping("/enable/user/{username}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "activate user for login")

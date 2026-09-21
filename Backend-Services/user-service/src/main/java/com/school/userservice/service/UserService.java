@@ -17,6 +17,8 @@ import com.pawan.share.jwt.JwtUtil;
 import com.school.common.exception.DuplicateResourceException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +27,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,6 +48,22 @@ public class UserService extends BaseService {
         }
         registrationDTO.setRole("ADMIN");
         return register(registrationDTO);
+    }
+
+    public void resetPassword(UserRegistrationDTO registrationDTO) {
+        User user = userRepository.findByToken(registrationDTO.getToken())
+                .orElseThrow(() -> new UsernameNotFoundException(""));
+        user.setPassword(passwordEncoder.encode(registrationDTO.getPassword()));
+
+        userRepository.save(user);
+    }
+
+    public void setResetPasswordToken(String userName) {
+        User user = userRepository.findByUsername(userName)
+                .orElseThrow(() -> new UsernameNotFoundException(""));
+        user.setToken(UUID.randomUUID().toString());
+        // notify to user using phone/email
+        userRepository.save(user);
     }
 
     public LoginResponseDTO register(UserRegistrationDTO registrationDTO) {

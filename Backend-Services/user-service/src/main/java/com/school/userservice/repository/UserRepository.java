@@ -5,10 +5,16 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import com.school.common.enums.UserRole;
 import com.school.userservice.entity.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
+
+    Optional<User> findByToken(String token);
+
     Boolean existsByUsername(String username);
+
+    boolean existsByRole(UserRole role);
 }

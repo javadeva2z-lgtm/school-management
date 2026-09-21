@@ -25,18 +25,24 @@ springdoc:
     operations-sorter: method
     tags-sorter: alpha
   api-docs:
-    path: /v3/api-docs
+    path: /v3/api-docs   
 
 app:
+  superuser:
+    username: ${SUPERUSER_NAME:superadmin}
+    email: ${SUPERUSER_EMAIL:admin@example.com}
+    password: ${SUPERUSER_PASSWORD:Admin@12345} 
   tenant:
     default-schema: ${DB_DEFAULT_SCHEMA:school_management}
   open-endpoints:
     - /ui/**
     - /user-service/api/v1/auth/login/**
     - /user-service/api/v1/users/register/admin/**
+    - /user-service/api/v1/users//password/reset-password/**
     - /user-service/api/v1/schools/public/**
     - /user-service/api/test/**
     - /api/v1/users/register/admin/**
+    - /api/v1/users//password/reset-password/**
     - /api/v1/schools/public/**
     - /api/v1/auth/login/**
     - /api/test/**

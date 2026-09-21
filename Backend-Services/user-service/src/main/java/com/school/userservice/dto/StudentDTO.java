@@ -34,4 +34,5 @@ public class StudentDTO {
     private LocalDate dateOfBirth;
     private String address;
     private String parentPhone;
+    private Boolean isEws;
 }
