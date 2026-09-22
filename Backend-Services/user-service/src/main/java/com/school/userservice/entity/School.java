@@ -28,7 +28,7 @@ public class School {
 
     @Column(name = "school_code", unique = true, nullable = false)
     private String schoolCode;
-    
+
     @Column(name = "school_name", nullable = false)
     private String schoolName;
 
@@ -44,7 +44,7 @@ public class School {
     @Column(name = "website")
     private String website;
 
-    @Column (name = "principal_name")
+    @Column(name = "principal_name")
     private String principalName;
 
     @Column(name = "announcement")
@@ -62,11 +62,10 @@ public class School {
     @Column(name = "keywords")
     private String keywords;
 
-
     @Column(name = "is_active")
     @Builder.Default
-    private boolean isActive = true;
-    
+    private Boolean isActive = true;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     @CreatedDate
     private LocalDateTime createdAt;
@@ -74,12 +73,12 @@ public class School {
     @Column(name = "updated_at")
     @LastModifiedDate
     private LocalDateTime updatedAt;
-    
+
     @Column(name = "created_by", updatable = false)
     @CreatedBy
     private String createdBy;
-    
-    @Column(name = "updated_by", nullable = false)
+
+    @Column(name = "updated_by")
     @LastModifiedBy
     private String updatedBy;
 

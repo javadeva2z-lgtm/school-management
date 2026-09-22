@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder 
-public class SchoolDTO {
+public class SchoolPartialDTO {
 
     private Long id;
 
@@ -29,13 +29,7 @@ public class SchoolDTO {
     private String principalName;
 
     private String announcement;
-
-    private byte[] logo;
-
-    private byte[] favicon;
-
-    private byte[] banner;
-
+    
     private String keywords;
 
     @Builder.Default

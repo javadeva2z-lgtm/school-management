@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.school.common.enums.UserRole;
+import com.school.common.enums.UserRoleWithRolePrefix;
 import com.school.userservice.entity.User;
 import com.school.userservice.repository.UserRepository;
 import com.school.userservice.repository.UserRoleRepository;
@@ -37,7 +38,7 @@ public class SuperUserInitializer implements CommandLineRunner {
     public void run(String... args) {
         // Check if a SUPER_ADMIN already exists (or use userRepository.count() == 0 if
         // you want to check for any user)
-        if (!roleRepository.existsByRole(UserRole.SUPER_ADMIN.getValue())) {
+        if (!roleRepository.existsByRole(UserRoleWithRolePrefix.SUPER_ADMIN.getValue())) {
             log.info("No SUPER_ADMIN found in system. Seeding default super user...");
 
             User superAdmin = new User();
@@ -49,7 +50,7 @@ public class SuperUserInitializer implements CommandLineRunner {
             userRepository.save(superAdmin);
 
             com.school.userservice.entity.UserRole role = com.school.userservice.entity.UserRole.builder()
-                    .role(UserRole.SUPER_ADMIN.getValue()).username(adminUsername).build();
+                    .role("ROLE_"+UserRole.SUPER_ADMIN.getValue()).username(adminUsername).build();
             roleRepository.save(role);
 
             log.info("Default SUPER_ADMIN created successfully with username: {}", adminUsername);

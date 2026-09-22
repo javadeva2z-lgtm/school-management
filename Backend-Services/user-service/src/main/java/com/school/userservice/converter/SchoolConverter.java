@@ -1,6 +1,7 @@
 package com.school.userservice.converter;
 
 import com.school.userservice.dto.SchoolDTO;
+import com.school.userservice.dto.SchoolPartialDTO;
 import com.school.userservice.entity.School;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -26,7 +27,7 @@ public class SchoolConverter {
                 .logo(school.getLogo())
                 .favicon(school.getFavicon())
                 .banner(school.getBanner())
-                .isActive(school.isActive())
+                .isActive(school.getIsActive())
                 .build();
     }
 
@@ -47,7 +48,43 @@ public class SchoolConverter {
                 .logo(schoolDTO.getLogo())
                 .favicon(schoolDTO.getFavicon())
                 .banner(schoolDTO.getBanner())
-                .isActive(schoolDTO.isActive())
+                .isActive(schoolDTO.getIsActive())
+                .build();
+    }
+    
+    public SchoolPartialDTO entityToPartialDTO(School school) {
+        if (school == null) {
+            return null;
+        }
+        return SchoolPartialDTO.builder()
+                .id(school.getId())
+                .schoolCode(school.getSchoolCode())
+                .schoolName(school.getSchoolName())
+                .address(school.getAddress())
+                .phone(school.getPhone())
+                .email(school.getEmail())
+                .website(school.getWebsite())
+                .principalName(school.getPrincipalName())
+                .announcement(school.getAnnouncement())
+                .isActive(school.getIsActive())
+                .build();
+    }
+    
+    public School partialDtoToEntity(SchoolPartialDTO schoolDTO) {
+        if (schoolDTO == null) {
+            return null;
+        }
+        return School.builder()
+                .id(schoolDTO.getId())
+                .schoolCode(schoolDTO.getSchoolCode())
+                .schoolName(schoolDTO.getSchoolName())
+                .address(schoolDTO.getAddress())
+                .phone(schoolDTO.getPhone())
+                .email(schoolDTO.getEmail())
+                .website(schoolDTO.getWebsite())
+                .principalName(schoolDTO.getPrincipalName())
+                .announcement(schoolDTO.getAnnouncement())
+                .isActive(schoolDTO.getIsActive())
                 .build();
     }
 }

@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS schools (
     created_at DATETIME NOT NULL,
     updated_at DATETIME,
     created_by VARCHAR(255),
-    updated_by VARCHAR(255) NOT NULL,
+    updated_by VARCHAR(255),
     PRIMARY KEY (id),
     UNIQUE KEY uk_schools_school_code (school_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS users (
     created_at DATETIME NOT NULL,
     updated_at DATETIME,
     created_by VARCHAR(255),
-    updated_by VARCHAR(255) NOT NULL,
+    updated_by VARCHAR(255),
     PRIMARY KEY (id),
     UNIQUE KEY uk_users_username (username)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS classes (
     created_at DATETIME NOT NULL,
     updated_at DATETIME,
     created_by VARCHAR(255),
-    updated_by VARCHAR(255) NOT NULL,
+    updated_by VARCHAR(255),
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS students (
     created_at DATETIME NOT NULL,
     updated_at DATETIME,
     created_by VARCHAR(255),
-    updated_by VARCHAR(255) NOT NULL,
+    updated_by VARCHAR(255),
     PRIMARY KEY (id),
     UNIQUE KEY uk_students_email (email),
     UNIQUE KEY uk_class_section_roll (class_id, section_Name, roll_number)
@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS teachers (
     created_at DATETIME NOT NULL,
     updated_at DATETIME,
     created_by VARCHAR(255),
-    updated_by VARCHAR(255) NOT NULL,
+    updated_by VARCHAR(255),
     level VARCHAR(255),
     PRIMARY KEY (id),
     UNIQUE KEY uk_teachers_email (email),

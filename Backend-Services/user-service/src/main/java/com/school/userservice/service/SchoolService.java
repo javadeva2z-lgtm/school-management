@@ -1,6 +1,7 @@
 package com.school.userservice.service;
 
 import com.school.userservice.dto.SchoolDTO;
+import com.school.userservice.dto.SchoolPartialDTO;
 import com.school.userservice.entity.School;
 import com.school.userservice.repository.SchoolRepository;
 import com.school.userservice.converter.SchoolConverter;
@@ -41,18 +42,18 @@ public class SchoolService extends BaseService {
         return schoolConverter.entityToDTO(school);
     }
 
-    public SchoolDTO createSchool(SchoolDTO schoolDTO) {
+    public SchoolDTO createSchool(SchoolPartialDTO schoolDTO) {
         log.info("Creating school: {}", schoolDTO.getSchoolName());
 
         if (!schoolRepository.findBySchoolCode(schoolDTO.getSchoolCode()).isEmpty()) {
             throw new DuplicateResourceException("School", "schoolCode", schoolDTO.getSchoolCode());
         }
 
-        School school = schoolConverter.dtoToEntity(schoolDTO);
+        School school = schoolConverter.partialDtoToEntity(schoolDTO);
         school = schoolRepository.save(school);
         log.info("School created successfully with id: {}", school.getId());
 
-        schemaProvisioner.provisionSchema(schoolDTO.getSchoolCode());
+        schemaProvisioner.provisionSchema(schoolDTO);
         return schoolConverter.entityToDTO(school);
     }
 
@@ -78,7 +79,7 @@ public class SchoolService extends BaseService {
         log.info("Updating school with code: {}", code);
         School school = schoolRepository.findBySchoolCode(code)
                 .orElseThrow(() -> new ResourceNotFoundException("School", "schoolCode", code));
-        school.setActive(isActive);
+        school.setIsActive(isActive);
 
         schoolRepository.save(school);
         log.info("School enabled/disabled successfully");
@@ -89,7 +90,7 @@ public class SchoolService extends BaseService {
         log.info("Validating token: {}", token);
         School school = schoolRepository.findByKeywords(token)
                 .orElseThrow(() -> new ResourceNotFoundException("School", "token", token));
-        return school.isActive();
+        return school.getIsActive();
     }
 
     public String getToken() {
