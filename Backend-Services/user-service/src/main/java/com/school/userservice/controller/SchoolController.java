@@ -47,7 +47,7 @@ public class SchoolController {
                 .body(ApiResponse.success(response, "School retrieved successfully"));
     }
 
-    @PostMapping("/public/register/new-school")
+    @PostMapping("/register/new-school")
     @PreAuthorize("hasRole('SUPER_ADMIN')")
     @Operation(summary = "Create a new school")
     public ResponseEntity<ApiResponse<SchoolDTO>> createSchool(@Valid @RequestBody SchoolDTO schoolDTO) {

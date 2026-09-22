@@ -1,7 +1,5 @@
 package com.school.userservice;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,7 +37,7 @@ public class SuperUserInitializer implements CommandLineRunner {
     public void run(String... args) {
         // Check if a SUPER_ADMIN already exists (or use userRepository.count() == 0 if
         // you want to check for any user)
-        if (!userRepository.existsByRole(UserRole.SUPER_ADMIN)) {
+        if (!roleRepository.existsByRole(UserRole.SUPER_ADMIN.getValue())) {
             log.info("No SUPER_ADMIN found in system. Seeding default super user...");
 
             User superAdmin = new User();

@@ -42,10 +42,11 @@ public class MonthlyFee {
     @Default
     private Double totalPayable = 0.0; // (baseAmount + penaltyAmount) - waiverAmount
 
-    @Column(name = "base_amount", nullable = false)
+    @Column(name = "paid_amount", nullable = false)
     @Default
     private Double paidAmount = 0.0;
 
-    @Column(name = "base_amount", nullable = false)
+    @Column(name = "status", nullable = false)
+    @Enumerated(EnumType.STRING)
     private PaymentStatus status; // "PENDING", "PARTIAL", "PAID", "EXEMPT"
 }

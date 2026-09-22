@@ -28,6 +28,7 @@ public class PaymentReminder {
     private Long studentId;
 
     @Column(name = "reminder_type", nullable = false)
+    @Enumerated(EnumType.STRING)
     private PaymentReminderType reminderType;
 
     @Column(name = "amount", nullable = false)

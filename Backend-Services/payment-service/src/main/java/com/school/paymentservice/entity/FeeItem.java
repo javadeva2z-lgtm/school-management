@@ -23,7 +23,7 @@ public class FeeItem {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "service_name", nullable = false)
+    @Column(name = "class_id", nullable = false)
     private Long classId;
 
     @Column(name = "service_name", nullable = false)
