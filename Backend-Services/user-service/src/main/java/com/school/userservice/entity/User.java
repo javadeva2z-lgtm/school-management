@@ -41,6 +41,9 @@ public class User {
     @Column(name = "phone_number")
     private String phoneNumber;
 
+    @Column(name = "token")
+    private String token;
+
     @Column(name = "is_active")
     @Builder.Default
     private Boolean isActive = true;
@@ -52,11 +55,11 @@ public class User {
     @Column(name = "updated_at")
     @LastModifiedDate
     private LocalDateTime updatedAt;
-    
+
     @Column(name = "created_by", updatable = false)
     @CreatedBy
     private String createdBy;
-    
+
     @Column(name = "updated_by", nullable = false)
     @LastModifiedBy
     private String updatedBy;

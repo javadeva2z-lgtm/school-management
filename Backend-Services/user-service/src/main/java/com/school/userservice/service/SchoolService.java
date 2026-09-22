@@ -1,6 +1,7 @@
 package com.school.userservice.service;
 
 import com.school.userservice.dto.SchoolDTO;
+import com.school.userservice.dto.SchoolPartialDTO;
 import com.school.userservice.entity.School;
 import com.school.userservice.repository.SchoolRepository;
 import com.school.userservice.converter.SchoolConverter;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class SchoolService extends BaseService {
     private final SchoolRepository schoolRepository;
     private final SchoolConverter schoolConverter;
+    private final TenantSchemaProvisioner schemaProvisioner;
 
     public List<SchoolDTO> getAllSchools() {
         log.info("Fetching all schools");
@@ -40,16 +42,18 @@ public class SchoolService extends BaseService {
         return schoolConverter.entityToDTO(school);
     }
 
-    public SchoolDTO createSchool(SchoolDTO schoolDTO) {
+    public SchoolDTO createSchool(SchoolPartialDTO schoolDTO) {
         log.info("Creating school: {}", schoolDTO.getSchoolName());
 
-        if (!schoolRepository.findAll().isEmpty()) {
+        if (!schoolRepository.findBySchoolCode(schoolDTO.getSchoolCode()).isEmpty()) {
             throw new DuplicateResourceException("School", "schoolCode", schoolDTO.getSchoolCode());
         }
 
-        School school = schoolConverter.dtoToEntity(schoolDTO);
+        School school = schoolConverter.partialDtoToEntity(schoolDTO);
         school = schoolRepository.save(school);
         log.info("School created successfully with id: {}", school.getId());
+
+        schemaProvisioner.provisionSchema(schoolDTO);
         return schoolConverter.entityToDTO(school);
     }
 
@@ -75,7 +79,7 @@ public class SchoolService extends BaseService {
         log.info("Updating school with code: {}", code);
         School school = schoolRepository.findBySchoolCode(code)
                 .orElseThrow(() -> new ResourceNotFoundException("School", "schoolCode", code));
-        school.setActive(isActive);
+        school.setIsActive(isActive);
 
         schoolRepository.save(school);
         log.info("School enabled/disabled successfully");
@@ -86,7 +90,7 @@ public class SchoolService extends BaseService {
         log.info("Validating token: {}", token);
         School school = schoolRepository.findByKeywords(token)
                 .orElseThrow(() -> new ResourceNotFoundException("School", "token", token));
-        return school.isActive();
+        return school.getIsActive();
     }
 
     public String getToken() {

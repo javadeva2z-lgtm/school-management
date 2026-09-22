@@ -1,5 +1,6 @@
 package com.school.paymentservice.repository;
 
+import com.school.common.enums.PaymentStatus;
 import com.school.paymentservice.entity.Payment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -12,10 +13,16 @@ import java.util.Optional;
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
     List<Payment> findByStudentId(Long studentId);
+
     Page<Payment> findByStudentId(Long studentId, Pageable pageable);
-    List<Payment> findByFeeId(Long feeId);
+
+    List<Payment> findByMonthlyFeeId(Long monthlyFeeId);
+
     Optional<Payment> findByTransactionId(String transactionId);
+
     List<Payment> findByPaymentDateBetween(LocalDateTime fromDate, LocalDateTime toDate);
-    List<Payment> findByStatus(String status);
-    List<Payment> findByStudentIdAndStatus(Long studentId, String status);
+
+    List<Payment> findByStatus(PaymentStatus status);
+
+    List<Payment> findByStudentIdAndStatus(Long studentId, PaymentStatus status);
 }

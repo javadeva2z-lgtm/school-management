@@ -39,6 +39,6 @@ public class SchoolDTO {
     private String keywords;
 
     @Builder.Default
-    private boolean isActive = true;
+    private Boolean isActive = true;
 
 }

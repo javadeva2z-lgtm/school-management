@@ -9,8 +9,12 @@ import java.util.List;
 @Repository
 public interface PaymentReminderRepository extends JpaRepository<PaymentReminder, Long> {
     List<PaymentReminder> findByStudentId(Long studentId);
-    List<PaymentReminder> findByFeeId(Long feeId);
-    List<PaymentReminder> findByReminderDateAndIsSentFalse(LocalDate reminderDate);
-    List<PaymentReminder> findByIsSentFalse();
-    List<PaymentReminder> findByStudentIdAndIsSentFalse(Long studentId);
+
+    List<PaymentReminder> findByMonthlyFeeId(Long feeId);
+
+    List<PaymentReminder> findByDueDateAndSentFalse(LocalDate reminderDate);
+
+    List<PaymentReminder> findBySentFalse();
+
+    List<PaymentReminder> findByStudentIdAndSentFalse(Long studentId);
 }

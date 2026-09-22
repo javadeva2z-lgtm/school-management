@@ -29,6 +29,7 @@ public class StudentConverter {
                 .dateOfBirth(student.getDateOfBirth())
                 .address(student.getAddress())
                 .parentPhone(student.getParentPhone())
+                .isEws(student.getIsEWS())
                 .build();
     }
 
@@ -50,6 +51,7 @@ public class StudentConverter {
                 .dateOfBirth(studentDTO.getDateOfBirth())
                 .address(studentDTO.getAddress())
                 .parentPhone(studentDTO.getParentPhone())
+                .isEWS(studentDTO.getIsEws())
                 .build();
     }
 }
