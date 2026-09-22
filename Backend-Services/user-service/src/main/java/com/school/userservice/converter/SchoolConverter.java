@@ -28,6 +28,7 @@ public class SchoolConverter {
                 .favicon(school.getFavicon())
                 .banner(school.getBanner())
                 .isActive(school.getIsActive())
+                .keywords(school.getKeywords())
                 .build();
     }
 
@@ -49,9 +50,10 @@ public class SchoolConverter {
                 .favicon(schoolDTO.getFavicon())
                 .banner(schoolDTO.getBanner())
                 .isActive(schoolDTO.getIsActive())
+                .keywords(schoolDTO.getKeywords())
                 .build();
     }
-    
+
     public SchoolPartialDTO entityToPartialDTO(School school) {
         if (school == null) {
             return null;
@@ -67,9 +69,10 @@ public class SchoolConverter {
                 .principalName(school.getPrincipalName())
                 .announcement(school.getAnnouncement())
                 .isActive(school.getIsActive())
+                .keywords(school.getKeywords())
                 .build();
     }
-    
+
     public School partialDtoToEntity(SchoolPartialDTO schoolDTO) {
         if (schoolDTO == null) {
             return null;
@@ -85,6 +88,7 @@ public class SchoolConverter {
                 .principalName(schoolDTO.getPrincipalName())
                 .announcement(schoolDTO.getAnnouncement())
                 .isActive(schoolDTO.getIsActive())
+                .keywords(schoolDTO.getKeywords())
                 .build();
     }
 }
