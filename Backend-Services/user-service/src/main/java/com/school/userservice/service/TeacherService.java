@@ -47,6 +47,11 @@ public class TeacherService {
         }
 
         Teacher teacher = teacherConverter.dtoToEntity(teacherDTO);
+
+        createLoginUserForTeacher(teacherDTO.getUsername(),
+                Utills.generatePasswordFromDateOfBirth(
+                        teacherDTO.getJoiningDate() != null ? teacherDTO.getJoiningDate()
+                                : LocalDate.of(2000, 01, 01)));
         teacher = teacherRepository.save(teacher);
         log.info("Teacher created successfully with id: {}", teacher.getId());
         return teacherConverter.entityToDTO(teacher);
@@ -154,8 +159,8 @@ public class TeacherService {
                         ? record.get(Constants.IMPORT_TEACHER_COLUMN_GENDER)
                         : "";
 
-               String levelStr = record.get(Constants.IMPORT_TEACHER_COLUMN_LEVEL);
-                TeacherClassLevel level  = TeacherClassLevel.valueOf(levelStr.toUpperCase());
+                String levelStr = record.get(Constants.IMPORT_TEACHER_COLUMN_LEVEL);
+                TeacherClassLevel level = TeacherClassLevel.valueOf(levelStr.toUpperCase());
 
                 teachersToSave.add(Teacher.builder()
                         .id(id > 0 ? id : null)
@@ -176,11 +181,11 @@ public class TeacherService {
                         .level(level)
                         .build());
 
-                userService.createLoginUser(userName,
+                createLoginUserForTeacher(userName,
                         Utills.generatePasswordFromDateOfBirth(
                                 joiningDate != null && !joiningDate.isBlank() ? LocalDate.parse(joiningDate)
-                                        : LocalDate.of(2000, 01, 01)),
-                        UserRole.TEACHER.getValue());
+                                        : LocalDate.of(2000, 01, 01)));
+
             }
 
             teacherRepository.saveAll(teachersToSave);
@@ -188,6 +193,10 @@ public class TeacherService {
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse CSV file: " + e.getMessage());
         }
+    }
+
+    private void createLoginUserForTeacher(String username, String password) {
+        userService.createLoginUser(username, password, UserRole.TEACHER.getValue());
     }
 
     public void exportAllTeachersToCsv(java.io.Writer writer) {
