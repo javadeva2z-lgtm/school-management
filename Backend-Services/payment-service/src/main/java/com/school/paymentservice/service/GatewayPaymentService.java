@@ -72,7 +72,10 @@ public class GatewayPaymentService {
     private String mode;
 
     @Transactional
-    public GatewayPaymentOrderDTO createOrder(CreateGatewayPaymentRequest request, HttpServletRequest servletRequest) {
+    public GatewayPaymentOrderDTO createOrder(
+            CreateGatewayPaymentRequest request,
+            Long verifiedStudentId,
+            HttpServletRequest servletRequest) {
         String provider = request.getProvider().trim().toUpperCase(Locale.ROOT);
         if (!RAZORPAY.equals(provider) && !PAYU.equals(provider)) {
             throw new IllegalArgumentException("Payment provider must be RAZORPAY or PAYU");
@@ -96,7 +99,7 @@ public class GatewayPaymentService {
 
         BigDecimal total = BigDecimal.ZERO;
         for (MonthlyFee fee : fees) {
-            if (!fee.getStudentId().equals(request.getStudentId())) {
+            if (!fee.getStudentId().equals(verifiedStudentId)) {
                 throw new IllegalArgumentException("All monthly fees must belong to the requested student");
             }
             if (fee.getStatus() == PaymentStatus.PAID || fee.getStatus() == PaymentStatus.EXEMPT
@@ -137,7 +140,7 @@ public class GatewayPaymentService {
                 .reference(reference)
                 .provider(provider)
                 .providerReference(providerReference)
-                .studentId(request.getStudentId())
+                .admissionNumber(request.getAdmissionNumber())
                 .monthlyFeeIds(String.join(",", feeIds.stream().map(String::valueOf).toList()))
                 .amountPaise(amountPaise)
                 .status(PENDING)
@@ -215,10 +218,10 @@ public class GatewayPaymentService {
     }
 
     @Transactional(readOnly = true)
-    public Long getOrderStudentId(String reference) {
+    public Long getOrderAdmissionNumber(String reference) {
         return orderRepository.findByReference(reference)
                 .orElseThrow(() -> new ResourceNotFoundException("GatewayPaymentOrder", "reference", reference))
-                .getStudentId();
+                .getAdmissionNumber();
     }
 
     private JsonNode createRazorpayQr(CreateGatewayPaymentRequest request, String reference, long amountPaise) {
@@ -230,7 +233,8 @@ public class GatewayPaymentService {
         body.put("name", request.getCustomerName());
         body.put("description", "School fee payment " + reference);
         body.put("close_by", java.time.Instant.now().plusSeconds(1800).getEpochSecond());
-        body.put("notes", Map.of("school_fee_reference", reference, "student_id", request.getStudentId()));
+        body.put("notes", Map.of("school_fee_reference", reference,
+                "admission_number", request.getAdmissionNumber()));
 
         JsonNode response = restClientBuilder.build().post()
                 .uri("https://api.razorpay.com/v1/payments/qr_codes")
@@ -425,7 +429,7 @@ public class GatewayPaymentService {
                 break;
             }
             PaymentDTO payment = PaymentDTO.builder()
-                    .studentId(order.getStudentId())
+                    .admissionNumber(order.getAdmissionNumber())
                     .monthlyFeeId(fee.getId())
                     .monthYear(fee.getMonthYear())
                     .transactionId(providerPaymentId + "-" + fee.getId())
@@ -433,7 +437,7 @@ public class GatewayPaymentService {
                     .amountPaid(allocated.doubleValue())
                     .status(PaymentStatus.PAID)
                     .build();
-            paymentService.createPayment(payment);
+            paymentService.createPayment(payment, fee.getStudentId());
             remaining = remaining.subtract(allocated);
         }
         if (remaining.signum() != 0) {
@@ -519,6 +523,7 @@ public class GatewayPaymentService {
         return GatewayPaymentOrderDTO.builder()
                 .reference(order.getReference())
                 .provider(order.getProvider())
+                .admissionNumber(order.getAdmissionNumber())
                 .status(order.getStatus())
                 .amountPaise(order.getAmountPaise())
                 .currency("INR")

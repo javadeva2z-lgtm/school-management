@@ -10,6 +10,7 @@ import lombok.Value;
 public class GatewayPaymentOrderDTO {
     String reference;
     String provider;
+    long admissionNumber;
     String status;
     long amountPaise;
     String currency;

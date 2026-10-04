@@ -18,7 +18,7 @@ public class CreateGatewayPaymentRequest {
 
     @NotNull
     @Positive
-    private Long studentId;
+    private Long admissionNumber;
 
     @NotEmpty
     @Size(max = 50)

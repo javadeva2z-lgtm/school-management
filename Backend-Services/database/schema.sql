@@ -272,7 +272,7 @@ CREATE TABLE IF NOT EXISTS monthly_fees (
 
 CREATE TABLE IF NOT EXISTS payments (
     id BIGINT NOT NULL AUTO_INCREMENT,
-    student_id BIGINT NOT NULL,
+    admission_number BIGINT NOT NULL,
     monthly_fee_id BIGINT NOT NULL,
     month VARCHAR(7) NOT NULL,
     transaction_id VARCHAR(255) NOT NULL,
@@ -281,6 +281,7 @@ CREATE TABLE IF NOT EXISTS payments (
     payment_date DATETIME NOT NULL,
     payment_status VARCHAR(50) NOT NULL,
     PRIMARY KEY (id),
+    INDEX idx_payments_admission_number (admission_number),
     UNIQUE KEY uk_payments_transaction_id (transaction_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -289,7 +290,7 @@ CREATE TABLE IF NOT EXISTS gateway_payment_orders (
     reference VARCHAR(64) NOT NULL,
     provider VARCHAR(20) NOT NULL,
     provider_reference VARCHAR(128) NOT NULL,
-    student_id BIGINT NOT NULL,
+    admission_number BIGINT NOT NULL,
     monthly_fee_ids VARCHAR(2000) NOT NULL,
     amount_paise BIGINT NOT NULL,
     status VARCHAR(20) NOT NULL,

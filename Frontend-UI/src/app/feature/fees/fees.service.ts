@@ -25,7 +25,7 @@ export interface MonthlyFee {
 
 export interface PaymentRecord {
   id: number;
-  studentId: number;
+  admissionNumber: number;
   monthlyFeeId: number;
   monthYear: string;
   transactionId: string;
@@ -57,7 +57,7 @@ export interface PaymentReminder {
 
 export interface GatewayPaymentRequest {
   provider: 'RAZORPAY' | 'PAYU';
-  studentId: number;
+  admissionNumber: number;
   monthlyFeeIds: number[];
   customerName: string;
   customerEmail: string;
@@ -67,6 +67,7 @@ export interface GatewayPaymentRequest {
 export interface GatewayPaymentOrder {
   reference: string;
   provider: 'RAZORPAY' | 'PAYU';
+  admissionNumber: number;
   status: 'PENDING' | 'PAID' | 'FAILED';
   amountPaise: number;
   currency: 'INR';
@@ -91,9 +92,9 @@ export class FeesService {
     ).pipe(map(response => response.data ?? []));
   }
 
-  getPayments(studentId: number): Observable<PaymentRecord[]> {
+  getPayments(admissionNumber: number): Observable<PaymentRecord[]> {
     return this.http.get<ApiResponse<PaymentRecord[]>>(
-      paymentServiceApiUrl(`/payments/student/${studentId}`)
+      paymentServiceApiUrl(`/payments/admission/${admissionNumber}`)
     ).pipe(map(response => response.data ?? []));
   }
 

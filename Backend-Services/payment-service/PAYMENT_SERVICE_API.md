@@ -252,7 +252,7 @@ Authorization: Bearer <token>
 ```json
 {
   "provider": "RAZORPAY",
-  "studentId": 42,
+  "admissionNumber": 42001,
   "monthlyFeeIds": [101, 102],
   "customerName": "Student Name",
   "customerEmail": "student@example.com",
@@ -273,7 +273,7 @@ Status checks query the provider; signed callbacks also reconcile payments. Repe
 
 ### Existing tenant database migration
 
-New school schemas create `gateway_payment_orders` from the tenant provisioning schema. For existing schemas, run [`database/gateway_payment_orders.sql`](./src/main/resources/database/gateway_payment_orders.sql) against each tenant schema before deploying this version because Hibernate is configured to validate existing schemas.
+The project is under development and uses a fresh database schema. The full schema, including payment transactions and gateway orders tracked by `admission_number`, is defined in [`schema.sql`](../user-service/src/main/resources/database/schema.sql). Initialize new databases from that schema; no separate payment migration scripts are required.
 
 ### Record Payment
 ```http
@@ -283,7 +283,7 @@ Authorization: Bearer <token>
 
 {
   "feeId": 1,
-  "studentId": 1,
+  "admissionNumber": 42001,
   "amountPaid": 5000.00,
   "paymentMethod": "CARD",
   "transactionId": "TXN123456",
@@ -302,7 +302,7 @@ Authorization: Bearer <token>
   "data": {
     "id": 1,
     "feeId": 1,
-    "studentId": 1,
+    "admissionNumber": 42001,
     "amountPaid": 5000.00,
     "paymentMethod": "CARD",
     "transactionId": "TXN123456",
@@ -323,13 +323,13 @@ Authorization: Bearer <token>
 
 ### Get All Payments for Student
 ```http
-GET /payments/student/{studentId}
+GET /payments/admission/{admissionNumber}
 Authorization: Bearer <token>
 ```
 
 ### Get Paginated Payments for Student
 ```http
-GET /payments/student/{studentId}/paginated?page=0&size=10
+GET /payments/admission/{admissionNumber}/paginated?page=0&size=10
 Authorization: Bearer <token>
 ```
 
@@ -359,7 +359,7 @@ Authorization: Bearer <token>
 
 {
   "feeId": 1,
-  "studentId": 1,
+  "admissionNumber": 42001,
   "amountPaid": 5000.00,
   "paymentMethod": "CARD",
   "receiptUrl": "https://gcs.example.com/receipt.pdf",
@@ -570,7 +570,7 @@ curl -X POST http://localhost:8003/api/v1/payments \
   -H "Content-Type: application/json" \
   -d '{
     "feeId": 1,
-    "studentId": 1,
+    "admissionNumber": 42001,
     "amountPaid": 5000,
     "paymentMethod": "CARD",
     "transactionId": "TXN123456",
@@ -638,7 +638,7 @@ CREATE TABLE fees (
 CREATE TABLE payments (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   fee_id BIGINT NOT NULL,
-  student_id BIGINT NOT NULL,
+  admission_number BIGINT NOT NULL,
   amount_paid DECIMAL(10, 2) NOT NULL,
   payment_method VARCHAR(50) NOT NULL,
   transaction_id VARCHAR(100) UNIQUE,
@@ -649,8 +649,7 @@ CREATE TABLE payments (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (fee_id) REFERENCES fees(id),
-  FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
-  INDEX idx_student_id (student_id),
+  INDEX idx_payment_admission_number (admission_number),
   INDEX idx_payment_date (payment_date),
   INDEX idx_transaction_id (transaction_id)
 );

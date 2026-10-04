@@ -23,6 +23,7 @@ export class StudentFeeComponent {
 
   protected readonly profile = signal<{
     id: number;
+    admissionNumber: number;
     name: string;
     classId: number;
     email: string;
@@ -84,7 +85,9 @@ export class StudentFeeComponent {
   constructor() {
     this.profileService.getProfile().pipe(defaultIfEmpty(null)).subscribe({
       next: profile => {
-        if (!profile || profile.role !== 'Student' || profile.id <= 0) {
+        const admissionNumber = Number(profile?.username);
+        if (!profile || profile.role !== 'Student' || profile.id <= 0
+            || !Number.isSafeInteger(admissionNumber) || admissionNumber <= 0) {
           this.isLoading.set(false);
           this.errorMessage.set('Unable to identify the signed-in student. Please sign in again.');
           return;
@@ -92,6 +95,7 @@ export class StudentFeeComponent {
 
         this.profile.set({
           id: profile.id,
+          admissionNumber,
           name: profile.name,
           classId: Number(profile.className),
           email: profile.email,
@@ -165,7 +169,7 @@ export class StudentFeeComponent {
     this.qrDataUrl.set('');
     this.feesService.createGatewayOrder({
       provider: this.paymentProvider(),
-      studentId: profile.id,
+      admissionNumber: profile.admissionNumber,
       monthlyFeeIds: fees.map(fee => fee.id),
       customerName: profile.name,
       customerEmail: profile.email,
@@ -239,15 +243,15 @@ export class StudentFeeComponent {
   }
 
   private loadFees(): void {
-    const studentId = this.profile()?.id;
-    if (!studentId) {
+    const profile = this.profile();
+    if (!profile) {
       return;
     }
 
     this.isLoading.set(true);
     forkJoin({
-      monthlyFees: this.feesService.getMonthlyFees(studentId),
-      payments: this.feesService.getPayments(studentId)
+      monthlyFees: this.feesService.getMonthlyFees(profile.id),
+      payments: this.feesService.getPayments(profile.admissionNumber)
     }).subscribe({
       next: ({ monthlyFees, payments }) => {
         this.monthlyFees.set(monthlyFees);

@@ -28,8 +28,9 @@ public class PaymentService {
     private final PaymentConverter paymentConverter;
     private final MonthlyFeeRepository monthlyFeeRepository;
 
-    public PaymentDTO createPayment(PaymentDTO paymentDTO) {
-        log.info("Recording payment for student {} amount {}", paymentDTO.getStudentId(), paymentDTO.getAmountPaid());
+    public PaymentDTO createPayment(PaymentDTO paymentDTO, Long verifiedStudentId) {
+        log.info("Recording payment for admission number {} amount {}",
+                paymentDTO.getAdmissionNumber(), paymentDTO.getAmountPaid());
         Payment payment = paymentConverter.dtoToEntity(paymentDTO);
         if (payment.getPaymentDate() == null) {
             payment.setPaymentDate(LocalDateTime.now());
@@ -40,11 +41,12 @@ public class PaymentService {
 
         MonthlyFee monthlyFee = null;
         if (payment.getStatus() == PaymentStatus.PAID) {
-            if (payment.getStudentId() == null || payment.getMonthlyFeeId() == null
+            if (payment.getAdmissionNumber() == null || payment.getMonthlyFeeId() == null
+                    || verifiedStudentId == null
                     || payment.getMonthYear() == null || payment.getTransactionId() == null
                     || payment.getTransactionId().isBlank() || payment.getPaymentMethod() == null
                     || payment.getPaymentMethod().isBlank()) {
-                throw new IllegalArgumentException("A paid transaction must include its student, fee, month, "
+                throw new IllegalArgumentException("A paid transaction must include its admission number, fee, month, "
                         + "transaction id, and payment method");
             }
             if (payment.getAmountPaid() == null || !Double.isFinite(payment.getAmountPaid())
@@ -55,7 +57,7 @@ public class PaymentService {
             monthlyFee = monthlyFeeRepository.findById(payment.getMonthlyFeeId())
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "MonthlyFee", "id", payment.getMonthlyFeeId()));
-            if (!monthlyFee.getStudentId().equals(payment.getStudentId())
+            if (!monthlyFee.getStudentId().equals(verifiedStudentId)
                     || !monthlyFee.getMonthYear().equals(payment.getMonthYear())) {
                 throw new IllegalArgumentException("Payment student and month must match the monthly fee");
             }
@@ -90,15 +92,15 @@ public class PaymentService {
     }
 
     @Transactional(readOnly = true)
-    public List<PaymentDTO> getPaymentsByStudent(Long studentId) {
-        return paymentRepository.findByStudentId(studentId).stream()
+    public List<PaymentDTO> getPaymentsByAdmissionNumber(Long admissionNumber) {
+        return paymentRepository.findByAdmissionNumber(admissionNumber).stream()
                 .map(paymentConverter::entityToDTO)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public Page<PaymentDTO> getPaymentsByStudent(Long studentId, Pageable pageable) {
-        return paymentRepository.findByStudentId(studentId, pageable)
+    public Page<PaymentDTO> getPaymentsByAdmissionNumber(Long admissionNumber, Pageable pageable) {
+        return paymentRepository.findByAdmissionNumber(admissionNumber, pageable)
                 .map(paymentConverter::entityToDTO);
     }
 

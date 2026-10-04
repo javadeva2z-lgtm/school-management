@@ -50,8 +50,8 @@ public class GatewayPaymentController {
     public ResponseEntity<ApiResponse<GatewayPaymentOrderDTO>> createOrder(
             @Valid @RequestBody CreateGatewayPaymentRequest request,
             HttpServletRequest servletRequest) {
-        assertStudentOwns(request.getStudentId(), servletRequest);
-        GatewayPaymentOrderDTO response = gatewayPaymentService.createOrder(request, servletRequest);
+        Long studentId = resolveStudentId(request.getAdmissionNumber(), servletRequest);
+        GatewayPaymentOrderDTO response = gatewayPaymentService.createOrder(request, studentId, servletRequest);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response, "Payment QR created. Complete the payment in your UPI app."));
     }
@@ -61,7 +61,7 @@ public class GatewayPaymentController {
     public ResponseEntity<ApiResponse<GatewayPaymentOrderDTO>> refreshOrder(
             @PathVariable String reference,
             HttpServletRequest servletRequest) {
-        assertStudentOwns(gatewayPaymentService.getOrderStudentId(reference), servletRequest);
+        assertStudentOwns(gatewayPaymentService.getOrderAdmissionNumber(reference));
         return ResponseEntity.ok(ApiResponse.success(gatewayPaymentService.refreshOrder(reference)));
     }
 
@@ -92,25 +92,44 @@ public class GatewayPaymentController {
         }
     }
 
-    private void assertStudentOwns(Long studentId, HttpServletRequest request) {
+    private Long resolveStudentId(Long admissionNumber, HttpServletRequest request) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || authentication.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"))) {
-            return;
+        if (authentication == null || admissionNumber == null || admissionNumber <= 0) {
+            throw new IllegalArgumentException("A valid admission number and authenticated user are required");
+        }
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+        if (!isAdmin && !String.valueOf(admissionNumber).equals(authentication.getName())) {
+            throw new IllegalArgumentException("A student can only create payments for their own admission number");
         }
 
         String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (authorization == null || authorization.isBlank()) {
-            throw new IllegalStateException("Authenticated student token is required");
+            throw new IllegalStateException("Authenticated user token is required");
         }
         JsonNode response = restClientBuilder.build().get()
-                .uri(userServiceBaseUrl + "/api/v1/students/admission/{admissionNumber}", authentication.getName())
+                .uri(userServiceBaseUrl + "/api/v1/students/admission/{admissionNumber}", admissionNumber)
                 .header(HttpHeaders.AUTHORIZATION, authorization)
                 .retrieve()
                 .body(JsonNode.class);
-        if (response == null || !response.path("data").path("id").isNumber()
-                || response.path("data").path("id").asLong() != studentId) {
-            throw new IllegalArgumentException("A student can only make and check payments for their own fees");
+        JsonNode student = response == null ? null : response.path("data");
+        if (student == null || !student.path("id").isNumber()
+                || !student.path("admissionNumber").canConvertToLong()
+                || student.path("admissionNumber").asLong() != admissionNumber) {
+            throw new IllegalArgumentException("Admission number does not identify a student");
+        }
+        return student.path("id").asLong();
+    }
+
+    private void assertStudentOwns(Long admissionNumber) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw new IllegalStateException("Authenticated user is required");
+        }
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+        if (!isAdmin && !String.valueOf(admissionNumber).equals(authentication.getName())) {
+            throw new IllegalArgumentException("A student can only check payments for their own admission number");
         }
     }
 }

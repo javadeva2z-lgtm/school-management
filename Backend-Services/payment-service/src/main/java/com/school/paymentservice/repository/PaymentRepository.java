@@ -12,9 +12,9 @@ import java.util.Optional;
 
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
-    List<Payment> findByStudentId(Long studentId);
+    List<Payment> findByAdmissionNumber(Long admissionNumber);
 
-    Page<Payment> findByStudentId(Long studentId, Pageable pageable);
+    Page<Payment> findByAdmissionNumber(Long admissionNumber, Pageable pageable);
 
     List<Payment> findByMonthlyFeeId(Long monthlyFeeId);
 
@@ -24,5 +24,5 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     List<Payment> findByStatus(PaymentStatus status);
 
-    List<Payment> findByStudentIdAndStatus(Long studentId, PaymentStatus status);
+    List<Payment> findByAdmissionNumberAndStatus(Long admissionNumber, PaymentStatus status);
 }
