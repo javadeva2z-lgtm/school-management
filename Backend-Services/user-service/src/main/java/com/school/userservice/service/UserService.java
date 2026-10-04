@@ -1,35 +1,31 @@
 package com.school.userservice.service;
 
-import com.school.userservice.dto.LoginRequestDTO;
-import com.school.userservice.dto.LoginResponseDTO;
-import com.school.userservice.dto.ProfileDTO;
-import com.school.userservice.dto.ProfileDTO.ProfileDTOBuilder;
-import com.school.userservice.dto.StudentDTO;
-import com.school.userservice.dto.TeacherDTO;
-import com.school.userservice.dto.UserRegistrationDTO;
-import com.school.userservice.entity.User;
-import com.school.userservice.entity.UserRole;
-import com.school.userservice.repository.UserRepository;
-import com.school.userservice.repository.UserRoleRepository;
-import com.school.common.exception.ResourceNotFoundException;
-import com.school.common.service.BaseService;
-import com.pawan.share.jwt.JwtUtil;
-import com.school.common.exception.DuplicateResourceException;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Random;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import com.pawan.share.jwt.JwtUtil;
+import com.school.common.exception.DuplicateResourceException;
+import com.school.common.exception.ResourceNotFoundException;
+import com.school.common.service.BaseService;
+import com.school.userservice.dto.LoginRequestDTO;
+import com.school.userservice.dto.LoginResponseDTO;
+import com.school.userservice.dto.UserRegistrationDTO;
+import com.school.userservice.entity.User;
+import com.school.userservice.entity.UserRole;
+import com.school.userservice.repository.UserRepository;
+import com.school.userservice.repository.UserRoleRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
