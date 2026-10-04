@@ -1,14 +1,141 @@
-<main class="dashboard feature-page">
-  <a class="back-link" routerLink="/" queryParamsHandling="preserve">&#8592; Back to workspace</a>
-  <section class="feature-panel">
-    <p class="eyebrow">Student workspace</p>
-    <h1>Fee</h1>
-    <p>View your payment information and upcoming fee dates.</p>
-    <div class="feature-metrics">
-      <div><strong>{{ summary().outstanding }}</strong><small>Outstanding</small></div>
-      <div><strong>{{ summary().paid }}</strong><small>Paid</small></div>
-      <div><strong>{{ summary().dueDate }}</strong><small>Due date</small></div>
+<main class="dashboard feature-page student-fees-page">
+  <a class="back-link no-print" routerLink="/" queryParamsHandling="preserve">&#8592; Back to workspace</a>
+  <section class="feature-panel fees-panel">
+    <p class="eyebrow no-print">Student workspace</p>
+    <h1 class="no-print">Fees and payments</h1>
+    <p class="no-print">Review monthly dues, pay outstanding fees, and print your receipts.</p>
+
+    <div class="fee-tabs no-print" role="tablist" aria-label="Student fee sections">
+      <button type="button" role="tab" [attr.aria-selected]="activeTab() === 'dues'"
+        [class.active]="activeTab() === 'dues'" (click)="selectTab('dues')">Pending fees</button>
+      <button type="button" role="tab" [attr.aria-selected]="activeTab() === 'receipts'"
+        [class.active]="activeTab() === 'receipts'" (click)="selectTab('receipts')">Fee receipts</button>
     </div>
-    <div class="feature-status"><span></span>Showing the local preview until the API is connected.</div>
+
+    @if (isLoading()) {
+    <p class="fee-feedback" role="status">Loading fee information...</p>
+    } @else if (activeTab() === 'dues') {
+    <section class="fee-content" aria-labelledby="pending-title" role="tabpanel">
+      <div class="fee-summary">
+        <div><small>Total pending</small><strong>{{ formatCurrency(outstandingAmount()) }}</strong></div>
+        <div><small>Overdue</small><strong>{{ formatCurrency(overdueAmount()) }}</strong></div>
+        <div><small>Monthly due date</small><strong>8th of each month</strong></div>
+      </div>
+
+      <div class="fee-heading">
+        <div>
+          <p class="eyebrow">Monthly balance</p>
+          <h2 id="pending-title">Your pending fees</h2>
+        </div>
+      </div>
+
+      @if (payableFees().length) {
+      <div class="student-fee-list">
+        @for (fee of payableFees(); track fee.id) {
+        <article class="student-fee-row">
+          <div>
+            <strong>{{ formatMonth(fee.monthYear) }}</strong>
+            <small>Due {{ formatDate(dueDate(fee.monthYear)) }}</small>
+          </div>
+          <div class="student-fee-amount">
+            <strong>{{ formatCurrency(outstanding(fee)) }}</strong>
+            <span [class.overdue]="isOverdue(fee)">{{ isOverdue(fee) ? 'Overdue' : fee.status }}</span>
+          </div>
+        </article>
+        }
+      </div>
+
+      <div class="payment-form no-print">
+        <p class="payment-notice">Payments are currently simulated; submitting records the payment without a gateway.</p>
+        <label for="payment-through-month">Pay pending fees through</label>
+        <select id="payment-through-month" [value]="selectedMonth()" (change)="selectMonth($any($event.target).value)">
+          @for (fee of payableFees(); track fee.monthYear) {
+          <option [value]="fee.monthYear">{{ formatMonth(fee.monthYear) }}</option>
+          }
+        </select>
+        <label for="payment-method">Payment method</label>
+        <select id="payment-method" [value]="paymentMethod()" (change)="selectPaymentMethod($any($event.target).value)">
+          <option value="UPI">UPI</option>
+          <option value="NET_BANKING">Net banking</option>
+          <option value="CREDIT_CARD">Credit card</option>
+          <option value="CASH">Cash</option>
+        </select>
+        <p class="payment-total">Amount to pay <strong>{{ formatCurrency(selectedAmount()) }}</strong></p>
+        <button type="button" class="fee-primary-button" [disabled]="isPaying() || selectedAmount() <= 0"
+          (click)="paySelectedFees()">
+          {{ isPaying() ? 'Recording payment...' : 'Pay pending fee (simulated)' }}
+        </button>
+      </div>
+      } @else {
+      <p class="fee-empty">There are no pending fees for your account.</p>
+      }
+    </section>
+    } @else {
+    <section class="fee-content" aria-labelledby="receipt-title" role="tabpanel">
+      <div class="fee-heading no-print">
+        <div>
+          <p class="eyebrow">Payment history</p>
+          <h2 id="receipt-title">Fee receipts</h2>
+        </div>
+        @if (receiptMonths().length) {
+        <label class="receipt-month-label">Paid month
+          <select [value]="receiptMonth()" (change)="selectReceiptMonth($any($event.target).value)">
+            @for (month of receiptMonths(); track month) {
+            <option [value]="month">{{ formatMonth(month) }}</option>
+            }
+          </select>
+        </label>
+        }
+      </div>
+
+      @if (receiptMonths().length) {
+        @if (isLoadingReceiptItems()) {
+        <p class="fee-feedback no-print" role="status">Loading receipt details...</p>
+        } @else if (receiptPayments().length && !receiptError()) {
+        <section class="print-receipt" aria-label="Fee payment receipt">
+          <header class="receipt-header">
+            <div>
+              <p class="eyebrow">Payment receipt</p>
+              <h2>Fee receipt · {{ formatMonth(receiptMonth()) }}</h2>
+              <p>{{ profile()?.name }}</p>
+            </div>
+            <strong>{{ formatCurrency(receiptTotal()) }}</strong>
+          </header>
+          <h3>Fee items</h3>
+          @if (feeItems().length) {
+          <table class="receipt-items">
+            <thead><tr><th>Fee item</th><th>Amount</th></tr></thead>
+            <tbody>
+              @for (item of feeItems(); track item.id) {
+              <tr><td>{{ item.serviceName }}</td><td>{{ formatCurrency(item.defaultAmount) }}</td></tr>
+              }
+            </tbody>
+          </table>
+          } @else {
+          <p>No active fee items were returned for this class.</p>
+          }
+          <h3>Payments recorded</h3>
+          <div class="receipt-payment-list">
+            @for (payment of receiptPayments(); track payment.id) {
+            <div><span>{{ payment.paymentMethod }} · {{ payment.transactionId }}</span>
+              <strong>{{ formatCurrency(payment.amountPaid) }}</strong></div>
+            }
+          </div>
+          <footer class="receipt-total"><span>Total paid for {{ formatMonth(receiptMonth()) }}</span>
+            <strong>{{ formatCurrency(receiptTotal()) }}</strong></footer>
+        </section>
+        <button type="button" class="fee-primary-button no-print" [disabled]="!receiptItemsLoaded()"
+          (click)="printReceipt()">Print / Save as PDF</button>
+        } @else if (receiptError()) {
+        <p class="fee-error no-print" role="alert">{{ receiptError() }}</p>
+        }
+      } @else {
+      <p class="fee-empty">No completed payments are available for receipts.</p>
+      }
+    </section>
+    }
+
+    @if (message()) { <p class="fee-feedback" role="status">{{ message() }}</p> }
+    @if (errorMessage()) { <p class="fee-error no-print" role="alert">{{ errorMessage() }}</p> }
   </section>
 </main>
