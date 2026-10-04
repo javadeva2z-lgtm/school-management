@@ -55,13 +55,25 @@ export interface PaymentReminder {
   sentAt: string | null;
 }
 
-export interface PaymentRequest {
+export interface GatewayPaymentRequest {
+  provider: 'RAZORPAY' | 'PAYU';
   studentId: number;
-  monthlyFeeId: number;
-  monthYear: string;
-  transactionId: string;
-  paymentMethod: string;
-  amountPaid: number;
+  monthlyFeeIds: number[];
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+}
+
+export interface GatewayPaymentOrder {
+  reference: string;
+  provider: 'RAZORPAY' | 'PAYU';
+  status: 'PENDING' | 'PAID' | 'FAILED';
+  amountPaise: number;
+  currency: 'INR';
+  qrImageUrl: string | null;
+  qrPayload: string | null;
+  providerReference: string;
+  expiresAt: string;
 }
 
 export type PaymentReminderRequest = Pick<
@@ -91,10 +103,16 @@ export class FeesService {
     ).pipe(map(response => response.data ?? []));
   }
 
-  recordPayment(request: PaymentRequest): Observable<PaymentRecord> {
-    return this.http.post<ApiResponse<PaymentRecord>>(
-      paymentServiceApiUrl('/payments'),
+  createGatewayOrder(request: GatewayPaymentRequest): Observable<GatewayPaymentOrder> {
+    return this.http.post<ApiResponse<GatewayPaymentOrder>>(
+      paymentServiceApiUrl('/payments/gateway-orders'),
       request
+    ).pipe(map(response => response.data));
+  }
+
+  refreshGatewayOrder(reference: string): Observable<GatewayPaymentOrder> {
+    return this.http.get<ApiResponse<GatewayPaymentOrder>>(
+      paymentServiceApiUrl(`/payments/gateway-orders/${encodeURIComponent(reference)}/status`)
     ).pipe(map(response => response.data));
   }
 

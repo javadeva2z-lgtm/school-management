@@ -131,13 +131,6 @@
   background: #f2f5ef;
 }
 
-.payment-notice {
-  grid-column: 1 / -1;
-  margin: 0 0 3px;
-  color: #829191;
-  font: 11px 'Trebuchet MS', sans-serif;
-}
-
 .payment-form label,
 .receipt-month-label {
   color: #527174;
@@ -181,6 +174,61 @@
 }
 
 .fee-primary-button:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.gateway-payment {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 22px;
+  margin-top: 16px;
+  padding: 18px;
+  border: 1px solid #d9e0d8;
+  border-radius: 4px;
+  background: #fbfcf8;
+}
+
+.gateway-payment h3 {
+  margin: 0 0 9px;
+  color: #17383b;
+  font: 400 18px Georgia, serif;
+}
+
+.gateway-payment p:not(.eyebrow) {
+  max-width: 430px;
+  color: #527174;
+  font: 11px 'Trebuchet MS', sans-serif;
+  line-height: 1.6;
+}
+
+.gateway-status {
+  font-weight: 700 !important;
+}
+
+.gateway-paid {
+  color: #2e8581 !important;
+}
+
+.payment-qr {
+  width: 190px;
+  height: 190px;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.fee-secondary-button {
+  padding: 8px 11px;
+  border: 1px solid #2e8581;
+  border-radius: 3px;
+  color: #2e8581;
+  background: #fff;
+  font: 600 11px 'Trebuchet MS', sans-serif;
+  cursor: pointer;
+}
+
+.fee-secondary-button:disabled {
   opacity: .55;
   cursor: not-allowed;
 }
@@ -312,8 +360,14 @@
     grid-column: auto;
   }
 
-  .payment-notice {
-    grid-column: auto;
+  .gateway-payment {
+    align-items: start;
+    flex-direction: column-reverse;
+  }
+
+  .payment-qr {
+    width: 170px;
+    height: 170px;
   }
 
   .receipt-header {

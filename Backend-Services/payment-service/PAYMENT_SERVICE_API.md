@@ -218,6 +218,63 @@ Authorization: Bearer <token>
 
 ## Payment Endpoints
 
+### Razorpay and PayU UPI QR payments
+
+Student QR payments are created from server-calculated monthly fee balances. The UI does not send an amount, and a student can only create or check orders for their own student record. A payment is recorded only after a verified Razorpay capture or a PayU server-side `verify_payment` result. Browser redirects are not treated as payment confirmation.
+
+Configure gateway secrets as environment variables for the payment service; never put provider secrets in the frontend:
+
+| Variable | Purpose |
+| --- | --- |
+| `PAYMENT_GATEWAY_MODE` | `test` (default) or `prod` for PayU |
+| `PAYMENT_PUBLIC_BASE_URL` | Public API gateway origin used to form PayU callback URLs and Razorpay webhook paths |
+| `USER_SERVICE_BASE_URL` | Reachable user-service API base; defaults to `http://localhost:8000/user-service` |
+| `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | Razorpay API credentials |
+| `RAZORPAY_WEBHOOK_SECRET` | Secret configured for the Razorpay webhook |
+| `PAYU_KEY` / `PAYU_SALT` | PayU India merchant credentials |
+
+Razorpay must enable the on-demand `upi_qr` feature. Configure its webhook to send `qr_code.credited` events to:
+
+```text
+{PAYMENT_PUBLIC_BASE_URL}/payment-service/api/v1/payments/gateway-orders/webhooks/razorpay/{schoolCode}/{reference}
+```
+
+Use the same webhook secret as `RAZORPAY_WEBHOOK_SECRET`. Webhook signatures are checked against the raw request body. PayU must enable the Dynamic QR / DBQR feature for the merchant; its callback URLs are generated per order and use the same public gateway base URL.
+
+Create a QR (authenticated student or admin):
+
+```http
+POST /payments/gateway-orders
+Content-Type: application/json
+Authorization: Bearer <token>
+```
+
+```json
+{
+  "provider": "RAZORPAY",
+  "studentId": 42,
+  "monthlyFeeIds": [101, 102],
+  "customerName": "Student Name",
+  "customerEmail": "student@example.com",
+  "customerPhone": "+91 9876543210"
+}
+```
+
+`provider` is `RAZORPAY` or `PAYU`. The server validates fee ownership and outstanding balances, sums the selected months, and returns a `GatewayPaymentOrderDTO` with `reference`, `status`, `amountPaise`, `currency`, `expiresAt`, and either `qrImageUrl` (Razorpay) or `qrPayload` (PayU UPI URI).
+
+Check status (authenticated order owner or admin):
+
+```http
+GET /payments/gateway-orders/{reference}/status
+Authorization: Bearer <token>
+```
+
+Status checks query the provider; signed callbacks also reconcile payments. Repeated callbacks/status checks are idempotent. The UI displays the QR and refreshes status until paid or expired.
+
+### Existing tenant database migration
+
+New school schemas create `gateway_payment_orders` from the tenant provisioning schema. For existing schemas, run [`database/gateway_payment_orders.sql`](./src/main/resources/database/gateway_payment_orders.sql) against each tenant schema before deploying this version because Hibernate is configured to validate existing schemas.
+
 ### Record Payment
 ```http
 POST /payments

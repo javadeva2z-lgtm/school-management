@@ -1,9 +1,12 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { defaultIfEmpty, forkJoin, from, concatMap, finalize, toArray } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DestroyRef } from '@angular/core';
+import { defaultIfEmpty, forkJoin, interval, startWith, switchMap, takeWhile, catchError, of } from 'rxjs';
+import { toDataURL } from 'qrcode';
 
 import { ProfileService } from '../profile/profile.service';
-import { FeeItem, FeesService, MonthlyFee, PaymentRecord } from './fees.service';
+import { FeeItem, FeesService, GatewayPaymentOrder, MonthlyFee, PaymentRecord } from './fees.service';
 
 type FeeTab = 'dues' | 'receipts';
 
@@ -16,8 +19,15 @@ type FeeTab = 'dues' | 'receipts';
 export class StudentFeeComponent {
   private readonly feesService = inject(FeesService);
   private readonly profileService = inject(ProfileService);
+  private readonly destroyRef = inject(DestroyRef);
 
-  protected readonly profile = signal<{ id: number; name: string; classId: number } | null>(null);
+  protected readonly profile = signal<{
+    id: number;
+    name: string;
+    classId: number;
+    email: string;
+    mobile: string;
+  } | null>(null);
   protected readonly activeTab = signal<FeeTab>('dues');
   protected readonly monthlyFees = signal<MonthlyFee[]>([]);
   protected readonly payments = signal<PaymentRecord[]>([]);
@@ -26,9 +36,12 @@ export class StudentFeeComponent {
   protected readonly receiptMonth = signal('');
   protected readonly isLoading = signal(true);
   protected readonly isPaying = signal(false);
+  protected readonly isCheckingPayment = signal(false);
+  protected readonly paymentProvider = signal<'RAZORPAY' | 'PAYU'>('RAZORPAY');
+  protected readonly gatewayOrder = signal<GatewayPaymentOrder | null>(null);
+  protected readonly qrDataUrl = signal('');
   protected readonly isLoadingReceiptItems = signal(false);
   protected readonly receiptItemsLoaded = signal(false);
-  protected readonly paymentMethod = signal('UPI');
   protected readonly message = signal('');
   protected readonly errorMessage = signal('');
   protected readonly receiptError = signal('');
@@ -80,7 +93,9 @@ export class StudentFeeComponent {
         this.profile.set({
           id: profile.id,
           name: profile.name,
-          classId: Number(profile.className)
+          classId: Number(profile.className),
+          email: profile.email,
+          mobile: profile.mobile
         });
         this.loadFees();
       },
@@ -104,8 +119,8 @@ export class StudentFeeComponent {
     this.message.set('');
   }
 
-  protected selectPaymentMethod(method: string): void {
-    this.paymentMethod.set(method);
+  protected selectPaymentProvider(provider: 'RAZORPAY' | 'PAYU'): void {
+    this.paymentProvider.set(provider);
   }
 
   protected selectReceiptMonth(month: string): void {
@@ -132,37 +147,59 @@ export class StudentFeeComponent {
     });
   }
 
-  protected paySelectedFees(): void {
-    const studentId = this.profile()?.id;
+  protected createQrPayment(): void {
+    const profile = this.profile();
     const fees = this.selectedFees();
-    if (!studentId || !fees.length || this.selectedAmount() <= 0 || this.isPaying()) {
+    if (!profile || !fees.length || this.selectedAmount() <= 0 || this.isPaying()) {
+      return;
+    }
+    if (!profile.email.includes('@') || profile.mobile.replace(/\D/g, '').length < 10) {
+      this.errorMessage.set('A valid email address and phone number are required for gateway payment.');
       return;
     }
 
     this.isPaying.set(true);
     this.message.set('');
     this.errorMessage.set('');
-    from(fees).pipe(
-      concatMap((fee, index) => this.feesService.recordPayment({
-        studentId,
-        monthlyFeeId: fee.id,
-        monthYear: fee.monthYear,
-        transactionId: `FEE-${studentId}-${Date.now()}-${index}`,
-        paymentMethod: this.paymentMethod(),
-        amountPaid: this.outstanding(fee)
-      })),
-      toArray(),
-      finalize(() => this.isPaying.set(false))
-    ).subscribe({
-      next: () => {
-        this.message.set(`Payment recorded for ${fees.length} month${fees.length === 1 ? '' : 's'}.`);
-        this.loadFees();
+    this.gatewayOrder.set(null);
+    this.qrDataUrl.set('');
+    this.feesService.createGatewayOrder({
+      provider: this.paymentProvider(),
+      studentId: profile.id,
+      monthlyFeeIds: fees.map(fee => fee.id),
+      customerName: profile.name,
+      customerEmail: profile.email,
+      customerPhone: profile.mobile
+    }).subscribe({
+      next: order => {
+        this.gatewayOrder.set(order);
+        this.isPaying.set(false);
+        if (order.qrImageUrl) {
+          this.qrDataUrl.set(order.qrImageUrl);
+        } else if (order.qrPayload) {
+          toDataURL(order.qrPayload, { errorCorrectionLevel: 'M', margin: 2, width: 256 })
+            .then(dataUrl => this.qrDataUrl.set(dataUrl))
+            .catch(() => this.errorMessage.set('Payment QR was created, but it could not be rendered.'));
+        }
+        this.message.set('Scan the QR with your UPI app to complete the payment. We will verify the result automatically.');
+        this.watchGatewayOrder(order);
       },
       error: () => {
-        this.errorMessage.set('The payment could not be fully recorded. Your latest fee balance is being refreshed.');
-        this.loadFees();
+        this.isPaying.set(false);
+        this.errorMessage.set('Unable to create the payment QR. Check that the gateway is configured and enabled for this merchant account.');
       }
     });
+  }
+
+  protected checkPaymentNow(): void {
+    const order = this.gatewayOrder();
+    if (order && order.status === 'PENDING') {
+      this.refreshGatewayOrder(order);
+    }
+  }
+
+  protected amountFromPaise(amountPaise: number): number {
+    return amountPaise / 100;
   }
 
   protected outstanding(fee: MonthlyFee): number {
@@ -232,6 +269,46 @@ export class StudentFeeComponent {
         this.isLoading.set(false);
       }
     });
+  }
+
+  private watchGatewayOrder(order: GatewayPaymentOrder): void {
+    this.isCheckingPayment.set(true);
+    interval(5000).pipe(
+      startWith(0),
+      switchMap(() => this.feesService.refreshGatewayOrder(order.reference).pipe(
+        catchError(() => {
+          this.errorMessage.set('Could not check the payment status. Retrying...');
+          return of(order);
+        })
+      )),
+      takeWhile(result =>
+        result.status === 'PENDING' && Date.parse(result.expiresAt) > Date.now(), true
+      ),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe({
+      next: result => this.updateGatewayOrder(result),
+      complete: () => this.isCheckingPayment.set(false)
+    });
+  }
+
+  private refreshGatewayOrder(order: GatewayPaymentOrder): void {
+    this.feesService.refreshGatewayOrder(order.reference).subscribe({
+      next: result => this.updateGatewayOrder(result),
+      error: () => this.errorMessage.set('Unable to check payment status right now.')
+    });
+  }
+
+  private updateGatewayOrder(order: GatewayPaymentOrder): void {
+    this.gatewayOrder.set(order);
+    if (order.status === 'PAID') {
+      this.message.set('Payment verified and recorded. Your fee balance has been updated.');
+      this.errorMessage.set('');
+      this.isCheckingPayment.set(false);
+      this.loadFees();
+    } else if (Date.parse(order.expiresAt) <= Date.now()) {
+      this.message.set('This QR has expired. Create a new QR to try again.');
+      this.isCheckingPayment.set(false);
+    }
   }
 
   private today(): string {

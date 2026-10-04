@@ -30,7 +30,7 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     @Operation(summary = "Record payment")
     public ResponseEntity<ApiResponse<PaymentDTO>> createPayment(@Valid @RequestBody PaymentDTO paymentDTO) {
         PaymentDTO response = paymentService.createPayment(paymentDTO);

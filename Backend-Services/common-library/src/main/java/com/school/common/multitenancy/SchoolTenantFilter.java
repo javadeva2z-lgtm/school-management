@@ -1,6 +1,7 @@
 package com.school.common.multitenancy;
 
 import java.io.IOException;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import jakarta.servlet.FilterChain;
@@ -28,6 +29,8 @@ public class SchoolTenantFilter extends OncePerRequestFilter {
 	}
 
     private static final Pattern VALID_SCHEMA_NAME = Pattern.compile("[A-Za-z0-9_]+");
+    private static final Pattern PAYMENT_WEBHOOK_PATH = Pattern.compile(
+            "^/api/v1/payments/gateway-orders/webhooks/(?:razorpay|payu)/([A-Za-z0-9_]+)/[a-f0-9-]{36}$");
 
     @Override
     protected void doFilterInternal(
@@ -38,6 +41,22 @@ public class SchoolTenantFilter extends OncePerRequestFilter {
         if ("OPTIONS".equalsIgnoreCase(request.getMethod()) || request.getRequestURI().contains("v3/api-docs")
                 || request.getRequestURI().contains("swagger") || request.getRequestURI().contains("/schools/public/")) {
             filterChain.doFilter(request, response);
+            return;
+        }
+
+        Matcher paymentWebhook = PAYMENT_WEBHOOK_PATH.matcher(request.getRequestURI());
+        if (paymentWebhook.matches()) {
+            String tenant = paymentWebhook.group(1);
+            if (!VALID_SCHEMA_NAME.matcher(tenant).matches()) {
+                response.sendError(HttpStatus.BAD_REQUEST.value(), "Invalid payment callback tenant");
+                return;
+            }
+            TenantContext.setTenant(tenant);
+            try {
+                filterChain.doFilter(request, response);
+            } finally {
+                TenantContext.clear();
+            }
             return;
         }
         

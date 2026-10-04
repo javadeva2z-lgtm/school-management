@@ -46,26 +46,44 @@
       </div>
 
       <div class="payment-form no-print">
-        <p class="payment-notice">Payments are currently simulated; submitting records the payment without a gateway.</p>
         <label for="payment-through-month">Pay pending fees through</label>
         <select id="payment-through-month" [value]="selectedMonth()" (change)="selectMonth($any($event.target).value)">
           @for (fee of payableFees(); track fee.monthYear) {
           <option [value]="fee.monthYear">{{ formatMonth(fee.monthYear) }}</option>
           }
         </select>
-        <label for="payment-method">Payment method</label>
-        <select id="payment-method" [value]="paymentMethod()" (change)="selectPaymentMethod($any($event.target).value)">
-          <option value="UPI">UPI</option>
-          <option value="NET_BANKING">Net banking</option>
-          <option value="CREDIT_CARD">Credit card</option>
-          <option value="CASH">Cash</option>
+        <label for="payment-provider">Payment gateway</label>
+        <select id="payment-provider" [value]="paymentProvider()"
+          (change)="selectPaymentProvider($any($event.target).value)">
+          <option value="RAZORPAY">Razorpay · UPI QR</option>
+          <option value="PAYU">PayU India · UPI QR</option>
         </select>
         <p class="payment-total">Amount to pay <strong>{{ formatCurrency(selectedAmount()) }}</strong></p>
         <button type="button" class="fee-primary-button" [disabled]="isPaying() || selectedAmount() <= 0"
-          (click)="paySelectedFees()">
-          {{ isPaying() ? 'Recording payment...' : 'Pay pending fee (simulated)' }}
+          (click)="createQrPayment()">
+          {{ isPaying() ? 'Creating secure QR...' : 'Generate payment QR' }}
         </button>
       </div>
+
+      @if (gatewayOrder(); as order) {
+      <section class="gateway-payment no-print" aria-label="Gateway payment QR">
+        <div>
+          <p class="eyebrow">{{ order.provider }} · INR</p>
+          <h3>Scan to pay {{ formatCurrency(amountFromPaise(order.amountPaise)) }}</h3>
+          <p>Complete the payment in your UPI app. Your fee is updated only after the gateway verifies payment.</p>
+          <p class="gateway-status" [class.gateway-paid]="order.status === 'PAID'">
+            {{ order.status === 'PAID' ? 'Payment verified' : isCheckingPayment() ? 'Waiting for payment confirmation...' : 'Payment pending' }}
+          </p>
+          @if (order.status === 'PENDING') {
+          <button type="button" class="fee-secondary-button" [disabled]="isCheckingPayment()"
+            (click)="checkPaymentNow()">Check payment status</button>
+          }
+        </div>
+        @if (qrDataUrl()) {
+        <img class="payment-qr" [src]="qrDataUrl()" alt="Payment QR code">
+        }
+      </section>
+      }
       } @else {
       <p class="fee-empty">There are no pending fees for your account.</p>
       }
