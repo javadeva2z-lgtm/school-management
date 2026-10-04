@@ -48,14 +48,14 @@ public class StudentService {
 
         Student student = studentConverter.dtoToEntity(studentDTO);
         student = studentRepository.save(student);
-        log.info("Student created successfully with id: {}", student.getId());
+        log.info("Student created successfully with admission number: {}", student.getAdmissionNumber());
         return studentConverter.entityToDTO(student);
     }
 
-    public StudentDTO getStudentById(Long id) {
-        log.info("Fetching student with id: {}", id);
-        Student student = studentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Student", "id", id));
+    public StudentDTO getStudentByAdmissionNumber(Long admissionNumber) {
+        log.info("Fetching student with admission number: {}", admissionNumber);
+        Student student = studentRepository.findById(admissionNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Student", "admissionNumber", admissionNumber));
         return studentConverter.entityToDTO(student);
     }
 
@@ -88,35 +88,35 @@ public class StudentService {
         return students.map(studentConverter::entityToDTO);
     }
 
-    public StudentDTO updateStudent(Long id, StudentDTO studentDTO) {
-        log.info("Updating student with id: {}", id);
-        Student student = studentRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Student", "id", id));
-
+    public StudentDTO updateStudent(Long admissionNumber, StudentDTO studentDTO) {
+        log.info("Updating student with admission number: {}", admissionNumber);
+        Student student = studentRepository.findById(admissionNumber)
+                .orElseThrow(() -> new ResourceNotFoundException("Student", "admissionNumber", admissionNumber));
         student.setFatherName(studentDTO.getFatherName());
         student.setMotherName(studentDTO.getMotherName());
         student.setGender(studentDTO.getGender());
         student.setDateOfBirth(studentDTO.getDateOfBirth());
+        student.setAdmissionDate(studentDTO.getAdmissionDate());
         student.setAddress(studentDTO.getAddress());
         student.setParentPhone(studentDTO.getParentPhone());
 
         student = studentRepository.save(student);
-        log.info("Student updated successfully with id: {}", student.getId());
+        log.info("Student updated successfully with admission number: {}", student.getAdmissionNumber());
         return studentConverter.entityToDTO(student);
     }
 
-    public void deleteStudent(Long id) {
-        log.info("Deleting student with id: {}", id);
-        if (!studentRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Student", "id", id);
+    public void deleteStudent(Long admissionNumber) {
+        log.info("Deleting student with admission number: {}", admissionNumber);
+        if (!studentRepository.existsById(admissionNumber)) {
+            throw new ResourceNotFoundException("Student", "admissionNumber", admissionNumber);
         }
-        studentRepository.deleteById(id);
-        log.info("Student deleted successfully with id: {}", id);
+        studentRepository.deleteById(admissionNumber);
+        log.info("Student deleted successfully with admission number: {}", admissionNumber);
     }
 
     public void deleteStudent(Student student) {
         studentRepository.delete(student);
-        log.info("Student deleted successfully with id: {}", student.getId());
+        log.info("Student deleted successfully with admission number: {}", student.getAdmissionNumber());
     }
 
     public List<StudentDTO> getAllStudents() {
@@ -138,8 +138,6 @@ public class StudentService {
                     .build();
 
             Iterable<CSVRecord> csvRecords = csvFormat.parse(fileReader);
-            List<Student> studentsToSave = new ArrayList<>();
-
             for (CSVRecord record : csvRecords) {
                 String name = record.get(Constants.IMPORT_STUDENT_COLUMN_NAME);
 
@@ -147,20 +145,17 @@ public class StudentService {
                 if (name == null || name.trim().isEmpty()) {
                     throw new IllegalArgumentException("CSV contains a record with a missing mandatory student name.");
                 }
-                // id,name,admissionNumber,rollNumber,classId,sectionName,fatherName,motherName,dateOfBirth,address,parentPhone,createLogin,isDelete
-                long id = record.isMapped(Constants.IMPORT_STUDENT_COLUMN_ID)
-                        && !record.get(Constants.IMPORT_STUDENT_COLUMN_ID).isBlank()
-                                ? Long.parseLong(record.get(Constants.IMPORT_STUDENT_COLUMN_ID))
-                                : 0;
+                // admissionNumber,name,rollNumber,classId,sectionName,fatherName,motherName,dateOfBirth,admissionDate,address,parentPhone,createLogin,isDelete
                 boolean createLogin = record.isMapped(Constants.IMPORT_STUDENT_COLUMN_CREATE_LOGIN)
                         ? BooleanUtils.toBoolean(record.get(Constants.IMPORT_STUDENT_COLUMN_CREATE_LOGIN))
                         : false;
                 boolean isDelete = record.isMapped(Constants.IMPORT_STUDENT_COLUMN_IS_DELETE)
                         ? BooleanUtils.toBoolean(record.get(Constants.IMPORT_STUDENT_COLUMN_IS_DELETE))
                         : false;
-                Long admissionNumber = record.isMapped(Constants.IMPORT_STUDENT_COLUMN_ADMISSION_NUMBER)
-                        ? Long.valueOf(record.get(Constants.IMPORT_STUDENT_COLUMN_ADMISSION_NUMBER))
-                        : null;
+                String admissionNumberText = record.isMapped(Constants.IMPORT_STUDENT_COLUMN_ADMISSION_NUMBER)
+                        ? record.get(Constants.IMPORT_STUDENT_COLUMN_ADMISSION_NUMBER).trim()
+                        : "";
+                Long admissionNumber = admissionNumberText.isEmpty() ? null : Long.valueOf(admissionNumberText);
                 Long rollNumber = record.isMapped(Constants.IMPORT_STUDENT_COLUMN_ROLL_NUMBER)
                         ? Long.valueOf(record.get(Constants.IMPORT_STUDENT_COLUMN_ROLL_NUMBER))
                         : null;
@@ -179,6 +174,9 @@ public class StudentService {
                 String dateOfBirth = record.isMapped(Constants.IMPORT_STUDENT_COLUMN_DOB)
                         ? record.get(Constants.IMPORT_STUDENT_COLUMN_DOB)
                         : "";
+                String admissionDate = record.isMapped(Constants.IMPORT_STUDENT_COLUMN_ADMISSION_DATE)
+                        ? record.get(Constants.IMPORT_STUDENT_COLUMN_ADMISSION_DATE)
+                        : "";
                 String address = record.isMapped(Constants.IMPORT_STUDENT_COLUMN_ADDRESS)
                         ? record.get(Constants.IMPORT_STUDENT_COLUMN_ADDRESS)
                         : "";
@@ -191,44 +189,46 @@ public class StudentService {
                 String gender = record.isMapped(Constants.IMPORT_STUDENT_COLUMN_GENDER)
                         ? record.get(Constants.IMPORT_STUDENT_COLUMN_GENDER)
                         : "";
-                LocalDate dateOfBirthValue = Utills.getDateFromString(dateOfBirth);
+                LocalDate dateOfBirthValue = parseCsvDate(dateOfBirth);
+                LocalDate admissionDateValue = parseCsvDate(admissionDate);
 
-                if (createLogin) {
-                    userService.createLoginUser(String.valueOf(admissionNumber),
-                            Utills.generatePasswordFromDateOfBirth(dateOfBirthValue), UserRole.STUDENT.getValue());
-                }
-
-                if (id > 0) {
-                    Student existingStudent = studentRepository.findById(id).orElse(null);
-                    if (existingStudent != null) {
-                        if (isDelete) {
-                            deleteStudent(existingStudent);
-                            continue;
-                        } else {
-                            existingStudent.setName(name);
-                            existingStudent.setGender(gender);
-                            existingStudent.setAdmissionNumber(admissionNumber);
-                            existingStudent.setRollNumber(rollNumber);
-                            existingStudent.setClassId(classId);
-                            existingStudent.setSectionName(sectionName);
-                            existingStudent.setFatherName(fatherName);
-                            existingStudent.setMotherName(motherName);
-                            // Date must be in DD-MM-YYYY format, if not then it will throw an exception
-                            existingStudent.setDateOfBirth(dateOfBirthValue);
-                            existingStudent.setAddress(address);
-                            existingStudent.setParentPhone(parentPhone);
-                            existingStudent.setEmail(email);
-                            studentsToSave.add(existingStudent);
-                            continue;
+                Student existingStudent = admissionNumber == null
+                        ? null
+                        : studentRepository.findByAdmissionNumber(admissionNumber).orElse(null);
+                if (existingStudent != null) {
+                    if (isDelete) {
+                        deleteStudent(existingStudent);
+                        continue;
+                    } else {
+                        existingStudent.setName(name);
+                        existingStudent.setGender(gender);
+                        existingStudent.setRollNumber(rollNumber);
+                        existingStudent.setClassId(classId);
+                        existingStudent.setSectionName(sectionName);
+                        existingStudent.setFatherName(fatherName);
+                        existingStudent.setMotherName(motherName);
+                        existingStudent.setDateOfBirth(dateOfBirthValue);
+                        if (record.isMapped(Constants.IMPORT_STUDENT_COLUMN_ADMISSION_DATE)
+                                && admissionDateValue != null) {
+                            existingStudent.setAdmissionDate(admissionDateValue);
                         }
-                    } else if (isDelete) {
+                        existingStudent.setAddress(address);
+                        existingStudent.setParentPhone(parentPhone);
+                        existingStudent.setEmail(email);
+                        Student savedStudent = studentRepository.save(existingStudent);
+                        if (createLogin) {
+                            userService.createLoginUser(String.valueOf(savedStudent.getAdmissionNumber()),
+                                    Utills.generatePasswordFromDateOfBirth(dateOfBirthValue),
+                                    UserRole.STUDENT.getValue());
+                        }
                         continue;
                     }
+                } else if (isDelete) {
+                    continue;
                 }
                 Student student = Student.builder()
                         .name(name)
                         .gender(gender)
-                        .admissionNumber(admissionNumber)
                         .rollNumber(rollNumber)
                         .classId(classId)
                         .sectionName(sectionName)
@@ -236,13 +236,17 @@ public class StudentService {
                         .motherName(motherName)
                         // Date must be in YYYY-MM-DD format, if not then it will throw an exception
                         .dateOfBirth(dateOfBirthValue)
+                        .admissionDate(admissionDateValue)
                         .address(address)
                         .parentPhone(parentPhone)
                         .email(email)
                         .build();
-                studentsToSave.add(student);
+                Student savedStudent = studentRepository.save(student);
+                if (createLogin) {
+                    userService.createLoginUser(String.valueOf(savedStudent.getAdmissionNumber()),
+                            Utills.generatePasswordFromDateOfBirth(dateOfBirthValue), UserRole.STUDENT.getValue());
+                }
             }
-            studentRepository.saveAll(studentsToSave);
 
         } catch (Exception e) {
             throw new RuntimeException("Failed to parse CSV file: " + e.getMessage());
@@ -252,17 +256,17 @@ public class StudentService {
     public void exportAllStudentsToCsv(java.io.Writer writer, Long classId, String sectionName) {
         try {
             CSVFormat csvFormat = CSVFormat.DEFAULT.builder().setHeader(
-                    Constants.IMPORT_STUDENT_COLUMN_ID,
+                    Constants.IMPORT_STUDENT_COLUMN_ADMISSION_NUMBER,
                     Constants.IMPORT_STUDENT_COLUMN_NAME,
                     Constants.IMPORT_STUDENT_COLUMN_GENDER,
                     Constants.IMPORT_STUDENT_COLUMN_EMAIL,
                     Constants.IMPORT_STUDENT_COLUMN_ROLL_NUMBER,
-                    Constants.IMPORT_STUDENT_COLUMN_ADMISSION_NUMBER,
                     Constants.IMPORT_STUDENT_COLUMN_CLASS_ID,
                     Constants.IMPORT_STUDENT_COLUMN_SECTION_NAME,
                     Constants.IMPORT_STUDENT_COLUMN_FATHER_NAME,
                     Constants.IMPORT_STUDENT_COLUMN_MOTHER_NAME,
                     Constants.IMPORT_STUDENT_COLUMN_DOB,
+                    Constants.IMPORT_STUDENT_COLUMN_ADMISSION_DATE,
                     Constants.IMPORT_STUDENT_COLUMN_ADDRESS,
                     Constants.IMPORT_STUDENT_COLUMN_PARENT_PHONE,
                     Constants.IMPORT_STUDENT_COLUMN_CREATE_LOGIN,
@@ -277,17 +281,17 @@ public class StudentService {
                 students = studentRepository.findByClassId(classId);
             }
             csvFormat.print(writer).printRecords(students.stream().map(s -> new Object[] {
-                    s.getId(),
+                    s.getAdmissionNumber(),
                     s.getName(),
                     nullToEmpty(s.getGender()),
                     s.getEmail(),
                     s.getRollNumber(),
-                    s.getAdmissionNumber(),
                     s.getClassId(),
                     s.getSectionName(),
                     nullToEmpty(s.getFatherName()),
                     nullToEmpty(s.getMotherName()),
                     s.getDateOfBirth(),
+                    s.getAdmissionDate(),
                     nullToEmpty(s.getAddress()),
                     nullToEmpty(s.getParentPhone()),
                     0,
@@ -301,5 +305,16 @@ public class StudentService {
     private String nullToEmpty(String s) {
         s = (s == null) ? "" : s;
         return s;
+    }
+
+    private LocalDate parseCsvDate(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDate.parse(value);
+        } catch (java.time.format.DateTimeParseException exception) {
+            return Utills.getDateFromString(value);
+        }
     }
 }

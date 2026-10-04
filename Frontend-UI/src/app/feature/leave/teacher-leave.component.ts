@@ -29,7 +29,7 @@ export class TeacherLeaveComponent {
   protected readonly applicationsForSelectedClassSection = computed(() => this.applications().filter(application =>
     this.students().some(student => student.admissionNumber === application.admissionNumber)
   ));
-  protected readonly selectedStudentId = signal<number | null>(null);
+  protected readonly selectedAdmissionNumber = signal<number | null>(null);
   protected readonly leaveType = signal('Medical');
   protected readonly startDate = signal(this.today());
   protected readonly endDate = signal(this.today());
@@ -65,19 +65,19 @@ export class TeacherLeaveComponent {
     const className = String(value ?? '');
     this.selectedClass.set(className);
     this.selectedSection.set(this.classOptions().find(option => option.classId === className)?.sections[0]?.sectionName ?? '');
-    this.selectedStudentId.set(null);
+    this.selectedAdmissionNumber.set(null);
     this.loadStudents();
   }
 
   protected onSectionChange(value: string | number): void {
     this.selectedSection.set(String(value ?? ''));
-    this.selectedStudentId.set(null);
+    this.selectedAdmissionNumber.set(null);
     this.loadStudents();
   }
 
   protected onStudentChange(value: string | number): void {
     const nextValue = value === '' || value === null || value === undefined ? null : Number(value);
-    this.selectedStudentId.set(Number.isFinite(nextValue as number) ? (nextValue as number) : null);
+    this.selectedAdmissionNumber.set(Number.isFinite(nextValue as number) ? (nextValue as number) : null);
     this.message.set('');
   }
 
@@ -100,7 +100,7 @@ export class TeacherLeaveComponent {
   }
 
   protected submitLeave(): void {
-    const student = this.students().find(item => item.id === this.selectedStudentId());
+    const student = this.students().find(item => item.admissionNumber === this.selectedAdmissionNumber());
     if (!student || !this.reason().trim()) {
       this.message.set('Select a student and enter a reason before applying.');
       return;
@@ -124,7 +124,7 @@ export class TeacherLeaveComponent {
       this.applications.update(applications => [application, ...applications]);
       this.isSubmitting.set(false);
       this.reason.set('');
-      this.selectedStudentId.set(null);
+      this.selectedAdmissionNumber.set(null);
       this.message.set('Leave application submitted successfully.');
       this.activeTab.set('applied');
     });
@@ -156,7 +156,7 @@ export class TeacherLeaveComponent {
         return;
       }
       this.students.set(res.data);
-      this.selectedStudentId.set(null);
+      this.selectedAdmissionNumber.set(null);
     });
   }
 

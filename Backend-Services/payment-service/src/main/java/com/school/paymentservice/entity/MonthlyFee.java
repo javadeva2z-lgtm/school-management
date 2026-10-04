@@ -10,7 +10,9 @@ import lombok.NoArgsConstructor;
 import lombok.Builder.Default;
 
 @Entity
-@Table(name = "monthly_fees")
+@Table(name = "monthly_fees", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_monthly_fees_admission_month", columnNames = {"admission_number", "month"})
+})
 @Data
 @Builder
 @NoArgsConstructor
@@ -20,8 +22,8 @@ public class MonthlyFee {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "student_id", nullable = false)
-    private Long studentId;
+    @Column(name = "admission_number", nullable = false)
+    private Long admissionNumber;
 
     @Column(name = "month", nullable = false)
     private String monthYear; // Format: "YYYY-MM" (e.g., "2026-09")

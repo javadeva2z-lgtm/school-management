@@ -57,7 +57,6 @@ export interface ClassTeacherApiResponse {
 export interface AttendanceSummary { present: number; absent: number; late: number; }
 
 export interface AttendanceStudent {
-  id: number | null;
   name: string;
   rollNumber: string;
   present?: boolean;
@@ -72,7 +71,6 @@ export interface AttendanceRecord { date: string; present: boolean; onLeave?: bo
 export interface ClassAttendanceDay { date: string; present: number; absent: number; onLeave: number; }
 
 export interface StudentRosterEntry {
-  id: number;
   name: string;
   rollNumber: number;
   admissionNumber: number;
@@ -260,7 +258,6 @@ export interface ResponseData {
 }
 
 export interface Student {
-  id: number | null;
   name: string;
   gender: string;
   email: string;
@@ -271,6 +268,7 @@ export interface Student {
   fatherName: string;
   motherName: string;
   dateOfBirth: string;
+  admissionDate?: string | null;
   address: string;
   parentPhone: string;
 }

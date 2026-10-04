@@ -15,7 +15,7 @@ public class StudentServiceSubscriptionConverter {
         return StudentServiceSubscriptionDTO.builder()
                 .id(value.getId())
                 .feeItemId(value.getFeeItemId())
-                .studentId(value.getStudentId())
+                .admissionNumber(value.getAdmissionNumber())
                 .build();
     }
 
@@ -26,7 +26,7 @@ public class StudentServiceSubscriptionConverter {
         return StudentServiceSubscription.builder()
                 .id(value.getId())
                 .feeItemId(value.getFeeItemId())
-                .studentId(value.getStudentId())
+                .admissionNumber(value.getAdmissionNumber())
                 .build();
     }
 }

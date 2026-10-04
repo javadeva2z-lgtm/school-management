@@ -13,7 +13,7 @@ public class MonthlyFeeConverter {
         }
         return MonthlyFeeDTO.builder()
                 .id(studentFee.getId())
-                .studentId(studentFee.getStudentId())
+                .admissionNumber(studentFee.getAdmissionNumber())
                 .monthYear(studentFee.getMonthYear())
                 .baseAmount(studentFee.getBaseAmount())
                 .waiverAmount(studentFee.getWaiverAmount())
@@ -30,7 +30,7 @@ public class MonthlyFeeConverter {
         }
         return MonthlyFee.builder()
                 .id(feeDTO.getId())
-                .studentId(feeDTO.getStudentId())
+                .admissionNumber(feeDTO.getAdmissionNumber())
                 .monthYear(feeDTO.getMonthYear())
                 .baseAmount(feeDTO.getBaseAmount())
                 .waiverAmount(feeDTO.getWaiverAmount())

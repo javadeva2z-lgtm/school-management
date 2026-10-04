@@ -30,6 +30,13 @@
         <span>Total monthly fee</span>
         <strong>{{ formatCurrency(monthlyTotal()) }}</strong>
       </div>
+      @if (isLoadingStructure()) {
+      <p class="empty-fees" role="status">Loading monthly fee structure...</p>
+      }
+      @if (structureError()) {
+      <p class="fee-error" role="alert">{{ structureError() }}</p>
+      <button type="button" (click)="reloadFeeStructure()">Retry loading</button>
+      }
       <div class="fee-types-form">
         @for (feeType of feeTypes; track feeType.key) {
         <label>{{ feeType.label }}
@@ -38,7 +45,9 @@
         </label>
         }
       </div>
-      <button class="save-attendance" type="button" (click)="saveClassFees()">Save class fee</button>
+      <button class="save-attendance" type="button"
+        [disabled]="isLoadingStructure() || isSavingStructure() || !!structureError()"
+        (click)="saveClassFees()">{{ isSavingStructure() ? 'Saving...' : 'Save class fee' }}</button>
     </section>
     }
 
@@ -61,10 +70,14 @@
       <p class="empty-fees" role="status">Loading pending fee balances...</p>
       } @else if (pendingError()) {
       <p class="fee-error" role="alert">{{ pendingError() }}</p>
-      } @else if (pendingFees().length) {
+      } @else {
+      @if (pendingWarning()) {
+      <p class="fee-error" role="status">{{ pendingWarning() }}</p>
+      }
+      @if (pendingFees().length) {
       <p class="pending-count">{{ pendingFees().length }} pending month(s) across {{ pendingStudentCount() }} student(s)</p>
       <div class="pending-fees-list">
-        @for (student of pendingFees(); track student.id) {
+        @for (student of pendingFees(); track student.monthlyFeeId) {
         <article class="pending-fee-card">
           <div>
             <strong>{{ student.studentName }}</strong>
@@ -75,9 +88,9 @@
             <strong>{{ formatCurrency(student.amount) }}</strong>
             @if (isOverdue(student)) {
             <span class="overdue-label">Overdue</span>
-            <button class="whatsapp-button" type="button" [disabled]="reminderCreatedFor().includes(student.id)"
+            <button class="whatsapp-button" type="button" [disabled]="reminderCreatedForMonthlyFeeIds().includes(student.monthlyFeeId)"
               (click)="createReminder(student)">
-              {{ reminderCreatedFor().includes(student.id) ? 'Reminder created' : 'Create reminder' }}
+              {{ reminderCreatedForMonthlyFeeIds().includes(student.monthlyFeeId) ? 'Reminder created' : 'Create reminder' }}
             </button>
             }
           </div>
@@ -86,6 +99,7 @@
       </div>
       } @else {
       <p class="empty-fees">No pending student fees are available.</p>
+      }
       }
     </section>
     }

@@ -44,22 +44,23 @@ public class StudentServiceSubscriptionController {
                 .ok(ApiResponse.success(studentServiceSubscriptionService.getStudentServiceSubscriptionById(id)));
     }
 
-    @GetMapping("/student/{studentId}")
+    @GetMapping("/student/{admissionNumber}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     @Operation(summary = "Get subscriptions by student")
-    public ResponseEntity<ApiResponse<List<StudentServiceSubscriptionDTO>>> getByStudent(@PathVariable Long studentId) {
+    public ResponseEntity<ApiResponse<List<StudentServiceSubscriptionDTO>>> getByStudent(
+            @PathVariable Long admissionNumber) {
         return ResponseEntity.ok(ApiResponse
-                .success(studentServiceSubscriptionService.getStudentServiceSubscriptionsByStudent(studentId)));
+                .success(studentServiceSubscriptionService.getStudentServiceSubscriptionsByStudent(admissionNumber)));
     }
 
-    @GetMapping("/student/{studentId}/fee-item/{feeItemId}")
+    @GetMapping("/student/{admissionNumber}/fee-item/{feeItemId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     @Operation(summary = "Get subscription by student and fee item")
     public ResponseEntity<ApiResponse<StudentServiceSubscriptionDTO>> getByStudentAndFeeItem(
-            @PathVariable Long studentId,
+            @PathVariable Long admissionNumber,
             @PathVariable Long feeItemId) {
         return ResponseEntity.ok(ApiResponse.success(
-                studentServiceSubscriptionService.getStudentServiceSubscription(studentId, feeItemId)));
+                studentServiceSubscriptionService.getStudentServiceSubscription(admissionNumber, feeItemId)));
     }
 
     @DeleteMapping("/{id}")

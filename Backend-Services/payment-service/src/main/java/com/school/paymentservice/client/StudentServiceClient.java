@@ -14,4 +14,5 @@ public interface StudentServiceClient {
     ApiResponse<StudentIdentity> getStudentByAdmissionNumber(
             @PathVariable("admissionNumber") Long admissionNumber,
             @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization);
+
 }

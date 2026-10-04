@@ -47,9 +47,9 @@ public class PaymentController {
     public ResponseEntity<ApiResponse<PaymentDTO>> createPayment(
             @Valid @RequestBody PaymentDTO paymentDTO,
             HttpServletRequest request) {
-        Long studentId = resolveStudentId(
+        Long verifiedAdmissionNumber = resolveAdmissionNumber(
                 paymentDTO.getAdmissionNumber(), request.getHeader(HttpHeaders.AUTHORIZATION));
-        PaymentDTO response = paymentService.createPayment(paymentDTO, studentId);
+        PaymentDTO response = paymentService.createPayment(paymentDTO, verifiedAdmissionNumber);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response, "Payment recorded successfully"));
     }
@@ -126,7 +126,7 @@ public class PaymentController {
         return ResponseEntity.ok(ApiResponse.success(null, "Payment deleted successfully"));
     }
 
-    private Long resolveStudentId(Long admissionNumber, String authorization) {
+    private Long resolveAdmissionNumber(Long admissionNumber, String authorization) {
         if (admissionNumber == null || admissionNumber <= 0) {
             throw new IllegalArgumentException("A valid admission number is required");
         }
@@ -140,11 +140,10 @@ public class PaymentController {
         ApiResponse<StudentIdentity> response =
                 studentServiceClient.getStudentByAdmissionNumber(admissionNumber, authorization);
         StudentIdentity student = response == null ? null : response.getData();
-        if (student == null || student.id() == null
-                || student.admissionNumber() == null
+        if (student == null || student.admissionNumber() == null
                 || !student.admissionNumber().equals(admissionNumber)) {
             throw new IllegalArgumentException("Admission number does not identify a student");
         }
-        return student.id();
+        return student.admissionNumber();
     }
 }

@@ -17,12 +17,14 @@ public class FeeItemDTO {
     @NotNull(message = "Service name is required")
     private String serviceName;
 
+    @NotNull(message = "Class ID is required")
     private Long classId;
 
+    @NotNull(message = "Mandatory flag is required")
     private Boolean mandatory;
 
     @NotNull(message = "Amount is required")
-    @DecimalMin(value = "0.01", message = "Amount must be greater than 0")
+    @DecimalMin(value = "0.00", message = "Amount cannot be negative")
     private Double defaultAmount;
 
     private Boolean active;

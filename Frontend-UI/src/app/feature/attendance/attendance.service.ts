@@ -36,7 +36,6 @@ export class AttendanceService {
         return roster.data.map(student => {
           const record = records.get(student.admissionNumber);
           return {
-            id: student.id,
             name: student.name,
             rollNumber: String(student.rollNumber),
             present: record?.status === 'PRESENT',

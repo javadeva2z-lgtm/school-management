@@ -8,7 +8,7 @@
       <h2 id="admin-students-title">Student records</h2>
       <div class="admin-data-tabs" role="tablist" aria-label="Student management actions">
         <button type="button" role="tab" [attr.aria-selected]="activeTab === 'add'" [class.active]="activeTab === 'add'"
-          (click)="activeTab = 'add'">{{ editingStudentId === null ? 'Add new' : 'Update' }}</button>
+          (click)="activeTab = 'add'">{{ editingAdmissionNumber === null ? 'Add new' : 'Update' }}</button>
         <button type="button" role="tab" [attr.aria-selected]="activeTab === 'manage'"
           [class.active]="activeTab === 'manage'" (click)="showManage()">Manage</button>
       </div>
@@ -26,12 +26,18 @@
           <input type="number" [(ngModel)]="studentModel.rollNumber" name="studentRollNumber" required>
         </label>
 
-        <label>Admission no
-          <input type="number" [(ngModel)]="studentModel.admissionNumber" name="studentAdmissionNumber" required>
-        </label>
+        @if (editingAdmissionNumber !== null) {
+        <p>Admission no {{ editingAdmissionNumber }} (assigned by the system and cannot be changed)</p>
+        } @else {
+        <p>Admission number will be assigned automatically when the student is added.</p>
+        }
 
         <label>Date of birth
           <input type="date" [(ngModel)]="studentModel.dob" name="studentDob" required>
+        </label>
+
+        <label>Admission date
+          <input type="date" [(ngModel)]="studentModel.admissionDate" name="studentAdmissionDate" required>
         </label>
 
         <label>Address
@@ -72,7 +78,7 @@
           <input type="email" [(ngModel)]="studentModel.email" name="studentEmail" required>
         </label>
 
-        <button class="save-attendance" type="submit">{{ editingStudentId === null ? 'Add student' : 'Update student'
+        <button class="save-attendance" type="submit">{{ editingAdmissionNumber === null ? 'Add student' : 'Update student'
           }}</button>
       </form>
       } @else {
@@ -100,6 +106,7 @@
             <strong>{{ student.name }}</strong>
             <span>{{ student.gender }} · Roll no {{ student.rollNumber }} · Admission no {{ student.admissionNumber
               }}</span>
+            <span>Admission date {{ student.admissionDate || 'Not recorded' }}</span>
           </div>
           <div>
             <span>{{ student.email }}</span>

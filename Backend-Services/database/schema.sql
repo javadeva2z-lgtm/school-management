@@ -100,17 +100,17 @@ CREATE TABLE IF NOT EXISTS sections (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS students (
-    id BIGINT NOT NULL AUTO_INCREMENT,
+    admission_number BIGINT NOT NULL AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
     gender VARCHAR(255),
     email VARCHAR(255) NOT NULL,
-    admission_number BIGINT NOT NULL,
     roll_number BIGINT NOT NULL,
     class_id BIGINT NOT NULL,
     section_Name VARCHAR(255) NOT NULL,
     father_name VARCHAR(255),
     mother_name VARCHAR(255),
     date_of_birth DATE,
+    admission_date DATE,
     address TEXT,
     is_ews BOOLEAN DEFAULT FALSE,
     parent_phone VARCHAR(255),
@@ -118,7 +118,7 @@ CREATE TABLE IF NOT EXISTS students (
     updated_at DATETIME,
     created_by VARCHAR(255),
     updated_by VARCHAR(255),
-    PRIMARY KEY (id),
+    PRIMARY KEY (admission_number),
     UNIQUE KEY uk_students_email (email),
     UNIQUE KEY uk_class_section_roll (class_id, section_Name, roll_number)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -259,7 +259,7 @@ CREATE TABLE IF NOT EXISTS fee_items (
 
 CREATE TABLE IF NOT EXISTS monthly_fees (
     id BIGINT NOT NULL AUTO_INCREMENT,
-    student_id BIGINT NOT NULL,
+    admission_number BIGINT NOT NULL,
     month VARCHAR(7) NOT NULL,
     base_amount DOUBLE NOT NULL DEFAULT 0.0,
     waiver_amount DOUBLE NOT NULL DEFAULT 0.0,
@@ -267,7 +267,8 @@ CREATE TABLE IF NOT EXISTS monthly_fees (
     total_payable DOUBLE NOT NULL DEFAULT 0.0,
     paid_amount DOUBLE NOT NULL DEFAULT 0.0,
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_monthly_fees_admission_month (admission_number, month)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS payments (
@@ -306,7 +307,7 @@ CREATE TABLE IF NOT EXISTS gateway_payment_orders (
 CREATE TABLE IF NOT EXISTS payment_reminders (
     id BIGINT NOT NULL AUTO_INCREMENT,
     monthly_fee_id BIGINT NOT NULL,
-    student_id BIGINT NOT NULL,
+    admission_number BIGINT NOT NULL,
     reminder_type VARCHAR(50) NOT NULL,
     amount DOUBLE NOT NULL,
     due_date DATE NOT NULL,
@@ -317,7 +318,7 @@ CREATE TABLE IF NOT EXISTS payment_reminders (
 
 CREATE TABLE IF NOT EXISTS student_service_subscriptions (
     id BIGINT NOT NULL AUTO_INCREMENT,
-    student_id BIGINT NOT NULL,
+    admission_number BIGINT NOT NULL,
     fee_item_id BIGINT NOT NULL,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

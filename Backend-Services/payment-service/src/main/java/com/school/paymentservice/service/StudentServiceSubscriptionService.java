@@ -22,7 +22,8 @@ public class StudentServiceSubscriptionService {
     private final StudentServiceSubscriptionConverter studentServiceSubscriptionConverter;
 
     public StudentServiceSubscriptionDTO createStudentServiceSubscription(StudentServiceSubscriptionDTO dto) {
-        log.info("Creating service subscription: studentId={}, feeItemId={}", dto.getStudentId(), dto.getFeeItemId());
+        log.info("Creating service subscription: admissionNumber={}, feeItemId={}",
+                dto.getAdmissionNumber(), dto.getFeeItemId());
         StudentServiceSubscription saved = studentServiceSubscriptionRepository.save(
                 studentServiceSubscriptionConverter.dtoToEntity(dto));
         return studentServiceSubscriptionConverter.entityToDTO(saved);
@@ -36,18 +37,19 @@ public class StudentServiceSubscriptionService {
     }
 
     @Transactional(readOnly = true)
-    public List<StudentServiceSubscriptionDTO> getStudentServiceSubscriptionsByStudent(Long studentId) {
-        return studentServiceSubscriptionRepository.findByStudentId(studentId).stream()
+    public List<StudentServiceSubscriptionDTO> getStudentServiceSubscriptionsByStudent(Long admissionNumber) {
+        return studentServiceSubscriptionRepository.findByAdmissionNumber(admissionNumber).stream()
                 .map(studentServiceSubscriptionConverter::entityToDTO)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public StudentServiceSubscriptionDTO getStudentServiceSubscription(Long studentId, Long feeItemId) {
+    public StudentServiceSubscriptionDTO getStudentServiceSubscription(Long admissionNumber, Long feeItemId) {
         StudentServiceSubscription subscription = studentServiceSubscriptionRepository
-                .findByStudentIdAndFeeItemId(studentId, feeItemId)
-                .orElseThrow(() -> new ResourceNotFoundException("StudentServiceSubscription", "studentId+feeItemId",
-                        studentId + "-" + feeItemId));
+                .findByAdmissionNumberAndFeeItemId(admissionNumber, feeItemId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "StudentServiceSubscription", "admissionNumber+feeItemId",
+                        admissionNumber + "-" + feeItemId));
         return studentServiceSubscriptionConverter.entityToDTO(subscription);
     }
 

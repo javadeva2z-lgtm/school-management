@@ -13,7 +13,7 @@ interface ApiResponse<T> {
 
 export interface MonthlyFee {
   id: number;
-  studentId: number;
+  admissionNumber: number;
   monthYear: string;
   baseAmount: number;
   waiverAmount: number;
@@ -44,10 +44,12 @@ export interface FeeItem {
   active: boolean;
 }
 
+export type FeeItemRequest = Omit<FeeItem, 'id'>;
+
 export interface PaymentReminder {
   id: number;
   monthlyFeeId: number;
-  studentId: number;
+  admissionNumber: number;
   reminderType: 'DUE_DATE_COMMING_TWO_DAUS' | 'DUE_DATE' | 'OVERDUE_7DAYS' | 'OVERDUE_14DAYS';
   amount: number;
   dueDate: string;
@@ -79,16 +81,16 @@ export interface GatewayPaymentOrder {
 
 export type PaymentReminderRequest = Pick<
   PaymentReminder,
-  'monthlyFeeId' | 'studentId' | 'reminderType' | 'amount' | 'dueDate'
+  'monthlyFeeId' | 'admissionNumber' | 'reminderType' | 'amount' | 'dueDate'
 >;
 
 @Injectable({ providedIn: 'root' })
 export class FeesService {
   private readonly http = inject(HttpClient);
 
-  getMonthlyFees(studentId: number): Observable<MonthlyFee[]> {
+  getMonthlyFees(admissionNumber: number): Observable<MonthlyFee[]> {
     return this.http.get<ApiResponse<MonthlyFee[]>>(
-      paymentServiceApiUrl(`/monthly-fees/student/${studentId}`)
+      paymentServiceApiUrl(`/monthly-fees/student/${admissionNumber}`)
     ).pipe(map(response => response.data ?? []));
   }
 
@@ -101,6 +103,27 @@ export class FeesService {
   getFeeItemsByClass(classId: number): Observable<FeeItem[]> {
     return this.http.get<ApiResponse<FeeItem[]>>(
       paymentServiceApiUrl(`/fee-items/class/${classId}`)
+    ).pipe(map(response => response.data ?? []));
+  }
+
+  createFeeItem(feeItem: FeeItemRequest): Observable<FeeItem> {
+    return this.http.post<ApiResponse<FeeItem>>(
+      paymentServiceApiUrl('/fee-items'),
+      feeItem
+    ).pipe(map(response => response.data));
+  }
+
+  updateFeeItem(id: number, feeItem: FeeItemRequest): Observable<FeeItem> {
+    return this.http.put<ApiResponse<FeeItem>>(
+      paymentServiceApiUrl(`/fee-items/${id}`),
+      feeItem
+    ).pipe(map(response => response.data));
+  }
+
+  generateMonthlyFees(admissionNumber: number): Observable<MonthlyFee[]> {
+    return this.http.post<ApiResponse<MonthlyFee[]>>(
+      paymentServiceApiUrl(`/monthly-fees/student/${admissionNumber}/generate`),
+      {}
     ).pipe(map(response => response.data ?? []));
   }
 

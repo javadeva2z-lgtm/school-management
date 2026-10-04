@@ -45,9 +45,10 @@ public class GatewayPaymentController {
     public ResponseEntity<ApiResponse<GatewayPaymentOrderDTO>> createOrder(
             @Valid @RequestBody CreateGatewayPaymentRequest request,
             HttpServletRequest servletRequest) {
-        Long studentId = resolveStudentId(
+        Long verifiedAdmissionNumber = resolveAdmissionNumber(
                 request.getAdmissionNumber(), servletRequest.getHeader(HttpHeaders.AUTHORIZATION));
-        GatewayPaymentOrderDTO response = gatewayPaymentService.createOrder(request, studentId, servletRequest);
+        GatewayPaymentOrderDTO response =
+                gatewayPaymentService.createOrder(request, verifiedAdmissionNumber, servletRequest);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response, "Payment QR created. Complete the payment in your UPI app."));
     }
@@ -88,7 +89,7 @@ public class GatewayPaymentController {
         }
     }
 
-    private Long resolveStudentId(Long admissionNumber, String authorization) {
+    private Long resolveAdmissionNumber(Long admissionNumber, String authorization) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || admissionNumber == null || admissionNumber <= 0) {
             throw new IllegalArgumentException("A valid admission number and authenticated user are required");
@@ -105,12 +106,11 @@ public class GatewayPaymentController {
         ApiResponse<StudentIdentity> response =
                 studentServiceClient.getStudentByAdmissionNumber(admissionNumber, authorization);
         StudentIdentity student = response == null ? null : response.getData();
-        if (student == null || student.id() == null
-                || student.admissionNumber() == null
+        if (student == null || student.admissionNumber() == null
                 || !student.admissionNumber().equals(admissionNumber)) {
             throw new IllegalArgumentException("Admission number does not identify a student");
         }
-        return student.id();
+        return student.admissionNumber();
     }
 
     private void assertStudentOwns(Long admissionNumber) {

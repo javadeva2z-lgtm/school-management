@@ -46,12 +46,14 @@ export class PeopleService {
     );
   }
 
-  updateStudent(student: Student): Observable<void> {
-    return this.http.put<void>(studentsApiUrl(`/${student.id}`), student);
+  updateStudent(student: Student): Observable<Student> {
+    return this.http.put<{ data: Student }>(studentsApiUrl(`/${student.admissionNumber}`), student)
+      .pipe(map(response => response.data));
   }
 
-  createStudent(student: Student): Observable<void> {
-    return this.http.post<void>(studentsApiUrl(''), student);
+  createStudent(student: Omit<Student, 'admissionNumber'>): Observable<Student> {
+    return this.http.post<{ data: Student }>(studentsApiUrl(''), student)
+      .pipe(map(response => response.data));
   }
 
   updateTeacher(teacher: AdminTeacher): Observable<void> {

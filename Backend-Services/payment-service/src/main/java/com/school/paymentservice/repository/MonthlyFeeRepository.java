@@ -10,7 +10,7 @@ import com.school.paymentservice.entity.MonthlyFee;
 
 @Repository
 public interface MonthlyFeeRepository extends JpaRepository<MonthlyFee, Long> {
-    Optional<MonthlyFee> findByStudentIdAndMonthYear(Long studentId, String monthYear);
+    Optional<MonthlyFee> findByAdmissionNumberAndMonthYear(Long admissionNumber, String monthYear);
 
-    List<MonthlyFee> findByStudentId(Long studentId);
+    List<MonthlyFee> findByAdmissionNumber(Long admissionNumber);
 }

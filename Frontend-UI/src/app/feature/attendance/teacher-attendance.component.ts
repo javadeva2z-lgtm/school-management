@@ -29,7 +29,7 @@ export class TeacherAttendanceComponent {
   protected readonly selectedSection = signal('');
   protected readonly selectedStartDate = signal(this.today());
   protected readonly selectedEndDate = signal(this.today());
-  protected readonly selectedStudentId = signal<number | null>(null);
+  protected readonly selectedAdmissionNumber = signal<number | null>(null);
   protected readonly students = signal<AttendanceStudent[]>([]);
   protected readonly history = signal<AttendanceRecord[]>([]);
   protected readonly leaveApplications = signal<LeaveApplication[]>([]);
@@ -81,7 +81,7 @@ export class TeacherAttendanceComponent {
       return this.students().filter(student => student.onLeave).length;
     }
 
-    if (this.selectedStudentId() !== null) {
+    if (this.selectedAdmissionNumber() !== null) {
       return this.history().filter(record => record.onLeave).length;
     }
 
@@ -95,7 +95,7 @@ export class TeacherAttendanceComponent {
 
   protected switchMode(mode: AttendanceMode): void {
     this.mode.set(mode);
-    this.selectedStudentId.set(null);
+    this.selectedAdmissionNumber.set(null);
     this.history.set([]);
     this.saveMessage.set('');
     this.loadStudents();
@@ -105,7 +105,7 @@ export class TeacherAttendanceComponent {
     const className = String(value ?? '');
     this.selectedClass.set(className);
     this.selectedSection.set(this.classOptions().find(option => option.classId === className)?.sections[0]?.sectionName ?? '');
-    this.selectedStudentId.set(null);
+    this.selectedAdmissionNumber.set(null);
     this.history.set([]);
     this.loadStudents();
     this.loadLeaveApplications();
@@ -113,7 +113,7 @@ export class TeacherAttendanceComponent {
 
   protected onSectionChange(value: string | number): void {
     this.selectedSection.set(String(value ?? ''));
-    this.selectedStudentId.set(null);
+    this.selectedAdmissionNumber.set(null);
     this.history.set([]);
     this.loadStudents();
     this.loadLeaveApplications();
@@ -133,12 +133,12 @@ export class TeacherAttendanceComponent {
 
   protected onStudentChange(value: string | number): void {
     const nextValue = value === '' || value === null || value === undefined ? null : Number(value);
-    this.selectedStudentId.set(Number.isFinite(nextValue as number) ? (nextValue as number) : null);
+    this.selectedAdmissionNumber.set(Number.isFinite(nextValue as number) ? (nextValue as number) : null);
     this.loadHistory();
   }
 
   protected selectedStudent(): AttendanceStudent | undefined {
-    return this.students().find(student => student.admissionNumber === this.selectedStudentId());
+    return this.students().find(student => student.admissionNumber === this.selectedAdmissionNumber());
   }
 
   protected markStudent(studentId: number | null, present: boolean, onLeave = false): void {
@@ -203,7 +203,7 @@ export class TeacherAttendanceComponent {
   private loadHistory(): void {
     const className = this.selectedClass();
     const section = this.selectedSection();
-    const admissionNumber = this.selectedStudentId();
+    const admissionNumber = this.selectedAdmissionNumber();
 
     if (!className || !section) {
       this.history.set([]);
@@ -271,8 +271,8 @@ export class TeacherAttendanceComponent {
   }
 
   private getLeaveDatesForRange(): Set<string> {
-    const studentAdmissionNumbers = this.selectedStudentId() !== null
-      ? [this.selectedStudentId() as number]
+    const studentAdmissionNumbers = this.selectedAdmissionNumber() !== null
+      ? [this.selectedAdmissionNumber() as number]
       : this.students().map(student => student.admissionNumber);
 
     const dates = new Set<string>();

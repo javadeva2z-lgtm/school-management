@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 public class PaymentReminderDTO {
     private Long id;
     private Long monthlyFeeId;
-    private Long studentId;
+    private Long admissionNumber;
     private PaymentReminderType reminderType;
     private Double amount;
     private LocalDate dueDate;

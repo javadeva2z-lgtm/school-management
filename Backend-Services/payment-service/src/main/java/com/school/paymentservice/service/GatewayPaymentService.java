@@ -74,7 +74,7 @@ public class GatewayPaymentService {
     @Transactional
     public GatewayPaymentOrderDTO createOrder(
             CreateGatewayPaymentRequest request,
-            Long verifiedStudentId,
+            Long verifiedAdmissionNumber,
             HttpServletRequest servletRequest) {
         String provider = request.getProvider().trim().toUpperCase(Locale.ROOT);
         if (!RAZORPAY.equals(provider) && !PAYU.equals(provider)) {
@@ -99,7 +99,7 @@ public class GatewayPaymentService {
 
         BigDecimal total = BigDecimal.ZERO;
         for (MonthlyFee fee : fees) {
-            if (!fee.getStudentId().equals(verifiedStudentId)) {
+            if (!fee.getAdmissionNumber().equals(verifiedAdmissionNumber)) {
                 throw new IllegalArgumentException("All monthly fees must belong to the requested student");
             }
             if (fee.getStatus() == PaymentStatus.PAID || fee.getStatus() == PaymentStatus.EXEMPT
@@ -437,7 +437,7 @@ public class GatewayPaymentService {
                     .amountPaid(allocated.doubleValue())
                     .status(PaymentStatus.PAID)
                     .build();
-            paymentService.createPayment(payment, fee.getStudentId());
+            paymentService.createPayment(payment, fee.getAdmissionNumber());
             remaining = remaining.subtract(allocated);
         }
         if (remaining.signum() != 0) {

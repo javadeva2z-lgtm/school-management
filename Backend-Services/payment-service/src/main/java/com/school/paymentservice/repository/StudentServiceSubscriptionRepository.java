@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface StudentServiceSubscriptionRepository extends JpaRepository<StudentServiceSubscription, Long> {
-    List<StudentServiceSubscription> findByStudentId(Long studentId);
+    List<StudentServiceSubscription> findByAdmissionNumber(Long admissionNumber);
 
-    Optional<StudentServiceSubscription> findByStudentIdAndFeeItemId(Long studentId, Long feeItemId);
+    Optional<StudentServiceSubscription> findByAdmissionNumberAndFeeItemId(Long admissionNumber, Long feeItemId);
 }

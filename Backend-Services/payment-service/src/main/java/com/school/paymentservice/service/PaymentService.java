@@ -28,7 +28,7 @@ public class PaymentService {
     private final PaymentConverter paymentConverter;
     private final MonthlyFeeRepository monthlyFeeRepository;
 
-    public PaymentDTO createPayment(PaymentDTO paymentDTO, Long verifiedStudentId) {
+    public PaymentDTO createPayment(PaymentDTO paymentDTO, Long verifiedAdmissionNumber) {
         log.info("Recording payment for admission number {} amount {}",
                 paymentDTO.getAdmissionNumber(), paymentDTO.getAmountPaid());
         Payment payment = paymentConverter.dtoToEntity(paymentDTO);
@@ -42,7 +42,7 @@ public class PaymentService {
         MonthlyFee monthlyFee = null;
         if (payment.getStatus() == PaymentStatus.PAID) {
             if (payment.getAdmissionNumber() == null || payment.getMonthlyFeeId() == null
-                    || verifiedStudentId == null
+                    || verifiedAdmissionNumber == null
                     || payment.getMonthYear() == null || payment.getTransactionId() == null
                     || payment.getTransactionId().isBlank() || payment.getPaymentMethod() == null
                     || payment.getPaymentMethod().isBlank()) {
@@ -57,7 +57,7 @@ public class PaymentService {
             monthlyFee = monthlyFeeRepository.findById(payment.getMonthlyFeeId())
                     .orElseThrow(() -> new ResourceNotFoundException(
                             "MonthlyFee", "id", payment.getMonthlyFeeId()));
-            if (!monthlyFee.getStudentId().equals(verifiedStudentId)
+            if (!monthlyFee.getAdmissionNumber().equals(verifiedAdmissionNumber)
                     || !monthlyFee.getMonthYear().equals(payment.getMonthYear())) {
                 throw new IllegalArgumentException("Payment student and month must match the monthly fee");
             }

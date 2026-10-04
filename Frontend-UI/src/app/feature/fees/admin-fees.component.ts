@@ -3,13 +3,13 @@ import { RouterLink } from '@angular/router';
 import { ClassSectionService } from '../class-section/class-section.service';
 import { ClassSectionOption, Student } from '../../common/model/models';
 import { FormsModule } from '@angular/forms';
-import { FeesService, MonthlyFee } from './fees.service';
+import { FeeItemRequest, FeesService, MonthlyFee } from './fees.service';
 import { PeopleService } from '../people/people.service';
 import { forkJoin, map, of, switchMap } from 'rxjs';
 
 interface PendingFee {
-  id: number;
-  studentId: number;
+  monthlyFeeId: number;
+  admissionNumber: number;
   studentName: string;
   className: string;
   section: string;
@@ -33,30 +33,28 @@ export class AdminFeesComponent {
   protected activeTab: 'structure' | 'pending' = 'structure';
   protected readonly classOptions = signal<ClassSectionOption[]>([]);
   protected readonly selectedClass = signal('');
+  protected readonly isLoadingStructure = signal(false);
+  protected readonly isSavingStructure = signal(false);
+  protected readonly structureError = signal('');
   protected readonly isLoadingPending = signal(false);
   protected readonly pendingError = signal('');
-  protected readonly reminderCreatedFor = signal<number[]>([]);
+  protected readonly pendingWarning = signal('');
+  protected readonly reminderCreatedForMonthlyFeeIds = signal<number[]>([]);
   protected statusError = false;
   protected readonly feeTypes = [
-    { key: 'tuition', label: 'Tuition fee' },
-    { key: 'transport', label: 'Transport fee' },
-    { key: 'activities', label: 'Activities fee' },
-    { key: 'examination', label: 'Examination fee' },
-    { key: 'other', label: 'Other fee' }
+    { key: 'tuition', serviceName: 'TUITION', label: 'Tuition fee' },
+    { key: 'transport', serviceName: 'TRANSPORT', label: 'Transport fee' },
+    { key: 'activities', serviceName: 'ACTIVITIES', label: 'Activities fee' },
+    { key: 'examination', serviceName: 'EXAMINATION', label: 'Examination fee' },
+    { key: 'other', serviceName: 'OTHER', label: 'Other fee' }
   ];
-  protected readonly feeAmounts = signal<Record<string, number>>({
-    tuition: 5000,
-    transport: 1200,
-    activities: 500,
-    examination: 300,
-    other: 0
-  });
+  protected readonly feeAmounts = signal<Record<string, number>>({});
   protected readonly monthlyTotal = computed(() =>
     Object.values(this.feeAmounts()).reduce((total, amount) => total + amount, 0)
   );
   protected readonly pendingFees = signal<PendingFee[]>([]);
   protected readonly pendingStudentCount = computed(() =>
-    new Set(this.pendingFees().map(fee => fee.studentId)).size
+    new Set(this.pendingFees().map(fee => fee.admissionNumber)).size
   );
   protected statusMessage = '';
 
@@ -64,9 +62,10 @@ export class AdminFeesComponent {
     this.classSectionService.getAll().subscribe(options => {
       this.classOptions.set(options);
       this.selectedClass.set(options[0]?.classId ?? '');
-      this.loadPendingFees();
+      this.loadFeeStructure();
     }, () => {
       this.pendingError.set('Unable to load classes for fee management.');
+      this.structureError.set('Unable to load classes for fee management.');
     });
   }
 
@@ -74,13 +73,19 @@ export class AdminFeesComponent {
     this.selectedClass.set(String(value ?? ''));
     this.statusMessage = '';
     this.statusError = false;
-    this.loadPendingFees();
+    this.loadFeeStructure();
+    if (this.activeTab === 'pending') {
+      this.loadPendingFees();
+    }
   }
 
   protected selectTab(tab: 'structure' | 'pending'): void {
     this.activeTab = tab;
     this.statusMessage = '';
     this.statusError = false;
+    if (tab === 'pending') {
+      this.loadPendingFees();
+    }
   }
 
   protected updateFee(key: string, event: Event): void {
@@ -90,8 +95,50 @@ export class AdminFeesComponent {
     this.statusError = false;
   }
 
+  protected reloadFeeStructure(): void {
+    this.loadFeeStructure();
+  }
+
   protected saveClassFees(): void {
-    this.statusMessage = `${this.selectedClass()} monthly fee of ${this.formatCurrency(this.monthlyTotal())} is ready to be saved.`;
+    const selectedClass = this.selectedClass();
+    if (!selectedClass || this.isSavingStructure()) {
+      return;
+    }
+    const classId = Number(selectedClass);
+    this.isSavingStructure.set(true);
+    this.structureError.set('');
+    this.statusMessage = '';
+    this.statusError = false;
+
+    this.feesService.getFeeItemsByClass(classId).pipe(
+      switchMap(existingItems => forkJoin(this.feeTypes.map(feeType => {
+        const existing = existingItems.find(item =>
+          item.serviceName.trim().toUpperCase() === feeType.serviceName
+        );
+        const request: FeeItemRequest = {
+          serviceName: feeType.serviceName,
+          classId,
+          mandatory: true,
+          defaultAmount: this.feeAmounts()[feeType.key] ?? 0,
+          active: true
+        };
+        return existing
+          ? this.feesService.updateFeeItem(existing.id, request)
+          : this.feesService.createFeeItem(request);
+      })))
+    ).subscribe({
+      next: () => {
+        if (this.selectedClass() === selectedClass) {
+          this.statusMessage = `Monthly fee structure saved for Class ${selectedClass}.`;
+          this.loadFeeStructure();
+        }
+        this.isSavingStructure.set(false);
+      },
+      error: () => {
+        this.structureError.set('Unable to save the monthly fee structure. Please try again.');
+        this.isSavingStructure.set(false);
+      }
+    });
   }
 
   protected isOverdue(fee: PendingFee): boolean {
@@ -99,7 +146,7 @@ export class AdminFeesComponent {
   }
 
   protected createReminder(fee: PendingFee): void {
-    if (!this.isOverdue(fee) || this.reminderCreatedFor().includes(fee.id)) {
+    if (!this.isOverdue(fee) || this.reminderCreatedForMonthlyFeeIds().includes(fee.monthlyFeeId)) {
       return;
     }
 
@@ -113,14 +160,14 @@ export class AdminFeesComponent {
     this.statusMessage = '';
     this.statusError = false;
     this.feesService.createReminder({
-      monthlyFeeId: fee.id,
-      studentId: fee.studentId,
+      monthlyFeeId: fee.monthlyFeeId,
+      admissionNumber: fee.admissionNumber,
       reminderType,
       amount: fee.amount,
       dueDate: fee.dueDate
     }).subscribe({
       next: () => {
-        this.reminderCreatedFor.update(ids => [...ids, fee.id]);
+        this.reminderCreatedForMonthlyFeeIds.update(ids => [...ids, fee.monthlyFeeId]);
         this.statusMessage = `Reminder created for ${fee.studentName} (${this.formatMonth(fee.monthYear)}).`;
       },
       error: () => {
@@ -144,6 +191,39 @@ export class AdminFeesComponent {
     return Math.max(0, (fee.totalPayable ?? 0) - (fee.paidAmount ?? 0));
   }
 
+  private loadFeeStructure(): void {
+    const selectedClass = this.selectedClass();
+    if (!selectedClass) {
+      this.feeAmounts.set({});
+      this.isLoadingStructure.set(false);
+      return;
+    }
+    this.isLoadingStructure.set(true);
+    this.structureError.set('');
+    this.feeAmounts.set({});
+    this.feesService.getFeeItemsByClass(Number(selectedClass)).subscribe({
+      next: items => {
+        if (this.selectedClass() !== selectedClass) {
+          return;
+        }
+        this.feeAmounts.set(Object.fromEntries(this.feeTypes.map(feeType => {
+          const item = items.find(candidate =>
+            candidate.serviceName.trim().toUpperCase() === feeType.serviceName
+          );
+          return [feeType.key, item?.defaultAmount ?? 0];
+        })));
+        this.isLoadingStructure.set(false);
+      },
+      error: () => {
+        if (this.selectedClass() !== selectedClass) {
+          return;
+        }
+        this.structureError.set('Unable to load the monthly fee structure for this class.');
+        this.isLoadingStructure.set(false);
+      }
+    });
+  }
+
   private loadPendingFees(): void {
     const classOption = this.classOptions().find(option => option.classId === this.selectedClass());
     if (!classOption) {
@@ -154,26 +234,37 @@ export class AdminFeesComponent {
 
     this.isLoadingPending.set(true);
     this.pendingError.set('');
-    this.reminderCreatedFor.set([]);
+    this.pendingWarning.set('');
+    this.reminderCreatedForMonthlyFeeIds.set([]);
     const className = classOption.classId;
     const sections = classOption.sections;
     const rosters$ = sections.length
       ? forkJoin(sections.map(section =>
         this.peopleService.getStudentsByClassAndSection(Number(className), section.sectionName)
-      )).pipe(map(rosters => [...new Map(rosters.flat().map(student => [student.id, student])).values()]))
+      )).pipe(map(rosters =>
+        [...new Map(rosters.flat().map(student => [student.admissionNumber, student])).values()]
+      ))
       : of([] as Student[]);
 
     rosters$.pipe(
       switchMap(roster => {
-        const students = roster.filter((student): student is Student & { id: number } => student.id !== null);
+        const students = roster.filter((student): student is Student =>
+          Number.isSafeInteger(student.admissionNumber) && student.admissionNumber > 0
+        );
+        const missingAdmissionDateCount = students.filter(student => !student.admissionDate).length;
+        this.pendingWarning.set(missingAdmissionDateCount
+          ? `${missingAdmissionDateCount} student(s) need an admission date before missing monthly fees can be generated.`
+          : '');
         return students.length
         ? forkJoin(students.map(student =>
-          this.feesService.getMonthlyFees(student.id).pipe(
+          (student.admissionDate && this.activeTab === 'pending'
+            ? this.feesService.generateMonthlyFees(student.admissionNumber)
+            : this.feesService.getMonthlyFees(student.admissionNumber)).pipe(
             map(fees => fees
               .filter(fee => fee.status !== 'PAID' && fee.status !== 'EXEMPT' && this.outstanding(fee) > 0)
               .map(fee => ({
-                id: fee.id,
-                studentId: student.id ?? 0,
+                monthlyFeeId: fee.id,
+                admissionNumber: student.admissionNumber,
                 studentName: student.name,
                 className: `Class ${student.classId}`,
                 section: student.sectionName,

@@ -46,19 +46,21 @@ public class StudentController {
                 .body(ApiResponse.success(response, "Student created successfully"));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{admissionNumber}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
-    @Operation(summary = "Get student by ID")
-    public ResponseEntity<ApiResponse<StudentDTO>> getStudentById(@PathVariable Long id) {
-        log.info("Get student request received for id: {}", id);
-        StudentDTO response = studentService.getStudentById(id);
+    @Operation(summary = "Get student by admission number")
+    public ResponseEntity<ApiResponse<StudentDTO>> getStudentByAdmissionNumber(
+            @PathVariable Long admissionNumber) {
+        log.info("Get student request received for admission number: {}", admissionNumber);
+        StudentDTO response = studentService.getStudentByAdmissionNumber(admissionNumber);
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
     @GetMapping("/admission/{admissionNumber}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     @Operation(summary = "Get student by admission number")
-    public ResponseEntity<ApiResponse<StudentDTO>> getStudentByAdmissionNumber(@PathVariable Long admissionNumber) {
+    public ResponseEntity<ApiResponse<StudentDTO>> getStudentByAdmissionNumberFromAdmissionRoute(
+            @PathVariable Long admissionNumber) {
         log.info("Get student request received for admission number: {}", admissionNumber);
         StudentDTO response = studentService.getStudentByUsernameOrAdmNumber(admissionNumber);
         return ResponseEntity.ok(ApiResponse.success(response));
@@ -87,23 +89,23 @@ public class StudentController {
         return ResponseEntity.ok(ApiResponse.success(response));
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{admissionNumber}")
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
     @Operation(summary = "Update student")
     public ResponseEntity<ApiResponse<StudentDTO>> updateStudent(
-            @PathVariable Long id,
+            @PathVariable Long admissionNumber,
             @Valid @RequestBody StudentDTO studentDTO) {
-        log.info("Update student request received for id: {}", id);
-        StudentDTO response = studentService.updateStudent(id, studentDTO);
+        log.info("Update student request received for admission number: {}", admissionNumber);
+        StudentDTO response = studentService.updateStudent(admissionNumber, studentDTO);
         return ResponseEntity.ok(ApiResponse.success(response, "Student updated successfully"));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{admissionNumber}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Delete student")
-    public ResponseEntity<ApiResponse<Void>> deleteStudent(@PathVariable Long id) {
-        log.info("Delete student request received for id: {}", id);
-        studentService.deleteStudent(id);
+    public ResponseEntity<ApiResponse<Void>> deleteStudent(@PathVariable Long admissionNumber) {
+        log.info("Delete student request received for admission number: {}", admissionNumber);
+        studentService.deleteStudent(admissionNumber);
         return ResponseEntity.ok(ApiResponse.success(null, "Student deleted successfully"));
     }
 

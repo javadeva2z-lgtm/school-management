@@ -22,7 +22,6 @@ export class StudentFeeComponent {
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly profile = signal<{
-    id: number;
     admissionNumber: number;
     name: string;
     classId: number;
@@ -86,7 +85,7 @@ export class StudentFeeComponent {
     this.profileService.getProfile().pipe(defaultIfEmpty(null)).subscribe({
       next: profile => {
         const admissionNumber = Number(profile?.username);
-        if (!profile || profile.role !== 'Student' || profile.id <= 0
+        if (!profile || profile.role !== 'Student'
             || !Number.isSafeInteger(admissionNumber) || admissionNumber <= 0) {
           this.isLoading.set(false);
           this.errorMessage.set('Unable to identify the signed-in student. Please sign in again.');
@@ -94,7 +93,6 @@ export class StudentFeeComponent {
         }
 
         this.profile.set({
-          id: profile.id,
           admissionNumber,
           name: profile.name,
           classId: Number(profile.className),
@@ -250,7 +248,7 @@ export class StudentFeeComponent {
 
     this.isLoading.set(true);
     forkJoin({
-      monthlyFees: this.feesService.getMonthlyFees(profile.id),
+      monthlyFees: this.feesService.getMonthlyFees(profile.admissionNumber),
       payments: this.feesService.getPayments(profile.admissionNumber)
     }).subscribe({
       next: ({ monthlyFees, payments }) => {

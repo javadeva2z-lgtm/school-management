@@ -41,7 +41,7 @@
         </select>
       </label>
       <label>Student
-        <select name="teacherLeaveStudent" [ngModel]="selectedStudentId()" (ngModelChange)="onStudentChange($event)">
+        <select name="teacherLeaveStudent" [ngModel]="selectedAdmissionNumber()" (ngModelChange)="onStudentChange($event)">
           <option value="">Select a student</option>
           @for (student of students(); track student.admissionNumber) { <option [value]="student.admissionNumber">{{
             student.name }}
