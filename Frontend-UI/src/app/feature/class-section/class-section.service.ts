@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
 
 import { classesApiUrl, classSectionApiUrl, classTeacherApiUrl } from '../../core/config/api.config';
-import { ClassApiResponse, ClassSectionApiResponse, ClassSectionOption, ClassTeacherApiResponse, ClassTeacherAssignment, classDisplayName } from '../../common/model/models';
+import { ClassApiResponse, ClassSectionApiResponse, ClassSectionOption, ClassTeacherApiResponse, ClassTeacherAssignment, classDisplayName, SPECIAL_CLASS_NAMES } from '../../common/model/models';
 import { ProfileService } from '../profile/profile.service';
 
 @Injectable({ providedIn: 'root' })
@@ -20,26 +20,42 @@ export class ClassSectionService {
         const classNames = new Map(classes.data.map(clazz => [String(clazz.classId), clazz.className]));
         const classOptions = new Map<string, ClassSectionOption>();
 
+        classes.data.forEach(clazz => {
+          const classId = String(clazz.classId);
+          classOptions.set(classId, {
+            classId,
+            className: SPECIAL_CLASS_NAMES[Number(classId)] ?? clazz.className,
+            sections: []
+          });
+        });
+
         sectionsResponse.data.forEach(classSection => {
           const classId = String(classSection.classId);
-          const option = classOptions.get(classId);
           const section = {
             sectionId: classSection.id,
             sectionName: classSection.sectionName,
             capacity: classSection.capacity
           };
+          const option = classOptions.get(classId);
 
           if (option) {
-            option.sections.push(section);
+            if (!option.sections.some(item => item.sectionId === section.sectionId)) {
+              option.sections.push(section);
+            }
           } else {
             classOptions.set(classId, {
               classId,
-              className: classNames.get(classId) ?? classDisplayName(classId),
+              className: SPECIAL_CLASS_NAMES[Number(classId)] ?? classNames.get(classId) ?? classDisplayName(classId),
               sections: [section]
             });
           }
         });
-        const sorted = [...classOptions.values()].sort((a, b) => Number(a.classId) - Number(b.classId));
+        const sorted = [...classOptions.values()]
+          .map(option => ({
+            ...option,
+            sections: option.sections.sort((a, b) => a.sectionName.localeCompare(b.sectionName))
+          }))
+          .sort((a, b) => Number(a.classId) - Number(b.classId));
         return sorted;
       })
     );

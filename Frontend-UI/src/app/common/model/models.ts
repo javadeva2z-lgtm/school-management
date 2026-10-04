@@ -53,24 +53,25 @@ export interface ClassApiResponse {
   timestamp: string;
 }
 
+export const SPECIAL_CLASS_NAMES: Readonly<Record<number, string>> = {
+  [-1]: 'UKG',
+  [-2]: 'LKG',
+  [-3]: 'Nursery'
+};
+
 export function classDisplayName(
   classId: number | string,
   classOptions: readonly ClassSectionOption[] = []
 ): string {
+  const specialClassName = SPECIAL_CLASS_NAMES[Number(classId)];
+  if (specialClassName) {
+    return specialClassName;
+  }
   const className = classOptions.find(option => Number(option.classId) === Number(classId))?.className;
   if (className) {
     return className;
   }
-  switch (Number(classId)) {
-    case -1:
-      return 'UKG';
-    case -2:
-      return 'LKG';
-    case -3:
-      return 'Nursery';
-    default:
-      return String(classId);
-  }
+  return String(classId);
 }
 
 export interface ClassTeacherAssignment {
