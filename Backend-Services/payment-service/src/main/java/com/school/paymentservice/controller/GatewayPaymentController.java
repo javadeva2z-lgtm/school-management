@@ -1,6 +1,5 @@
 package com.school.paymentservice.controller;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,7 +8,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.client.RestClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,30 +17,27 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.school.common.response.ApiResponse;
 import com.school.common.multitenancy.TenantContext;
+import com.school.paymentservice.client.StudentIdentity;
+import com.school.paymentservice.client.StudentServiceClient;
 import com.school.paymentservice.dto.CreateGatewayPaymentRequest;
 import com.school.paymentservice.dto.GatewayPaymentOrderDTO;
 import com.school.paymentservice.service.GatewayPaymentService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/payments/gateway-orders")
 public class GatewayPaymentController {
     private final GatewayPaymentService gatewayPaymentService;
-    private final RestClient.Builder restClientBuilder;
-    private final String userServiceBaseUrl;
+    private final StudentServiceClient studentServiceClient;
 
     public GatewayPaymentController(
             GatewayPaymentService gatewayPaymentService,
-            RestClient.Builder restClientBuilder,
-            @Value("${payment.gateways.user-service-base-url:http://localhost:8000/user-service}")
-            String userServiceBaseUrl) {
+            StudentServiceClient studentServiceClient) {
         this.gatewayPaymentService = gatewayPaymentService;
-        this.restClientBuilder = restClientBuilder;
-        this.userServiceBaseUrl = userServiceBaseUrl;
+        this.studentServiceClient = studentServiceClient;
     }
 
     @PostMapping
@@ -50,7 +45,8 @@ public class GatewayPaymentController {
     public ResponseEntity<ApiResponse<GatewayPaymentOrderDTO>> createOrder(
             @Valid @RequestBody CreateGatewayPaymentRequest request,
             HttpServletRequest servletRequest) {
-        Long studentId = resolveStudentId(request.getAdmissionNumber(), servletRequest);
+        Long studentId = resolveStudentId(
+                request.getAdmissionNumber(), servletRequest.getHeader(HttpHeaders.AUTHORIZATION));
         GatewayPaymentOrderDTO response = gatewayPaymentService.createOrder(request, studentId, servletRequest);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response, "Payment QR created. Complete the payment in your UPI app."));
@@ -92,7 +88,7 @@ public class GatewayPaymentController {
         }
     }
 
-    private Long resolveStudentId(Long admissionNumber, HttpServletRequest request) {
+    private Long resolveStudentId(Long admissionNumber, String authorization) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || admissionNumber == null || admissionNumber <= 0) {
             throw new IllegalArgumentException("A valid admission number and authenticated user are required");
@@ -103,22 +99,18 @@ public class GatewayPaymentController {
             throw new IllegalArgumentException("A student can only create payments for their own admission number");
         }
 
-        String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
         if (authorization == null || authorization.isBlank()) {
             throw new IllegalStateException("Authenticated user token is required");
         }
-        JsonNode response = restClientBuilder.build().get()
-                .uri(userServiceBaseUrl + "/api/v1/students/admission/{admissionNumber}", admissionNumber)
-                .header(HttpHeaders.AUTHORIZATION, authorization)
-                .retrieve()
-                .body(JsonNode.class);
-        JsonNode student = response == null ? null : response.path("data");
-        if (student == null || !student.path("id").isNumber()
-                || !student.path("admissionNumber").canConvertToLong()
-                || student.path("admissionNumber").asLong() != admissionNumber) {
+        ApiResponse<StudentIdentity> response =
+                studentServiceClient.getStudentByAdmissionNumber(admissionNumber, authorization);
+        StudentIdentity student = response == null ? null : response.getData();
+        if (student == null || student.id() == null
+                || student.admissionNumber() == null
+                || !student.admissionNumber().equals(admissionNumber)) {
             throw new IllegalArgumentException("Admission number does not identify a student");
         }
-        return student.path("id").asLong();
+        return student.id();
     }
 
     private void assertStudentOwns(Long admissionNumber) {

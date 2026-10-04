@@ -228,10 +228,11 @@ Configure gateway secrets as environment variables for the payment service; neve
 | --- | --- |
 | `PAYMENT_GATEWAY_MODE` | `test` (default) or `prod` for PayU |
 | `PAYMENT_PUBLIC_BASE_URL` | Public API gateway origin used to form PayU callback URLs and Razorpay webhook paths |
-| `USER_SERVICE_BASE_URL` | Reachable user-service API base; defaults to `http://localhost:8000/user-service` |
 | `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | Razorpay API credentials |
 | `RAZORPAY_WEBHOOK_SECRET` | Secret configured for the Razorpay webhook |
 | `PAYU_KEY` / `PAYU_SALT` | PayU India merchant credentials |
+
+Payment-to-user lookups use the `user-service` Eureka service ID through OpenFeign and forward the caller's bearer token. Ensure both services register with the same Eureka server.
 
 Razorpay must enable the on-demand `upi_qr` feature. Configure its webhook to send `qr_code.credited` events to:
 

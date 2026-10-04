@@ -4,7 +4,6 @@ server:
 payment:
   gateways:
     mode: ${PAYMENT_GATEWAY_MODE:test}
-    user-service-base-url: ${USER_SERVICE_BASE_URL:http://localhost:8000/user-service}
     public-base-url: ${PAYMENT_PUBLIC_BASE_URL:}
     razorpay:
       key-id: ${RAZORPAY_KEY_ID:}
