@@ -2,7 +2,8 @@ import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { AnnouncementsService } from './announcements.service';
-import { Announcement, classDisplayName } from '../../common/model/models';
+import { Announcement, classDisplayName, ClassSectionOption } from '../../common/model/models';
+import { ClassSectionService } from '../class-section/class-section.service';
 
 @Component({
   selector: 'app-student-announcements',
@@ -10,12 +11,15 @@ import { Announcement, classDisplayName } from '../../common/model/models';
   templateUrl: './student-announcements.component.html'
 })
 export class StudentAnnouncementsComponent {
-  protected readonly classDisplayName = classDisplayName;
   private readonly announcementsService = inject(AnnouncementsService);
+  private readonly classSectionService = inject(ClassSectionService);
   protected readonly announcements = signal<Announcement[]>([]);
   protected readonly selectedAnnouncement = signal<Announcement | null>(null);
+  protected readonly classOptions = signal<ClassSectionOption[]>([]);
+  protected readonly classDisplayName = (classId: number | string) => classDisplayName(classId, this.classOptions());
 
   constructor() {
+    this.classSectionService.getAll().subscribe(options => this.classOptions.set(options));
     this.loadAnnouncements();
   }
 

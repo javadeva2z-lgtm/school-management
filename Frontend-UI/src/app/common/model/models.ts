@@ -36,10 +36,31 @@ export interface Section {
 
 export interface ClassSectionOption {
   classId: string;
+  className: string;
   sections: Section[];
 }
 
-export function classDisplayName(classId: number | string): string {
+export interface ClassApiResponse {
+  status: string;
+  code: number;
+  message: string;
+  data: {
+    classId: number | string;
+    className: string;
+    academicYear: string;
+    isActive: boolean;
+  }[];
+  timestamp: string;
+}
+
+export function classDisplayName(
+  classId: number | string,
+  classOptions: readonly ClassSectionOption[] = []
+): string {
+  const className = classOptions.find(option => Number(option.classId) === Number(classId))?.className;
+  if (className) {
+    return className;
+  }
   switch (Number(classId)) {
     case -1:
       return 'UKG';

@@ -13,7 +13,7 @@
     <label>Class
       <select name="teacherStudentsClass" [ngModel]="selectedClass()" (ngModelChange)="onClassChange($event)">
         @for (option of classOptions(); track option.classId) {
-        <option [value]="option.classId"> Class {{ classDisplayName(option.classId) }}</option>
+        <option [value]="option.classId">{{ option.className }}</option>
         }
       </select>
     </label>
@@ -37,7 +37,7 @@
         </div>
       </div>
       <div class="student-card-details">
-        <div><span>Class</span><strong>Class {{ classDisplayName(student.classId) }} / Section {{ student.sectionName }}</strong></div>
+        <div><span>Class</span><strong>Class {{ classDisplayName(student.classId, classOptions()) }} / Section {{ student.sectionName }}</strong></div>
         <div><span>Parent / guardian</span><strong>{{ student.fatherName }}</strong><small>Father</small></div>
         <div><span>Phone</span><a [href]="'tel:' + student.parentPhone">{{ student.parentPhone }}</a></div>
       </div>
@@ -46,7 +46,7 @@
   </section>
   } @else {
   <section class="student-directory-empty">
-    <p>No students found for Class {{ classDisplayName(selectedClass()) }} / Section {{ selectedSection() }}.</p>
+    <p>No students found for Class {{ classDisplayName(selectedClass(), classOptions()) }} / Section {{ selectedSection() }}.</p>
   </section>
   }
 </main>

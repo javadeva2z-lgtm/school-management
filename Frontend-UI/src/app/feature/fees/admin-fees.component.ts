@@ -130,7 +130,7 @@ export class AdminFeesComponent {
     ).subscribe({
       next: () => {
         if (this.selectedClass() === selectedClass) {
-          this.statusMessage = `Monthly fee structure saved for Class ${classDisplayName(selectedClass)}.`;
+          this.statusMessage = `Monthly fee structure saved for Class ${classDisplayName(selectedClass, this.classOptions())}.`;
           this.loadFeeStructure();
         }
         this.isSavingStructure.set(false);
@@ -267,7 +267,7 @@ export class AdminFeesComponent {
                 monthlyFeeId: fee.id,
                 admissionNumber: student.admissionNumber,
                 studentName: student.name,
-                className: `Class ${classDisplayName(student.classId)}`,
+                className: `Class ${classDisplayName(student.classId, this.classOptions())}`,
                 section: student.sectionName,
                 monthYear: fee.monthYear,
                 dueDate: `${fee.monthYear}-08`,

@@ -24,7 +24,7 @@
   <section class="attendance-controls" aria-label="Mark attendance filters">
     <label>Class
       <select name="teacherAttendanceMarkClass" [ngModel]="selectedClass()" (ngModelChange)="onClassChange($event)">
-        @for (option of classOptions(); track option.classId) { <option [value]="option.classId">Class {{ classDisplayName(option.classId)
+        @for (option of classOptions(); track option.classId) { <option [value]="option.classId">{{ option.className
           }}</option> }
       </select>
     </label>
@@ -48,7 +48,7 @@
   <section class="attendance-controls history-controls" aria-label="Student attendance filters">
     <label>Class
       <select name="teacherHistoryClass" [ngModel]="selectedClass()" (ngModelChange)="onClassChange($event)">
-        @for (option of classOptions(); track option.classId) { <option [value]="option.classId">Class {{ classDisplayName(option.classId)
+        @for (option of classOptions(); track option.classId) { <option [value]="option.classId">{{ option.className
           }}</option> }
       </select>
     </label>
@@ -94,7 +94,7 @@
   <section class="student-history-panel" aria-labelledby="history-title">
     <div class="student-list-heading">
       <div>
-        <p class="eyebrow">Class {{ classDisplayName(selectedClass()) }} / Section {{ selectedSection() }}</p>
+        <p class="eyebrow">Class {{ classDisplayName(selectedClass(), classOptions()) }} / Section {{ selectedSection() }}</p>
         <h2 id="history-title">{{ selectedStudent() ? selectedStudent()?.name : 'Student attendance' }}</h2>
       </div><span>{{ selectedStudent() ? 'Attendance history' : 'Select a student above' }}</span>
     </div>
@@ -135,7 +135,7 @@
   <section class="student-list" aria-labelledby="student-list-title">
     <div class="student-list-heading">
       <div>
-        <p class="eyebrow">Class {{ classDisplayName(selectedClass()) }} / Section {{ selectedSection() }}</p>
+        <p class="eyebrow">Class {{ classDisplayName(selectedClass(), classOptions()) }} / Section {{ selectedSection() }}</p>
         <h2 id="student-list-title">Student register</h2>
       </div><span>{{ students().length }} students</span>
     </div>

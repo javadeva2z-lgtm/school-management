@@ -1,9 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, map, Observable, of, switchMap } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
 
-import { classSectionApiUrl, classTeacherApiUrl } from '../../core/config/api.config';
-import { ClassSectionApiResponse, ClassSectionOption, ClassTeacherApiResponse, ClassTeacherAssignment } from '../../common/model/models';
+import { classesApiUrl, classSectionApiUrl, classTeacherApiUrl } from '../../core/config/api.config';
+import { ClassApiResponse, ClassSectionApiResponse, ClassSectionOption, ClassTeacherApiResponse, ClassTeacherAssignment, classDisplayName } from '../../common/model/models';
 import { ProfileService } from '../profile/profile.service';
 
 @Injectable({ providedIn: 'root' })
@@ -12,13 +12,17 @@ export class ClassSectionService {
   private readonly profileService = inject(ProfileService);
 
   getAll(): Observable<ClassSectionOption[]> {
-    return this.http.get<ClassSectionApiResponse>(classSectionApiUrl('')).pipe(
-      map(response => {
-        const classSections = new Map<string, ClassSectionOption>();
+    return forkJoin({
+      sectionsResponse: this.http.get<ClassSectionApiResponse>(classSectionApiUrl('')),
+      classes: this.http.get<ClassApiResponse>(classesApiUrl('/active'))
+    }).pipe(
+      map(({ sectionsResponse, classes }) => {
+        const classNames = new Map(classes.data.map(clazz => [String(clazz.classId), clazz.className]));
+        const classOptions = new Map<string, ClassSectionOption>();
 
-        response.data.forEach(classSection => {
+        sectionsResponse.data.forEach(classSection => {
           const classId = String(classSection.classId);
-          const option = classSections.get(classId);
+          const option = classOptions.get(classId);
           const section = {
             sectionId: classSection.id,
             sectionName: classSection.sectionName,
@@ -28,13 +32,14 @@ export class ClassSectionService {
           if (option) {
             option.sections.push(section);
           } else {
-            classSections.set(classId, {
+            classOptions.set(classId, {
               classId,
+              className: classNames.get(classId) ?? classDisplayName(classId),
               sections: [section]
             });
           }
         });
-        const sorted = [...classSections.values()].sort((a,b) => Number(a.classId) - Number(b.classId));
+        const sorted = [...classOptions.values()].sort((a, b) => Number(a.classId) - Number(b.classId));
         return sorted;
       })
     );

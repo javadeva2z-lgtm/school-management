@@ -31,7 +31,7 @@
         <select name="teacherHomeworkNewClass" [ngModel]="selectedClass()" (ngModelChange)="onClassChange($event)">
           <option value="" disabled>Select a class</option>
           @for (option of classOptions(); track option.classId) {
-          <option [value]="option.classId">Class {{ classDisplayName(option.classId) }}</option>
+          <option [value]="option.classId">{{ option.className }}</option>
           }
         </select>
       </label>
@@ -92,7 +92,7 @@
         <select name="teacherHomeworkListClass" [ngModel]="selectedClass()" (ngModelChange)="onClassChange($event)">
           <option value="" disabled>Select a class</option>
           @for (option of classOptions(); track option.classId) {
-          <option [value]="option.classId">Class {{ classDisplayName(option.classId) }}</option>
+          <option [value]="option.classId">{{ option.className }}</option>
           }
         </select>
       </label>
@@ -205,7 +205,7 @@
     } @else {
     <div class="admin-manage-placeholder" role="status">
       <strong>No assignments found</strong>
-      <span>No HOMEWORK or CLASSWORK is available for Class {{ classDisplayName(selectedClass()) }}, Section {{ selectedSection()
+      <span>No HOMEWORK or CLASSWORK is available for Class {{ classDisplayName(selectedClass(), classOptions()) }}, Section {{ selectedSection()
         }}.</span>
     </div>
     }
