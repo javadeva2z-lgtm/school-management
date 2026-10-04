@@ -28,7 +28,7 @@
         <select name="teacherLeaveClass" [ngModel]="selectedClass()" (ngModelChange)="onClassChange($event)">
           <option value="">Select a class</option>
           @for (option of classOptions(); track option.classId) {
-          <option [value]="option.classId">Class {{ option.classId }}</option>
+          <option [value]="option.classId">Class {{ classDisplayName(option.classId) }}</option>
           }
         </select>
       </label>
@@ -82,7 +82,7 @@
         <select name="teacherLeaveReviewClass" [ngModel]="selectedClass()" (ngModelChange)="onClassChange($event)">
           <option value="">Select a class</option>
           @for (option of classOptions(); track option.classId) {
-          <option [value]="option.classId">Class {{ option.classId }}</option>
+          <option [value]="option.classId">Class {{ classDisplayName(option.classId) }}</option>
           }
         </select>
       </label>

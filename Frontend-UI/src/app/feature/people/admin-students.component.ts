@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { PeopleService } from './people.service';
-import { Student, ClassSectionOption } from '../../common/model/models';
+import { classDisplayName, Student, ClassSectionOption } from '../../common/model/models';
 import { ClassSectionService } from '../class-section/class-section.service';
 
 interface StudentFormModel {
@@ -28,6 +28,7 @@ interface StudentFormModel {
   styleUrl: './admin-people-management.css'
 })
 export class AdminStudentsComponent {
+  protected readonly classDisplayName = classDisplayName;
   private readonly peopleService = inject(PeopleService);
   private readonly classSectionService = inject(ClassSectionService);
   protected readonly fields: Array<keyof StudentFormModel> = ['name', 'gender', 'rollNumber', 'dob', 'admissionDate', 'address', 'fatherName', 'motherName', 'parentMobile', 'className', 'section', 'email'];

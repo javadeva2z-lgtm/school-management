@@ -22,7 +22,7 @@
         <label>Class
           <select name="adminFeesClass" [ngModel]="selectedClass()" (ngModelChange)="selectClass($event)">
             @for (option of classOptions(); track option.classId) { <option [value]="option.classId"> Class {{
-              option.classId }}</option> }
+              classDisplayName(option.classId) }}</option> }
           </select>
         </label>
       </div>
@@ -61,7 +61,7 @@
         <label class="pending-class-select">Class
           <select name="pendingFeesClass" [ngModel]="selectedClass()" (ngModelChange)="selectClass($event)">
             @for (option of classOptions(); track option.classId) {
-            <option [value]="option.classId">Class {{ option.classId }}</option>
+            <option [value]="option.classId">Class {{ classDisplayName(option.classId) }}</option>
             }
           </select>
         </label>

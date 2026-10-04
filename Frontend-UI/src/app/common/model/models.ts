@@ -39,6 +39,19 @@ export interface ClassSectionOption {
   sections: Section[];
 }
 
+export function classDisplayName(classId: number | string): string {
+  switch (Number(classId)) {
+    case -1:
+      return 'UKG';
+    case -2:
+      return 'LKG';
+    case -3:
+      return 'Nursery';
+    default:
+      return String(classId);
+  }
+}
+
 export interface ClassTeacherAssignment {
   id: number | null;
   classId: number;

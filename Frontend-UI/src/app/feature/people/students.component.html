@@ -8,7 +8,7 @@
       </div>
     </div>
     <div class="student-card-details">
-      <div><span>Class</span><strong>Class {{ student.classId }} / Section {{ student.sectionName }}</strong></div>
+      <div><span>Class</span><strong>Class {{ classDisplayName(student.classId) }} / Section {{ student.sectionName }}</strong></div>
       <div><span>Parent / guardian</span><strong>{{ student.fatherName }}</strong><small>Father</small></div>
       <div><span>Phone</span><a [href]="'tel:' + student.parentPhone">{{ student.parentPhone }}</a></div>
     </div>

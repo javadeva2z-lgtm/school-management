@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { PeopleService } from './people.service';
-import { ClassSectionOption, Student } from '../../common/model/models';
+import { classDisplayName, ClassSectionOption, Student } from '../../common/model/models';
 import { ClassSectionService } from '../class-section/class-section.service';
 import { FormsModule } from '@angular/forms';
 
@@ -12,6 +12,7 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './teacher-students.component.html'
 })
 export class TeacherStudentsComponent {
+  protected readonly classDisplayName = classDisplayName;
   private readonly peopleService = inject(PeopleService);
   private readonly classSectionService = inject(ClassSectionService);
   protected readonly classOptions = signal<ClassSectionOption[]>([]);

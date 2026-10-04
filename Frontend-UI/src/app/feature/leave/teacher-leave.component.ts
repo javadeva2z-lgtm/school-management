@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { LeaveService } from './leave.service';
-import { ClassSectionOption, LeaveApplication, LeaveStatus, Student } from '../../common/model/models';
+import { classDisplayName, ClassSectionOption, LeaveApplication, LeaveStatus, Student } from '../../common/model/models';
 import { ClassSectionService } from '../class-section/class-section.service';
 import { PeopleService } from '../people/people.service';
 import { FormsModule } from '@angular/forms';
@@ -16,6 +16,7 @@ type LeaveTab = 'apply' | 'applied';
   templateUrl: './teacher-leave.component.html'
 })
 export class TeacherLeaveComponent {
+  protected readonly classDisplayName = classDisplayName;
   private readonly leaveService = inject(LeaveService);
   private readonly peopleService = inject(PeopleService);
   private readonly classSectionService = inject(ClassSectionService);

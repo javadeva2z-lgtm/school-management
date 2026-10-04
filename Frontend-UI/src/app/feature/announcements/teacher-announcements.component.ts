@@ -3,7 +3,7 @@ import { RouterLink } from '@angular/router';
 
 import { AnnouncementsService } from './announcements.service';
 import { ClassSectionService } from '../class-section/class-section.service';
-import { Announcement, ClassSectionOption } from '../../common/model/models';
+import { Announcement, classDisplayName, ClassSectionOption } from '../../common/model/models';
 import { FormsModule } from '@angular/forms';
 
 @Component({
@@ -12,6 +12,7 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './teacher-announcements.component.html'
 })
 export class TeacherAnnouncementsComponent {
+  protected readonly classDisplayName = classDisplayName;
   private readonly announcementsService = inject(AnnouncementsService);
   private readonly classSectionService = inject(ClassSectionService);
   protected readonly announcements = signal<Announcement[]>([]);

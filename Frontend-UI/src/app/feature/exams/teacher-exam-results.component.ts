@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { ExamsService } from './exams.service';
-import { ClassSectionOption, ExamResultRow, ResultFilter, ResultPayload } from '../../common/model/models';
+import { classDisplayName, ClassSectionOption, ExamResultRow, ResultFilter, ResultPayload } from '../../common/model/models';
 import { ClassSectionService } from '../class-section/class-section.service';
 type ResultMode = 'save' | 'view';
 type ResultSortColumn = 'studentName' | 'subject';
@@ -14,6 +14,7 @@ type SortDirection = 'asc' | 'desc';
   templateUrl: './teacher-exam-results.component.html'
 })
 export class TeacherExamResultsComponent {
+  protected readonly classDisplayName = classDisplayName;
   private readonly examsService = inject(ExamsService);
   private readonly classSectionService = inject(ClassSectionService);
   protected readonly mode = signal<ResultMode>('save');

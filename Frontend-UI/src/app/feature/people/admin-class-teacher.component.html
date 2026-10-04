@@ -20,7 +20,7 @@
           <select name="selectedClass" [ngModel]="selectedClass()" (ngModelChange)="onClassChange($event)" required>
             <option value="" disabled>Select a class</option>
             @for (option of classOptions(); track option.classId) {
-            <option [value]="option.classId">Class {{ option.classId }}</option>
+            <option [value]="option.classId">Class {{ classDisplayName(option.classId) }}</option>
             }
           </select>
         </label>
@@ -55,7 +55,7 @@
         @for (assignment of assignments(); track assignment.id) {
         <article class="admin-student-card">
           <div>
-            <strong>Class {{ assignment.classId }} · Section {{ assignment.sectionName }}</strong>
+            <strong>Class {{ classDisplayName(assignment.classId) }} · Section {{ assignment.sectionName }}</strong>
             <span>Teacher: {{ teachers().find(teacher => teacher.id === assignment.teacherId)?.name ?? 'Unknown teacher'
               }}</span>
           </div>

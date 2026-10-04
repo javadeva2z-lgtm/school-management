@@ -43,6 +43,9 @@ export class StudentTeachersComponent {
 function getClassLevel(classId: number): ClassLevel {
   let level: ClassLevel = 'PRE_PRIMARY';
 
+  if (classId === -1 || classId === -2 || classId === -3) {
+    return 'PRE_PRIMARY';
+  }
   if (classId >= 1 && classId < 6) {
     level = 'PRIMARY';
 
@@ -61,7 +64,6 @@ function getClassLevel(classId: number): ClassLevel {
   return level;
 
 }
-
 
 
 

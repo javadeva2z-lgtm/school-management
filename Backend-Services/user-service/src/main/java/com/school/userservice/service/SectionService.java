@@ -120,8 +120,8 @@ public class SectionService {
             for (CSVRecord record : csvRecords) {
                 Long classId = record.get(Constants.IMPORT_SECTION_COLUMN_CLASS_ID) != null ? Long.parseLong(record.get(Constants.IMPORT_SECTION_COLUMN_CLASS_ID)) : null;
                 
-                if (classId == null || classId <= 0) {
-                    throw new IllegalArgumentException("CSV contains a record with a missing mandatory class ID.");
+                if (classId == null || classId == 0 || (classId < 0 && !List.of(-1L, -2L, -3L).contains(classId))) {
+                    throw new IllegalArgumentException("CSV class ID must be positive, -1 (UKG), -2 (LKG), or -3 (Nursery).");
                 }
                 long id = record.isMapped(Constants.IMPORT_SECTION_COLUMN_ID) && !record.get(Constants.IMPORT_SECTION_COLUMN_ID).isBlank() ? Long.parseLong(record.get(Constants.IMPORT_SECTION_COLUMN_ID)) : 0;
                 String className = record.get(Constants.IMPORT_SECTION_COLUMN_CLASS_NAME);

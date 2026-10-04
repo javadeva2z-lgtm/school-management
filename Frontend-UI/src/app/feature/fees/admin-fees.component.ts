@@ -1,7 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { ClassSectionService } from '../class-section/class-section.service';
-import { ClassSectionOption, Student } from '../../common/model/models';
+import { classDisplayName, ClassSectionOption, Student } from '../../common/model/models';
 import { FormsModule } from '@angular/forms';
 import { FeeItemRequest, FeesService, MonthlyFee } from './fees.service';
 import { PeopleService } from '../people/people.service';
@@ -27,6 +27,7 @@ interface PendingFee {
   styleUrl: './admin-fees.component.css'
 })
 export class AdminFeesComponent {
+  protected readonly classDisplayName = classDisplayName;
   private readonly classSectionService = inject(ClassSectionService);
   private readonly peopleService = inject(PeopleService);
   private readonly feesService = inject(FeesService);
@@ -129,7 +130,7 @@ export class AdminFeesComponent {
     ).subscribe({
       next: () => {
         if (this.selectedClass() === selectedClass) {
-          this.statusMessage = `Monthly fee structure saved for Class ${selectedClass}.`;
+          this.statusMessage = `Monthly fee structure saved for Class ${classDisplayName(selectedClass)}.`;
           this.loadFeeStructure();
         }
         this.isSavingStructure.set(false);
@@ -266,7 +267,7 @@ export class AdminFeesComponent {
                 monthlyFeeId: fee.id,
                 admissionNumber: student.admissionNumber,
                 studentName: student.name,
-                className: `Class ${student.classId}`,
+                className: `Class ${classDisplayName(student.classId)}`,
                 section: student.sectionName,
                 monthYear: fee.monthYear,
                 dueDate: `${fee.monthYear}-08`,

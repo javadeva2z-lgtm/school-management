@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { AttendanceService } from './attendance.service';
-import { AttendanceRecord, AttendanceStudent, CalendarDay, CalendarMonth, ClassSectionOption, LeaveApplication } from '../../common/model/models';
+import { AttendanceRecord, AttendanceStudent, CalendarDay, CalendarMonth, classDisplayName, ClassSectionOption, LeaveApplication } from '../../common/model/models';
 import { LeaveService } from '../leave/leave.service';
 import { ClassSectionService } from '../class-section/class-section.service';
 import { PeopleService } from '../people/people.service';
@@ -18,6 +18,7 @@ type AttendanceMode = 'mark' | 'history';
   templateUrl: './teacher-attendance.component.html'
 })
 export class TeacherAttendanceComponent {
+  protected readonly classDisplayName = classDisplayName;
   private readonly attendanceService = inject(AttendanceService);
   private readonly leaveService = inject(LeaveService);
   private readonly peopleService = inject(PeopleService);

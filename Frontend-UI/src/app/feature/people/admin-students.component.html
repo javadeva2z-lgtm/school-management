@@ -60,7 +60,7 @@
           <select [(ngModel)]="studentModel.className" name="studentClassName" required>
             <option value="" disabled>Select a class</option>
             @for (option of classOptions(); track option.classId) {
-            <option [value]="option.classId">Class {{ option.classId }}</option>
+            <option [value]="option.classId">Class {{ classDisplayName(option.classId) }}</option>
             }
           </select>
         </label>
@@ -86,7 +86,7 @@
         <label>Class
           <select [value]="selectedClassId()" (change)="onManageClassChange($event)">
             @for (option of classOptions(); track option.classId) { <option [value]="option.classId">Class {{
-              option.classId }}</option> }
+              classDisplayName(option.classId) }}</option> }
           </select>
         </label>
         <label>Section
@@ -119,7 +119,7 @@
       } @else {
       <div class="admin-manage-placeholder" role="status">
         <strong>No students found</strong>
-        <span>No students are available for Class {{ selectedClassId() }}, Section {{ selectedSection() }}.</span>
+        <span>No students are available for Class {{ classDisplayName(selectedClassId()) }}, Section {{ selectedSection() }}.</span>
       </div>
       }
       }

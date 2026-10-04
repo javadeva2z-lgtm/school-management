@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { PeopleService } from './people.service';
-import { Student } from '../../common/model/models';
+import { classDisplayName, Student } from '../../common/model/models';
 import { FormsModule } from '@angular/forms';
 import { ProfileService } from '../profile/profile.service';
 
@@ -12,6 +12,7 @@ import { ProfileService } from '../profile/profile.service';
   templateUrl: './students.component.html'
 })
 export class StudentsComponent {
+  protected readonly classDisplayName = classDisplayName;
   private readonly profileService = inject(ProfileService);
   private readonly peopleService = inject(PeopleService);
 

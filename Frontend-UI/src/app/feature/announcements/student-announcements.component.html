@@ -45,7 +45,7 @@
       <div class="announcement-detail-scroll">
         <p class="announcement-detail-message">{{ item.content }}</p>
         <div class="announcement-meta">
-          <span>{{ item.classId }}</span>
+          <span>{{ classDisplayName(item.classId) }}</span>
           <span>{{ item.sectionName === 'All' ? 'All sections' : 'Section ' + item.sectionName }}</span>
         </div>
       </div>

@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { AnnouncementsService } from './announcements.service';
-import { Announcement } from '../../common/model/models';
+import { Announcement, classDisplayName } from '../../common/model/models';
 
 @Component({
   selector: 'app-student-announcements',
@@ -10,6 +10,7 @@ import { Announcement } from '../../common/model/models';
   templateUrl: './student-announcements.component.html'
 })
 export class StudentAnnouncementsComponent {
+  protected readonly classDisplayName = classDisplayName;
   private readonly announcementsService = inject(AnnouncementsService);
   protected readonly announcements = signal<Announcement[]>([]);
   protected readonly selectedAnnouncement = signal<Announcement | null>(null);

@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { HomeworkService } from './homework.service';
 import { ClassSectionService } from '../class-section/class-section.service';
 import { PeopleService } from '../people/people.service';
-import { ClassSectionOption, HomeworkRecord, Student } from '../../common/model/models';
+import { classDisplayName, ClassSectionOption, HomeworkRecord, Student } from '../../common/model/models';
 import { ProfileService } from '../profile/profile.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
@@ -18,6 +18,7 @@ type HomeworkTab = 'new' | 'list';
   styleUrl: './teacher-homework.component.css'
 })
 export class TeacherHomeworkComponent {
+  protected readonly classDisplayName = classDisplayName;
   private readonly homeworkService = inject(HomeworkService);
   private readonly classSectionService = inject(ClassSectionService);
   private readonly peopleService = inject(PeopleService);

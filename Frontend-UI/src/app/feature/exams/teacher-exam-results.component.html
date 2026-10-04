@@ -11,7 +11,7 @@
       role="tab" [class.active]="mode() === 'view'" (click)="switchMode('view')">View result</button></div>
   <section class="results-filters" aria-label="Exam result filters">
     <label>Class<select [value]="className()" (change)="changeFilter($event, 'className')">@for (option of
-        classOptions(); track option.classId) { <option [value]="option.classId">Class {{ option.classId }}</option>
+        classOptions(); track option.classId) { <option [value]="option.classId">Class {{ classDisplayName(option.classId) }}</option>
         }</select></label>
     <label>Section<select [value]="section()" (change)="changeFilter($event, 'section')">@for (option of
         sectionOptions(); track option.sectionName) { <option [value]="option.sectionName">Section {{ option.sectionName
