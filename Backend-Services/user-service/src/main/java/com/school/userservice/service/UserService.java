@@ -28,6 +28,8 @@ import com.school.userservice.entity.User;
 import com.school.userservice.entity.UserRole;
 import com.school.userservice.repository.UserRepository;
 import com.school.userservice.repository.UserRoleRepository;
+import com.school.userservice.repository.StudentRepository;
+import com.school.userservice.repository.TeacherRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +45,8 @@ public class UserService extends BaseService {
 
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
+    private final StudentRepository studentRepository;
+    private final TeacherRepository teacherRepository;
     private final SchoolService schoolService;
     private final JwtUtil jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
@@ -142,9 +146,30 @@ public class UserService extends BaseService {
                                 .map(role -> role.substring("ROLE_".length()))
                                 .sorted()
                                 .collect(Collectors.joining(", ")))
+                        .displayName(getPasswordManagedUserDisplayName(
+                                user.getUsername(), rolesByUsername.get(user.getUsername())))
                         .build())
                 .sorted((left, right) -> left.getUsername().compareToIgnoreCase(right.getUsername()))
                 .toList();
+    }
+
+    private String getPasswordManagedUserDisplayName(String username, Set<String> roles) {
+        if (roles.contains("ROLE_STUDENT")) {
+            try {
+                return studentRepository.findByAdmissionNumber(Long.valueOf(username))
+                        .map(student -> student.getAdmissionNumber() + "-" + student.getRollNumber()
+                                + "-" + student.getName())
+                        .orElse(username);
+            } catch (NumberFormatException ignored) {
+                return username;
+            }
+        }
+        if (roles.contains("ROLE_TEACHER")) {
+            return teacherRepository.findByUsername(username)
+                    .map(teacher -> username + "-" + teacher.getEmployeeId() + "-" + teacher.getName())
+                    .orElse(username);
+        }
+        return username;
     }
 
     public void adminResetPassword(String username, String newPassword) {

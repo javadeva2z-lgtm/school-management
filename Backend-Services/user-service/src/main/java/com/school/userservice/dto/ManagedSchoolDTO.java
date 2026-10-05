@@ -10,5 +10,6 @@ public record ManagedSchoolDTO(
         String website,
         String principalName,
         String announcement,
+        String keywords,
         Boolean isActive) {
 }

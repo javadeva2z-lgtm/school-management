@@ -30,10 +30,9 @@ export class AuthSessionService {
     return Boolean(this.token);
   }
 
-  setSession(token: string, role: Role, schoolCode: string): void {
+  setSession(token: string, role: Role): void {
     sessionStorage.setItem(TOKEN_KEY, token);
     sessionStorage.setItem(ROLE_KEY, role);
-    sessionStorage.setItem(SCHOOL_CODE_KEY, schoolCode);
     this.tokenState.set(token);
   }
 
@@ -56,7 +55,7 @@ export class AuthSessionService {
       case 'student': return 'Student';
       case 'admin': return 'Admin';
       case 'manager': return 'Manager';
-      case 'super_admin': return 'SuperAdmin';
+      case 'superadmin': return 'SuperAdmin';
       default: return null;
     }
   }

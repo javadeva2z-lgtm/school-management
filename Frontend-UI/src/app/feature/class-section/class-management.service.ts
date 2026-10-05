@@ -66,12 +66,20 @@ export class ClassManagementService {
     return this.http.put<ApiResponse<ManagedClass>>(classesApiUrl(`/${classId}`), payload);
   }
 
+  deleteClass(classId: number): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(classesApiUrl(`/${classId}`));
+  }
+
   createSection(payload: Omit<ManagedSection, 'id'>): Observable<ApiResponse<ManagedSection>> {
     return this.http.post<ApiResponse<ManagedSection>>(classSectionApiUrl(''), payload);
   }
 
   updateSection(id: number, payload: Omit<ManagedSection, 'id'>): Observable<ApiResponse<ManagedSection>> {
     return this.http.put<ApiResponse<ManagedSection>>(classSectionApiUrl(`/${id}`), payload);
+  }
+
+  deleteSection(id: number): Observable<ApiResponse<void>> {
+    return this.http.delete<ApiResponse<void>>(classSectionApiUrl(`/${id}`));
   }
 
   getSubjects(classId: number): Observable<ApiResponse<ManagedSubject[]>> {

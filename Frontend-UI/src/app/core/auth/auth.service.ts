@@ -16,7 +16,6 @@ export class AuthService {
     return this.http.post<LoginResponse>(LOGIN_URL, credentials).pipe(
       map(response => {
         const token = response.data.token;
-        const schoolCode = response.data.schoolCode;
         const mappedRoles = response.data.roles
           .map(value => this.toRole(value))
           .filter((value): value is Role => value !== null);
@@ -24,9 +23,9 @@ export class AuthService {
         if (!token || !role) {
           throw new Error('Login response did not include a valid token and role.');
         }
-        return { token, role, schoolCode };
+        return { token, role };
       }),
-      tap(({ token, role, schoolCode }) => this.session.setSession(token, role, schoolCode)),
+      tap(({ token, role }) => this.session.setSession(token, role)),
       map(() => undefined)
     );
   }

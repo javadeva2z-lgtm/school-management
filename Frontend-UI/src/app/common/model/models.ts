@@ -24,10 +24,12 @@ export interface ManagedSchool {
   website?: string | null;
   principalName?: string | null;
   announcement?: string | null;
+  keywords?: string | null;
   isActive: boolean;
 }
 
 export type SchoolManagementRequest = Omit<ManagedSchool, 'id'> & { id?: number };
+export type SchoolCreateRequest = Omit<SchoolManagementRequest, 'id'> & { keywords: string };
 
 export interface ClassSectionApiResponse {
   status: string;
@@ -168,6 +170,7 @@ export interface UserRegistrationRequest {
 export interface PasswordManagedUser {
   username: string;
   role: string;
+  displayName: string;
 }
 
 export interface UserRegistrationResponse {

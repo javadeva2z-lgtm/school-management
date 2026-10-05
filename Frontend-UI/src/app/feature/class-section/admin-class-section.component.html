@@ -114,7 +114,14 @@
           </div>
           <div class="record-actions">
             <span class="record-state" [class.inactive]="!clazz.isActive">{{ clazz.isActive ? 'Active' : 'Inactive' }}</span>
-            <button class="secondary-button" type="button" (click)="editClass(clazz)">Edit class</button>
+            <button class="secondary-button" type="button"
+              [disabled]="isSaving() || deletingClassId() !== null || deletingSectionId() !== null"
+              (click)="editClass(clazz)">Edit class</button>
+            <button class="secondary-button" type="button"
+              [disabled]="isSaving() || deletingClassId() !== null || deletingSectionId() !== null"
+              (click)="deleteClass(clazz)">
+              {{ isDeletingClass(clazz) ? 'Deleting...' : 'Delete class' }}
+            </button>
           </div>
         </article>
         }
@@ -136,7 +143,14 @@
           </div>
           <div class="record-actions">
             <span class="record-state" [class.inactive]="!section.isActive">{{ section.isActive ? 'Active' : 'Inactive' }}</span>
-            <button class="secondary-button" type="button" (click)="editSection(section)">Edit section</button>
+            <button class="secondary-button" type="button"
+              [disabled]="isSaving() || deletingClassId() !== null || deletingSectionId() !== null"
+              (click)="editSection(section)">Edit section</button>
+            <button class="secondary-button" type="button"
+              [disabled]="isSaving() || deletingClassId() !== null || deletingSectionId() !== null"
+              (click)="deleteSection(section)">
+              {{ deletingSectionId() === section.id ? 'Deleting...' : 'Delete section' }}
+            </button>
           </div>
         </article>
         }

@@ -19,13 +19,17 @@
           <button class="school-secondary-button" type="button" (click)="startNewSchool()">New school</button>
         }
       </div>
-      <form class="school-form" (submit)="$event.preventDefault(); submit()">
+      <form class="school-form" novalidate (ngSubmit)="submit(schoolForm)" #schoolForm>
         <label>School name
           <input name="schoolName" [ngModel]="schoolName()" (ngModelChange)="schoolName.set($event)" required maxlength="255">
         </label>
         <label>School code
           <input name="schoolCode" [ngModel]="schoolCode()" (ngModelChange)="schoolCode.set($event)"
             [readonly]="!!editingSchoolId()" required maxlength="255">
+        </label>
+        <label>Token
+          <input name="token" type="text" autocomplete="off"
+            [ngModel]="token()" (ngModelChange)="token.set($event)" required maxlength="255">
         </label>
         <label>Address
           <input name="address" [ngModel]="address()" (ngModelChange)="address.set($event)" maxlength="255">
@@ -69,7 +73,19 @@
                 <strong>{{ school.schoolName }}</strong>
                 <small>{{ school.schoolCode }} · {{ school.isActive ? 'Active' : 'Inactive' }}</small>
               </div>
-              <button class="school-secondary-button" type="button" (click)="editSchool(school)">Edit</button>
+              <div class="school-list-actions">
+                <button class="school-secondary-button" type="button"
+                  [disabled]="updatingSchoolStatusId() !== null || isSaving()"
+                  (click)="editSchool(school)">Edit</button>
+                <button class="school-status-button" type="button"
+                  [class.deactivate-school-button]="school.isActive"
+                  [disabled]="updatingSchoolStatusId() !== null || isSaving()"
+                  (click)="toggleSchoolActive(school)">
+                  {{ updatingSchoolStatusId() === school.id
+                    ? 'Saving...'
+                    : school.isActive ? 'Deactivate' : 'Activate' }}
+                </button>
+              </div>
             </article>
           }
         </div>

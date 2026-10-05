@@ -6,10 +6,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -48,6 +50,17 @@ public class SchoolController {
     @Operation(summary = "Get schools for Super Admin management")
     public ResponseEntity<ApiResponse<List<ManagedSchoolDTO>>> getSchoolsForManagement() {
         return ResponseEntity.ok(ApiResponse.success(schoolService.getSchoolsForManagement()));
+    }
+
+    @PatchMapping("/management/{schoolId}/active")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @Operation(summary = "Activate or deactivate a school")
+    public ResponseEntity<ApiResponse<Void>> setSchoolActive(
+            @PathVariable Long schoolId,
+            @RequestParam boolean active) {
+        schoolService.setSchoolActive(schoolId, active);
+        return ResponseEntity.ok(ApiResponse.success(null,
+                active ? "School activated successfully" : "School deactivated successfully"));
     }
 
     @GetMapping("/public/code/{schoolCode}")

@@ -123,6 +123,34 @@
   gap: 5px;
 }
 
+.school-list-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.school-status-button {
+  min-height: 34px;
+  padding: 7px 12px;
+  border: 1px solid #2e8581;
+  border-radius: 3px;
+  color: #2e8581;
+  background: #fff;
+  font: 600 10px 'Trebuchet MS', sans-serif;
+  cursor: pointer;
+}
+
+.school-status-button.deactivate-school-button {
+  border-color: #c96450;
+  color: #a24332;
+}
+
+.school-status-button:disabled,
+.school-secondary-button:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
 .school-list-item strong {
   color: #17383b;
   font: 600 12px 'Trebuchet MS', sans-serif;

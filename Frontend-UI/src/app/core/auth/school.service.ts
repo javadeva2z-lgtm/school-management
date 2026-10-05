@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { catchError, map, Observable, of, tap } from 'rxjs';
 import { schoolsApiUrl } from '../config/api.config';
-import { ManagedSchool, School, SchoolManagementRequest } from '../../common/model/models';
+import { ManagedSchool, School, SchoolCreateRequest, SchoolManagementRequest } from '../../common/model/models';
 
 const DEFAULT_LOGO = '/image/default-logo.svg';
 const DEFAULT_WELCOME_BACKGROUND = '/image/school-welcom-background.svg';
@@ -54,7 +54,7 @@ export class SchoolService {
     );
   }
 
-  createSchool(school: Omit<SchoolManagementRequest, 'id'>): Observable<void> {
+  createSchool(school: SchoolCreateRequest): Observable<void> {
     return this.http.post<{ code: number }>(schoolsApiUrl('/register/new-school'), school).pipe(
       map(response => {
         if (response.code > 299) {
@@ -69,6 +69,19 @@ export class SchoolService {
       map(response => {
         if (response.code > 299) {
           throw new Error('School update failed.');
+        }
+      })
+    );
+  }
+
+  setSchoolActive(schoolId: number, active: boolean): Observable<void> {
+    return this.http.patch<{ code: number }>(
+      schoolsApiUrl(`/management/${schoolId}/active?active=${active}`),
+      {}
+    ).pipe(
+      map(response => {
+        if (response.code > 299) {
+          throw new Error('School status update failed.');
         }
       })
     );

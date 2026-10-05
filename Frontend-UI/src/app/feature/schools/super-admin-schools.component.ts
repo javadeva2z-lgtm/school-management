@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
-import { ManagedSchool, SchoolManagementRequest } from '../../common/model/models';
+import { ManagedSchool, SchoolCreateRequest, SchoolManagementRequest } from '../../common/model/models';
 import { SchoolService } from '../../core/auth/school.service';
 
 @Component({
@@ -18,6 +18,7 @@ export class SuperAdminSchoolsComponent {
   protected readonly editingSchoolId = signal<number | null>(null);
   protected readonly schoolName = signal('');
   protected readonly schoolCode = signal('');
+  protected readonly token = signal('');
   protected readonly address = signal('');
   protected readonly phone = signal('');
   protected readonly email = signal('');
@@ -27,6 +28,7 @@ export class SuperAdminSchoolsComponent {
   protected readonly isActive = signal(true);
   protected readonly isLoading = signal(false);
   protected readonly isSaving = signal(false);
+  protected readonly updatingSchoolStatusId = signal<number | null>(null);
   protected readonly errorMessage = signal('');
   protected readonly successMessage = signal('');
 
@@ -38,6 +40,7 @@ export class SuperAdminSchoolsComponent {
     this.editingSchoolId.set(null);
     this.schoolName.set('');
     this.schoolCode.set('');
+    this.token.set('');
     this.address.set('');
     this.phone.set('');
     this.email.set('');
@@ -52,6 +55,7 @@ export class SuperAdminSchoolsComponent {
     this.editingSchoolId.set(school.id);
     this.schoolName.set(school.schoolName);
     this.schoolCode.set(school.schoolCode);
+    this.token.set(school.keywords ?? '');
     this.address.set(school.address ?? '');
     this.phone.set(school.phone ?? '');
     this.email.set(school.email ?? '');
@@ -62,11 +66,15 @@ export class SuperAdminSchoolsComponent {
     this.clearMessages();
   }
 
-  protected submit(): void {
+  protected submit(form: HTMLFormElement): void {
+    if (!form.reportValidity()) {
+      return;
+    }
+
     const schoolName = this.schoolName().trim();
     const schoolCode = this.schoolCode().trim();
-    if (!schoolName || !schoolCode || this.isSaving()) {
-      this.setError('School name and school code are required.');
+    if (!schoolName || !schoolCode || !this.token().trim() || this.isSaving()) {
+      this.setError('School name, school code, and token are required.');
       return;
     }
     if (!this.editingSchoolId() && !/^[a-zA-Z0-9_]+$/.test(schoolCode)) {
@@ -84,6 +92,7 @@ export class SuperAdminSchoolsComponent {
       website: this.website().trim(),
       principalName: this.principalName().trim(),
       announcement: this.announcement().trim(),
+      keywords: this.token().trim(),
       isActive: this.isActive()
     };
 
@@ -91,7 +100,10 @@ export class SuperAdminSchoolsComponent {
     this.clearMessages();
     const operation = this.editingSchoolId()
       ? this.schoolService.updateSchool(request)
-      : this.schoolService.createSchool(request);
+      : this.schoolService.createSchool({
+        ...request,
+        keywords: this.token().trim()
+      } satisfies SchoolCreateRequest);
     operation.subscribe({
       next: () => {
         const message = this.editingSchoolId()
@@ -107,6 +119,36 @@ export class SuperAdminSchoolsComponent {
           ? 'Unable to update this school. Check the details and try again.'
           : 'Unable to create this school. The school code may already be in use.');
         this.isSaving.set(false);
+      }
+    });
+  }
+
+  protected toggleSchoolActive(school: ManagedSchool): void {
+    if (this.updatingSchoolStatusId() !== null || this.isSaving()) {
+      return;
+    }
+    const nextActive = !school.isActive;
+    const action = nextActive ? 'activate' : 'deactivate';
+    if (!window.confirm(`${action[0].toUpperCase()}${action.slice(1)} "${school.schoolName}"?`)) {
+      return;
+    }
+
+    this.updatingSchoolStatusId.set(school.id);
+    this.clearMessages();
+    this.schoolService.setSchoolActive(school.id, nextActive).subscribe({
+      next: () => {
+        this.schools.update(schools => schools.map(item =>
+          item.id === school.id ? { ...item, isActive: nextActive } : item
+        ));
+        if (this.editingSchoolId() === school.id) {
+          this.isActive.set(nextActive);
+        }
+        this.successMessage.set(`${school.schoolName} was ${nextActive ? 'activated' : 'deactivated'}.`);
+        this.updatingSchoolStatusId.set(null);
+      },
+      error: () => {
+        this.setError(`Unable to ${action} "${school.schoolName}". Please try again.`);
+        this.updatingSchoolStatusId.set(null);
       }
     });
   }

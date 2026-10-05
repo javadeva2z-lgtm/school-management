@@ -8,4 +8,5 @@ import lombok.Value;
 public class PasswordManagedUserDTO {
     String username;
     String role;
+    String displayName;
 }

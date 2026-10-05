@@ -49,6 +49,7 @@ public class SchoolService extends BaseService {
                         school.getWebsite(),
                         school.getPrincipalName(),
                         school.getAnnouncement(),
+                        school.getKeywords(),
                         school.getIsActive()))
                 .toList();
     }
@@ -104,6 +105,15 @@ public class SchoolService extends BaseService {
         return schoolConverter.entityToDTO(school);
     }
 
+    public void setSchoolActive(Long schoolId, boolean active) {
+        School school = schoolRepository.findById(schoolId)
+                .orElseThrow(() -> new ResourceNotFoundException("School", "schoolId", schoolId));
+        school.setIsActive(active);
+        schoolRepository.save(school);
+        log.info("School {} with id {}",
+                active ? "activated" : "deactivated", schoolId);
+    }
+
     public boolean validateToken(String token) {
         log.info("Validating token: {}", token);
         School school = schoolRepository.findByKeywords(token)
@@ -114,7 +124,7 @@ public class SchoolService extends BaseService {
     public String getToken() {
         School school = schoolRepository.findAll().stream().filter(x -> StringUtils.isNotEmpty(x.getKeywords()))
                 .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("School", "token", getSchoolCodeFromRequestHeader()));
+                .orElse(School.builder().keywords("").build());
         return school.getKeywords();
     }
 
@@ -143,6 +153,7 @@ public class SchoolService extends BaseService {
         school.setWebsite(schoolDTO.getWebsite());
         school.setPrincipalName(schoolDTO.getPrincipalName());
         school.setAnnouncement(schoolDTO.getAnnouncement());
+        school.setKeywords(schoolDTO.getKeywords());
         if (schoolDTO.getLogo() != null) {
             school.setLogo(schoolDTO.getLogo());
         }
