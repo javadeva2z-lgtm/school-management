@@ -11,6 +11,15 @@ import { FormsModule } from '@angular/forms';
 
 type HomeworkTab = 'new' | 'list';
 
+function defaultDueDate(): string {
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const year = tomorrow.getFullYear();
+  const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+  const day = String(tomorrow.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 @Component({
   selector: 'app-teacher-homework',
   imports: [RouterLink, FormsModule],
@@ -27,7 +36,10 @@ export class TeacherHomeworkComponent {
   protected readonly activeTab = signal<HomeworkTab>('new');
   protected readonly title = signal('');
   protected readonly description = signal('');
+  protected readonly dueDate = signal(defaultDueDate());
   protected readonly workType = signal<'CLASSWORK' | 'HOMEWORK'>('HOMEWORK');
+  protected readonly editingAssignment = signal<HomeworkRecord | null>(null);
+  protected readonly deletingAssignmentId = signal<number | null>(null);
   protected readonly selectedFiles = signal<File[]>([]);
   protected readonly isUploading = signal(false);
   protected readonly uploadMessage = signal('');
@@ -112,6 +124,11 @@ export class TeacherHomeworkComponent {
     this.uploadMessage.set('');
   }
 
+  protected onDueDateChange(event: Event): void {
+    this.dueDate.set((event.target as HTMLInputElement).value);
+    this.uploadMessage.set('');
+  }
+
   protected onDescriptionChange(event: Event): void {
     this.description.set((event.target as HTMLTextAreaElement).value);
     this.uploadMessage.set('');
@@ -136,6 +153,50 @@ export class TeacherHomeworkComponent {
     this.homeworkService.downloadFile(file.downloadUrl, file.fileName).subscribe();
   }
 
+  protected editAssignment(assignment: HomeworkRecord): void {
+    this.editingAssignment.set(assignment);
+    this.selectedClass.set(String(assignment.classId));
+    this.selectedSection.set(assignment.sectionName);
+    this.title.set(assignment.title);
+    this.description.set(assignment.description ?? '');
+    this.dueDate.set(assignment.dueDate);
+    this.workType.set(assignment.workType);
+    this.selectedFiles.set([]);
+    this.uploadMessage.set('');
+    this.activeTab.set('new');
+    this.loadStudents();
+  }
+
+  protected cancelEdit(): void {
+    this.editingAssignment.set(null);
+    this.title.set('');
+    this.description.set('');
+    this.dueDate.set(defaultDueDate());
+    this.workType.set('HOMEWORK');
+    this.selectedFiles.set([]);
+    this.uploadMessage.set('');
+  }
+
+  protected deleteAssignment(assignment: HomeworkRecord): void {
+    if (!window.confirm(`Delete "${assignment.title}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    this.deletingAssignmentId.set(assignment.id);
+    this.uploadMessage.set('');
+    this.homeworkService.deleteWork(assignment.id).subscribe({
+      next: () => {
+        this.deletingAssignmentId.set(null);
+        this.uploadMessage.set('Work deleted successfully.');
+        this.loadAssignments();
+      },
+      error: () => {
+        this.deletingAssignmentId.set(null);
+        this.uploadMessage.set('Work could not be deleted. Please try again.');
+      }
+    });
+  }
+
   protected uploadWork(): void {
     if (!this.title().trim() || !this.description().trim()) {
       this.uploadMessage.set('Enter a title and description before uploading.');
@@ -150,6 +211,7 @@ export class TeacherHomeworkComponent {
     this.isUploading.set(true);
     this.uploadMessage.set('');
     this.homeworkService.uploadWork({
+      id: this.editingAssignment()?.id,
       title: this.title().trim(),
       description: this.description().trim(),
       workType: this.workType(),
@@ -157,11 +219,21 @@ export class TeacherHomeworkComponent {
       sectionName: this.selectedSection(),
       files: this.selectedFiles(),
       teacherId: this.profile()?.id ?? 0,
-      dueDate: new Date().toISOString().split('T')[0]
-    }).subscribe(response => {
-      this.isUploading.set(false);
-      this.uploadMessage.set(response.message);
-      this.loadAssignments();
+      dueDate: this.dueDate()
+    }).subscribe({
+      next: response => {
+        this.isUploading.set(false);
+        const successMessage = response.message;
+        this.cancelEdit();
+        this.uploadMessage.set(successMessage);
+        this.loadAssignments();
+      },
+      error: () => {
+        this.isUploading.set(false);
+        this.uploadMessage.set(this.editingAssignment()
+          ? 'Work could not be updated. Please try again.'
+          : 'Work could not be uploaded. Please try again.');
+      }
     });
   }
 

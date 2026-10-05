@@ -105,8 +105,10 @@
       @for (application of applicationsForSelectedClassSection(); track application.id) {
       <article class="leave-item">
         <div class="leave-student"><span class="student-avatar">{{ application.admissionNumber }}</span>
-          <div><strong>{{ application.admissionNumber }}</strong><small>{{ application.leaveType }} · {{
-              application.fromDate }} to {{ application.toDate }}</small></div>
+          <div><strong>{{ studentForApplication(application)?.name }}</strong>
+            <small>Roll no. {{ studentForApplication(application)?.rollNumber }} · Admission no. {{ application.admissionNumber }}</small>
+            <small>{{ application.leaveType }} · {{ application.fromDate }} to {{ application.toDate }}</small>
+          </div>
         </div>
         <p>{{ application.reason }}</p>
         <div class="leave-status-actions"><span class="leave-status" [class]="application.status.toLowerCase()">{{

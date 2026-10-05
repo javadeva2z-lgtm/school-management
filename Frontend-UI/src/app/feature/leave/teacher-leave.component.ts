@@ -143,6 +143,10 @@ export class TeacherLeaveComponent {
     return status.charAt(0) + status.slice(1).toLowerCase();
   }
 
+  protected studentForApplication(application: LeaveApplication): Student | undefined {
+    return this.students().find(student => student.admissionNumber === application.admissionNumber);
+  }
+
   private loadStudents(): void {
     const className = this.selectedClass();
     const section = this.selectedSection();

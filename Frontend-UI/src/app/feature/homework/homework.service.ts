@@ -23,6 +23,7 @@ export class HomeworkService {
   uploadWork(homework: Homework): Observable<HomeworkUploadResponse> {
     const formData = new FormData();
     const homeworkPayload: HomeworkUploadPayload = {
+      id: homework.id ?? undefined,
       teacherId: homework.teacherId,
       classId: homework.classId,
       sectionName: homework.sectionName || '',
@@ -43,9 +44,13 @@ export class HomeworkService {
       });
     }
 
-    return this.http.post<HomeworkUploadResponse>(homeworkApiUrl(''), formData).pipe(
-      catchError(() => of({ success: true, message: 'Work uploaded using the local preview.' }))
-    );
+    return homework.id
+      ? this.http.put<HomeworkUploadResponse>(homeworkApiUrl(`/${homework.id}`), formData)
+      : this.http.post<HomeworkUploadResponse>(homeworkApiUrl(''), formData);
+  }
+
+  deleteWork(id: number): Observable<void> {
+    return this.http.delete<void>(homeworkApiUrl(`/${id}`));
   }
 
   getByClassAndSection(classId: string, sectionName: string): Observable<HomeworkRecord[]> {
