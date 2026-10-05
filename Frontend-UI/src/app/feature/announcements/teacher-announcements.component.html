@@ -33,7 +33,7 @@
         <label>Section<select name="section" [ngModel]="section()"
             (ngModelChange)="onSelectChange($event, 'section')">@for (option of
             sectionOptions(); track option) { <option [value]="option.sectionName">Section {{ option.sectionName
-              }}</option> }</select></label>
+              }}</option> }<option value="All">All sections</option></select></label>
         <label class="full-width">Message<textarea rows="6" [value]="message()"
             (input)="onTextChange($event, 'message')"
             placeholder="Write the announcement for students and families"></textarea></label>

@@ -33,55 +33,54 @@ import lombok.RequiredArgsConstructor;
 @Tag(name = "Import Export", description = "Import export endpoints")
 @SecurityRequirement(name = "bearerAuth")
 public class ImportExportController {
-	
+
 	private final SectionService sectionService;
 	private final ResourceLoader resourceLoader;
 	private final StudentService studentService;
 	private final TeacherService teacherService;
-	
 
 	@PostMapping(value = "/import-csv/{type}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	@Operation(summary = "Import Medicines via CSV", description = "Uploads a CSV file to bulk-import  records.")
 	public ResponseEntity<String> uploadCsv(@PathVariable String type,
 			@Parameter(description = "CSV file containing records to be imported") @RequestPart("file") MultipartFile file) {
 
-				if (file.isEmpty()) {
-					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please upload a valid CSV file.");
-				}
-				if(!type.equalsIgnoreCase("student") && !type.equalsIgnoreCase("teacher") && !type.equalsIgnoreCase("class") && !type.equalsIgnoreCase("section")) {
-					return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid type. Allowed values: student, teacher, class, section");
-				}
-				if(type.equalsIgnoreCase("student")) {
-					studentService.importCsv(file);
-				} else if(type.equalsIgnoreCase("teacher")) {
-					teacherService.importCsv(file);
-				} else if(type.equalsIgnoreCase("section")) {
-					sectionService.importCsv(file);
-				}
-		
-			return ResponseEntity.status(HttpStatus.OK).body("CSV file uploaded and data saved successfully.");
+		if (file.isEmpty()) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please upload a valid CSV file.");
+		}
+		if (!type.equalsIgnoreCase("student") && !type.equalsIgnoreCase("teacher") && !type.equalsIgnoreCase("class")
+				&& !type.equalsIgnoreCase("section")) {
+			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+					.body("Invalid type. Allowed values: student, teacher, class, section");
+		}
+		if (type.equalsIgnoreCase("student")) {
+			studentService.importCsv(file);
+		} else if (type.equalsIgnoreCase("teacher")) {
+			teacherService.importCsv(file);
+		} else if (type.equalsIgnoreCase("section")) {
+			sectionService.importCsv(file);
+		}
+
+		return ResponseEntity.status(HttpStatus.OK).body("CSV file uploaded and data saved successfully.");
 	}
 
 	/**
 	 * Export a template for different types of import.
+	 * 
 	 * @param type eg. STUDENT, TEACHER, SECTION
 	 * @return
 	 */
 	@GetMapping("/template/{type}")
 	@Operation(summary = "Get Import template for student/teacher/class/section", description = "Get the template that can be used to upload students/teachers/classes/sections.")
 	public ResponseEntity<Resource> downloadStaticCsv(
-			 @Parameter(
-			            description = "Type of template to fetch. Allowed values: student, teacher, class, section",
-			            example = "student"
-			        )
-			@PathVariable String type) {
+			@Parameter(description = "Type of template to fetch. Allowed values: student, teacher, class, section", example = "student") @PathVariable String type) {
 		try {
-			Resource resource = resourceLoader.getResource("classpath:templates/"+(type.toUpperCase())+"_import.csv");
+			Resource resource = resourceLoader
+					.getResource("classpath:templates/" + (type.toUpperCase()) + "_import.csv");
 			if (!resource.exists()) {
 				return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 			}
 			HttpHeaders headers = new HttpHeaders();
-			headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename="+type+"_template.csv");
+			headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + type + "_template.csv");
 
 			return ResponseEntity.ok().headers(headers).contentLength(resource.contentLength())
 					.contentType(MediaType.parseMediaType("text/csv")).body(resource);
@@ -99,13 +98,14 @@ public class ImportExportController {
 		response.setHeader("Content-Disposition", "attachment; filename=\"teacher_export.csv\"");
 		teacherService.exportAllTeachersToCsv(response.getWriter());
 	}
-	
+
 	@GetMapping("/export/student/class/{classId}/section/{sectionName}")
 	@Operation(summary = "Export all students in csv file", description = "Export all the available students in the school.")
-	public void exportUsersToCsv(HttpServletResponse response, @PathVariable Long classId, @PathVariable String sectionName) throws IOException {
+	public void exportUsersToCsv(HttpServletResponse response, @PathVariable Long classId,
+			@PathVariable String sectionName) throws IOException {
 		// 1. Set the content type and attachment header
 		response.setContentType("text/csv");
-		response.setHeader("Content-Disposition", "attachment; filename=\"medicines_export.csv\"");
+		response.setHeader("Content-Disposition", "attachment; filename=\"student_export.csv\"");
 		studentService.exportAllStudentsToCsv(response.getWriter(), classId, sectionName);
 	}
 

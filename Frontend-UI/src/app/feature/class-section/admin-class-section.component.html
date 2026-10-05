@@ -1,0 +1,153 @@
+<main class="dashboard feature-page class-management-page">
+  <a class="back-link" routerLink="/" [queryParams]="{ role: 'Admin' }">&#8592; Back to workspace</a>
+  <section class="feature-panel class-management-panel">
+    <p class="eyebrow">Admin workspace</p>
+    <h1>Classes &amp; sections</h1>
+    <p>Create and update classes and manage their sections using the user-service records.</p>
+
+    <div class="management-tabs" role="tablist" aria-label="New or existing records">
+      <button type="button" role="tab" [attr.aria-selected]="activeTab() === 'new'"
+        [class.active]="activeTab() === 'new'" (click)="selectTab('new')">New</button>
+      <button type="button" role="tab" [attr.aria-selected]="activeTab() === 'existing'"
+        [class.active]="activeTab() === 'existing'" (click)="selectTab('existing')">Existing</button>
+    </div>
+
+    @if (isLoading()) {
+    <p class="management-status" role="status">Loading classes and sections...</p>
+    }
+
+    <div class="record-type-tabs" role="tablist" aria-label="Choose class or section records">
+      <button type="button" role="tab" [attr.aria-selected]="activeRecordType() === 'classes'"
+        [class.active]="activeRecordType() === 'classes'" (click)="selectRecordType('classes')">Classes</button>
+      <button type="button" role="tab" [attr.aria-selected]="activeRecordType() === 'sections'"
+        [class.active]="activeRecordType() === 'sections'" (click)="selectRecordType('sections')">Sections</button>
+    </div>
+
+    @if (activeTab() === 'new' && activeRecordType() === 'classes') {
+    <section class="management-section" aria-labelledby="class-form-title" role="tabpanel">
+      <div class="management-heading">
+        <div>
+          <p class="eyebrow">{{ editingClassId() === null ? 'Class setup' : 'Update class' }}</p>
+          <h2 id="class-form-title">{{ editingClassId() === null ? 'Add a class' : 'Edit class details' }}</h2>
+        </div>
+        @if (editingClassId() !== null) {
+        <button class="secondary-button" type="button" (click)="resetClassForm()">Cancel edit</button>
+        }
+      </div>
+
+      <form class="management-form" (submit)="$event.preventDefault(); saveClass()">
+        <label>Class ID
+          <input type="number" name="classId" [(ngModel)]="classForm.classId" [disabled]="editingClassId() !== null"
+            required step="1">
+          <small>Use -1 for UKG, -2 for LKG, and -3 for Nursery.</small>
+        </label>
+        <label>Class name
+          <input type="text" name="className" [(ngModel)]="classForm.className" required maxlength="100">
+        </label>
+        <label>Academic year
+          <input type="text" name="academicYear" [(ngModel)]="classForm.academicYear" required
+            placeholder="e.g. 2026-27" maxlength="20">
+        </label>
+        <label class="active-toggle">
+          <input type="checkbox" name="classActive" [(ngModel)]="classForm.isActive">
+          Active class
+        </label>
+        <button class="primary-button" type="submit" [disabled]="isSaving() || isLoading()">
+          {{ isSaving() ? 'Saving...' : editingClassId() === null ? 'Create class' : 'Update class' }}
+        </button>
+      </form>
+    </section>
+    }
+
+    @if (activeTab() === 'new' && activeRecordType() === 'sections') {
+    <section class="management-section" aria-labelledby="section-form-title" role="tabpanel">
+      <div class="management-heading">
+        <div>
+          <p class="eyebrow">{{ editingSectionId() === null ? 'Class section setup' : 'Update section' }}</p>
+          <h2 id="section-form-title">{{ editingSectionId() === null ? 'Add a section' : 'Edit section details' }}</h2>
+        </div>
+        @if (editingSectionId() !== null) {
+        <button class="secondary-button" type="button" (click)="resetSectionForm()">Cancel edit</button>
+        }
+      </div>
+
+      <form class="management-form" (submit)="$event.preventDefault(); saveSection()">
+        <label>Class
+          <select name="sectionClassId" [(ngModel)]="sectionForm.classId"
+            [disabled]="editingSectionId() !== null || isLoading()" required>
+            <option value="" disabled>Select a class</option>
+            @for (clazz of classOptions(); track clazz.classId) {
+            <option [value]="clazz.classId">Class {{ displayClassName(clazz.classId) }}</option>
+            }
+          </select>
+          @if (editingSectionId() !== null) {
+          <small>The user-service keeps a section's class assignment unchanged when updating it.</small>
+          }
+        </label>
+        <label>Section name
+          <input type="text" name="sectionName" [(ngModel)]="sectionForm.sectionName" required maxlength="50">
+        </label>
+        <label>Capacity
+          <input type="number" name="capacity" [(ngModel)]="sectionForm.capacity" min="0" step="1"
+            placeholder="Optional">
+        </label>
+        <label class="active-toggle">
+          <input type="checkbox" name="sectionActive" [(ngModel)]="sectionForm.isActive">
+          Active section
+        </label>
+        <button class="primary-button" type="submit" [disabled]="isSaving() || isLoading() || !classes().length">
+          {{ isSaving() ? 'Saving...' : editingSectionId() === null ? 'Create section' : 'Update section' }}
+        </button>
+      </form>
+    </section>
+    }
+
+    @if (activeTab() === 'existing' && activeRecordType() === 'classes') {
+    <section class="management-section" aria-label="Existing classes" role="tabpanel">
+      @if (classes().length) {
+      <div class="record-list" aria-label="Classes">
+        @for (clazz of classOptions(); track clazz.classId) {
+        <article class="record-card">
+          <div>
+            <strong>Class {{ displayClassName(clazz.classId) }}</strong>
+            <small>ID {{ clazz.classId }} · Academic year {{ clazz.academicYear }}</small>
+          </div>
+          <div class="record-actions">
+            <span class="record-state" [class.inactive]="!clazz.isActive">{{ clazz.isActive ? 'Active' : 'Inactive' }}</span>
+            <button class="secondary-button" type="button" (click)="editClass(clazz)">Edit class</button>
+          </div>
+        </article>
+        }
+      </div>
+      } @else if (!isLoading()) {
+      <p class="empty-state">No classes are available yet.</p>
+      }
+    </section>
+    }
+    @if (activeTab() === 'existing' && activeRecordType() === 'sections') {
+    <section class="management-section" aria-label="Existing sections" role="tabpanel">
+      @if (sections().length) {
+      <div class="record-list" aria-label="Sections">
+        @for (section of orderedSections(); track section.id) {
+        <article class="record-card">
+          <div>
+            <strong>Class {{ displayClassName(section.classId) }} · Section {{ section.sectionName }}</strong>
+            <small>Capacity: {{ section.capacity ?? 'Not set' }}</small>
+          </div>
+          <div class="record-actions">
+            <span class="record-state" [class.inactive]="!section.isActive">{{ section.isActive ? 'Active' : 'Inactive' }}</span>
+            <button class="secondary-button" type="button" (click)="editSection(section)">Edit section</button>
+          </div>
+        </article>
+        }
+      </div>
+      } @else if (!isLoading()) {
+      <p class="empty-state">No sections are available yet.</p>
+      }
+    </section>
+    }
+
+    @if (message()) { <p class="management-message" role="status">{{ message() }}</p> }
+    @if (error()) { <p class="management-error" role="alert">{{ error() }}</p> }
+  </section>
+</main>

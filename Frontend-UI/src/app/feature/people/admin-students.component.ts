@@ -33,7 +33,13 @@ export class AdminStudentsComponent {
   private readonly classSectionService = inject(ClassSectionService);
   protected readonly fields: Array<keyof StudentFormModel> = ['name', 'gender', 'rollNumber', 'dob', 'admissionDate', 'address', 'fatherName', 'motherName', 'parentMobile', 'className', 'section', 'email'];
   protected readonly classOptions = signal<ClassSectionOption[]>([]);
-  protected readonly sectionOptions = computed(() => this.classOptions().find(option => Number(option.classId) === this.selectedClassId())?.sections ?? []);
+  protected readonly studentFormClassId = signal('');
+  protected readonly studentFormSectionOptions = computed(() =>
+    this.classOptions().find(option => option.classId === this.studentFormClassId())?.sections ?? []
+  );
+  protected readonly manageSectionOptions = computed(() =>
+    this.classOptions().find(option => Number(option.classId) === this.selectedClassId())?.sections ?? []
+  );
   protected readonly studentModel: StudentFormModel = {
     name: '',
     gender: '',
@@ -104,6 +110,7 @@ export class AdminStudentsComponent {
         this.fields.forEach(field => {
           this.studentModel[field] = '';
         });
+        this.studentFormClassId.set('');
         if (this.activeTab === 'manage') this.loadStudents();
       },
       error: () => {
@@ -123,8 +130,15 @@ export class AdminStudentsComponent {
   protected onManageClassChange(event: Event): void {
     const classId = Number((event.target as HTMLSelectElement).value);
     this.selectedClassId.set(classId);
-    this.selectedSection.set(this.classOptions().find(option => Number(option.classId) === classId)?.sections[0]?.sectionName ?? '');
+    this.selectedSection.set(this.manageSectionOptions()[0]?.sectionName ?? '');
     this.loadStudents();
+  }
+
+  protected onStudentClassChange(value: string | number): void {
+    const classId = String(value ?? '');
+    this.studentModel.className = classId;
+    this.studentFormClassId.set(classId);
+    this.studentModel.section = this.studentFormSectionOptions()[0]?.sectionName ?? '';
   }
 
   protected onManageSectionChange(event: Event): void {
@@ -134,6 +148,7 @@ export class AdminStudentsComponent {
 
   protected editStudent(student: Student): void {
     this.editingAdmissionNumber = student.admissionNumber;
+    this.studentFormClassId.set(String(student.classId));
     this.fields.forEach(field => {
       this.studentModel[field] = '';
     });

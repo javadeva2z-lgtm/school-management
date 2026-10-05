@@ -57,7 +57,8 @@
         </label>
 
         <label>Class
-          <select [(ngModel)]="studentModel.className" name="studentClassName" required>
+          <select [ngModel]="studentModel.className" (ngModelChange)="onStudentClassChange($event)"
+            name="studentClassName" required>
             <option value="" disabled>Select a class</option>
             @for (option of classOptions(); track option.classId) {
             <option [value]="option.classId">{{ option.className }}</option>
@@ -68,7 +69,7 @@
         <label>Section
           <select [(ngModel)]="studentModel.section" name="studentSection" required>
             <option value="" disabled>Select a section</option>
-            @for (option of sectionOptions(); track option.sectionName) {
+            @for (option of studentFormSectionOptions(); track option.sectionName) {
             <option [value]="option.sectionName">Section {{ option.sectionName }}</option>
             }
           </select>
@@ -91,7 +92,7 @@
         </label>
         <label>Section
           <select [value]="selectedSection()" (change)="onManageSectionChange($event)">
-            @for (option of sectionOptions(); track option.sectionName) { <option [value]="option.sectionName">Section
+            @for (option of manageSectionOptions(); track option.sectionName) { <option [value]="option.sectionName">Section
               {{ option.sectionName }}</option> }
           </select>
         </label>
