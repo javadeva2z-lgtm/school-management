@@ -275,10 +275,10 @@ public class StudentService {
             List<Student> students = new ArrayList<>();
             if (classId == null || classId == 0) {
                 students = studentRepository.findAll();
-            } else if (classId != null && sectionName != null) {
-                students = studentRepository.findByClassIdAndSectionName(classId, sectionName);
-            } else if (classId != null) {
+            } else if (sectionName == null || sectionName.isBlank() || "0".equals(sectionName)) {
                 students = studentRepository.findByClassId(classId);
+            } else {
+                students = studentRepository.findByClassIdAndSectionName(classId, sectionName);
             }
             csvFormat.print(writer).printRecords(students.stream().map(s -> new Object[] {
                     s.getAdmissionNumber(),

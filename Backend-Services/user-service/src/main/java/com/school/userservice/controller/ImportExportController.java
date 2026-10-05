@@ -99,6 +99,14 @@ public class ImportExportController {
 		teacherService.exportAllTeachersToCsv(response.getWriter());
 	}
 
+	@GetMapping("/export/section")
+	@Operation(summary = "Export all sections in csv file", description = "Export all sections with their class details.")
+	public void exportSections(HttpServletResponse response) throws IOException {
+		response.setContentType("text/csv");
+		response.setHeader("Content-Disposition", "attachment; filename=\"section_export.csv\"");
+		sectionService.exportAllSectionsToCsv(response.getWriter());
+	}
+
 	@GetMapping("/export/student/class/{classId}/section/{sectionName}")
 	@Operation(summary = "Export all students in csv file", description = "Export all the available students in the school.")
 	public void exportUsersToCsv(HttpServletResponse response, @PathVariable Long classId,

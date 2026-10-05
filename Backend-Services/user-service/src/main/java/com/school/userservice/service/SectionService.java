@@ -168,7 +168,7 @@ public class SectionService {
         }
     }
 
-    public void exportAllStudentsToCsv(java.io.Writer writer, Long classId, String sectionName) {
+    public void exportAllSectionsToCsv(java.io.Writer writer) {
         try {
             CSVFormat csvFormat = CSVFormat.DEFAULT.builder().setHeader(
                 Constants.IMPORT_SECTION_COLUMN_ID,
