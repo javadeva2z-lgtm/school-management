@@ -15,7 +15,7 @@ export class AdminDataComponent {
   private readonly adminDataService = inject(AdminDataService);
   private readonly classSectionService = inject(ClassSectionService);
 
-  protected readonly adminDataTypes: AdminDataType[] = ['Student', 'Teacher', 'Section'];
+  protected readonly adminDataTypes: AdminDataType[] = ['Student', 'Teacher', 'Section', 'Subject'];
   protected classOptions: ClassSectionOption[] = [];
   protected activeDataTab: 'import' | 'sample' | 'records' = 'import';
   protected selectedImportType: AdminDataType = 'Student';
@@ -94,7 +94,9 @@ export class AdminDataComponent {
   protected exportRecords(): void {
     this.dataMessage = '';
     this.dataError = '';
-    const classId = this.selectedExportType === 'Student' ? this.selectedExportClassId : '0';
+    const classId = this.selectedExportType === 'Student' || this.selectedExportType === 'Subject'
+      ? this.selectedExportClassId
+      : '0';
     const sectionName = this.selectedExportType === 'Student' ? this.selectedExportSectionName : '0';
     this.adminDataService.exportRecords(this.selectedExportType, classId, sectionName).subscribe({
       next: file => this.downloadBlob(`${this.selectedExportType.toLowerCase().replaceAll(' & ', '-')}-records.csv`, file),

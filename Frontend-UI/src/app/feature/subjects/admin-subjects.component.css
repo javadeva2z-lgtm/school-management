@@ -1,0 +1,215 @@
+.subject-management-page {
+  max-width: 960px;
+}
+
+.subject-management-panel {
+  padding-bottom: 30px;
+}
+
+.subject-tabs {
+  display: flex;
+  gap: 4px;
+  margin-top: 27px;
+  padding: 4px;
+  border-radius: 4px;
+  background: #e8e9df;
+}
+
+.subject-tabs button {
+  flex: 1;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 3px;
+  color: #718081;
+  background: transparent;
+  font: 600 11px 'Trebuchet MS', sans-serif;
+  cursor: pointer;
+}
+
+.subject-tabs button.active {
+  color: #fff;
+  background: #2e8581;
+}
+
+.subject-section {
+  margin-top: 27px;
+  padding-top: 22px;
+  border-top: 1px solid #edf0e9;
+}
+
+.subject-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 17px;
+}
+
+.subject-heading h2 {
+  margin: 0;
+  font: 400 24px Georgia, serif;
+}
+
+.subject-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+  gap: 14px;
+  padding: 17px;
+  border: 1px solid #e4e5d9;
+  border-radius: 4px;
+  background: #fbfcf8;
+}
+
+.subject-form label,
+.subject-class-filter {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+  color: #718081;
+  font: 700 10px 'Trebuchet MS', sans-serif;
+  text-transform: uppercase;
+}
+
+.subject-form input:not([type='checkbox']),
+.subject-form select,
+.subject-class-filter select {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid #d9e0d8;
+  border-radius: 3px;
+  color: #17383b;
+  background: #fff;
+  font: 12px 'Trebuchet MS', sans-serif;
+  text-transform: none;
+}
+
+.subject-form .subject-active-toggle {
+  flex-direction: row;
+  align-items: center;
+  min-height: 38px;
+  color: #17383b;
+  font-size: 12px;
+  text-transform: none;
+}
+
+.subject-primary-button,
+.subject-secondary-button {
+  min-height: 36px;
+  padding: 8px 13px;
+  border: 1px solid #2e8581;
+  border-radius: 3px;
+  font: 600 11px 'Trebuchet MS', sans-serif;
+  cursor: pointer;
+}
+
+.subject-primary-button {
+  color: #fff;
+  background: #2e8581;
+}
+
+.subject-primary-button:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+.subject-secondary-button {
+  color: #2e8581;
+  background: transparent;
+}
+
+.subject-class-filter {
+  max-width: 360px;
+}
+
+.subject-record-list {
+  display: grid;
+  gap: 9px;
+  margin-top: 17px;
+}
+
+.subject-record-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 14px;
+  border: 1px solid #e4e5d9;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.subject-record-details,
+.subject-record-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.subject-record-details {
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.subject-record-details strong {
+  color: #17383b;
+  font: 600 13px 'Trebuchet MS', sans-serif;
+}
+
+.subject-record-details small,
+.subject-record-state,
+.subject-status,
+.subject-empty-state,
+.subject-message,
+.subject-error {
+  font: 12px 'Trebuchet MS', sans-serif;
+}
+
+.subject-record-details small,
+.subject-status,
+.subject-empty-state {
+  color: #829191;
+}
+
+.subject-record-state {
+  color: #2e8581;
+  font-weight: 700;
+}
+
+.subject-record-state.inactive,
+.subject-error,
+.subject-delete-button {
+  color: #b84f42;
+}
+
+.subject-delete-button {
+  border-color: #c96450;
+}
+
+.subject-message {
+  color: #2e8581;
+}
+
+.subject-error {
+  color: #c96450;
+}
+
+@media (max-width: 640px) {
+  .subject-form {
+    grid-template-columns: 1fr;
+  }
+
+  .subject-record-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .subject-record-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+}

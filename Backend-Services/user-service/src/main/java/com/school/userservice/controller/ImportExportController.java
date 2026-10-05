@@ -8,15 +8,18 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.school.userservice.service.SectionService;
+import com.school.userservice.service.ClassSubjectService;
 import com.school.userservice.service.StudentService;
 import com.school.userservice.service.TeacherService;
 
@@ -38,8 +41,10 @@ public class ImportExportController {
 	private final ResourceLoader resourceLoader;
 	private final StudentService studentService;
 	private final TeacherService teacherService;
+	private final ClassSubjectService classSubjectService;
 
 	@PostMapping(value = "/import-csv/{type}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Import Medicines via CSV", description = "Uploads a CSV file to bulk-import  records.")
 	public ResponseEntity<String> uploadCsv(@PathVariable String type,
 			@Parameter(description = "CSV file containing records to be imported") @RequestPart("file") MultipartFile file) {
@@ -48,9 +53,9 @@ public class ImportExportController {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Please upload a valid CSV file.");
 		}
 		if (!type.equalsIgnoreCase("student") && !type.equalsIgnoreCase("teacher") && !type.equalsIgnoreCase("class")
-				&& !type.equalsIgnoreCase("section")) {
+				&& !type.equalsIgnoreCase("section") && !type.equalsIgnoreCase("subject")) {
 			return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-					.body("Invalid type. Allowed values: student, teacher, class, section");
+					.body("Invalid type. Allowed values: student, teacher, class, section, subject");
 		}
 		if (type.equalsIgnoreCase("student")) {
 			studentService.importCsv(file);
@@ -58,6 +63,8 @@ public class ImportExportController {
 			teacherService.importCsv(file);
 		} else if (type.equalsIgnoreCase("section")) {
 			sectionService.importCsv(file);
+		} else if (type.equalsIgnoreCase("subject")) {
+			classSubjectService.importCsv(file);
 		}
 
 		return ResponseEntity.status(HttpStatus.OK).body("CSV file uploaded and data saved successfully.");
@@ -70,6 +77,7 @@ public class ImportExportController {
 	 * @return
 	 */
 	@GetMapping("/template/{type}")
+	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Get Import template for student/teacher/class/section", description = "Get the template that can be used to upload students/teachers/classes/sections.")
 	public ResponseEntity<Resource> downloadStaticCsv(
 			@Parameter(description = "Type of template to fetch. Allowed values: student, teacher, class, section", example = "student") @PathVariable String type) {
@@ -91,6 +99,7 @@ public class ImportExportController {
 	}
 
 	@GetMapping("/export/teacher")
+	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Export all teachers in csv file", description = "Export all the available teacher in the school.")
 	public void exportTeacher(HttpServletResponse response) throws IOException {
 		// 1. Set the content type and attachment header
@@ -100,6 +109,7 @@ public class ImportExportController {
 	}
 
 	@GetMapping("/export/section")
+	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Export all sections in csv file", description = "Export all sections with their class details.")
 	public void exportSections(HttpServletResponse response) throws IOException {
 		response.setContentType("text/csv");
@@ -108,6 +118,7 @@ public class ImportExportController {
 	}
 
 	@GetMapping("/export/student/class/{classId}/section/{sectionName}")
+	@PreAuthorize("hasRole('ADMIN')")
 	@Operation(summary = "Export all students in csv file", description = "Export all the available students in the school.")
 	public void exportUsersToCsv(HttpServletResponse response, @PathVariable Long classId,
 			@PathVariable String sectionName) throws IOException {
@@ -115,6 +126,17 @@ public class ImportExportController {
 		response.setContentType("text/csv");
 		response.setHeader("Content-Disposition", "attachment; filename=\"student_export.csv\"");
 		studentService.exportAllStudentsToCsv(response.getWriter(), classId, sectionName);
+	}
+
+	@GetMapping("/export/subject")
+	@PreAuthorize("hasRole('ADMIN')")
+	@Operation(summary = "Export class subjects in CSV format")
+	public void exportSubjectsToCsv(
+			HttpServletResponse response,
+			@RequestParam(defaultValue = "0") Long classId) throws IOException {
+		response.setContentType("text/csv");
+		response.setHeader("Content-Disposition", "attachment; filename=\"subject_export.csv\"");
+		classSubjectService.exportSubjectsToCsv(response.getWriter(), classId);
 	}
 
 }

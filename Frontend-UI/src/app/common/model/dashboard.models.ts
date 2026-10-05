@@ -28,8 +28,10 @@ export const FALLBACK_DASHBOARD_DATA: DashboardData = {
       { id: 'teachers', label: 'Manage teachers', detail: 'View and manage faculty', icon: 'teacher', tone: 'teal', roles: ['Admin'] },
       { id: 'class-teachers', label: 'Class teacher mapping', detail: 'Assign a teacher to a class and section', icon: 'teacher', tone: 'blue', roles: ['Admin'] },
       { id: 'classes-sections', label: 'Classes & sections', detail: 'Create and update classes and sections', icon: 'book', tone: 'violet', roles: ['Admin'] },
+      { id: 'subjects', label: 'Subjects', detail: 'Manage subjects assigned to each class', icon: 'book', tone: 'gold', roles: ['Admin'] },
       { id: 'students', label: 'Manage students', detail: 'Keep student records current', icon: 'users', tone: 'coral', roles: ['Admin'] },
       { id: 'fees', label: 'Fee management', detail: 'Track fees and payments', icon: 'fee', tone: 'gold', roles: ['Admin'] },
+      { id: 'optional-fee-mapping', label: 'Optional fee mapping', detail: 'Map optional class fees to students', icon: 'fee', tone: 'orange', roles: ['Admin'] },
       { id: 'import-data', label: 'Import/Export Data', detail: 'Teachers, students, classes & sections', icon: 'import', tone: 'orange', roles: ['Admin'] },
       { id: 'announcements', label: 'Announcements', detail: 'Keep families informed', icon: 'announce', tone: 'blue', roles: ['Admin'] },
       { id: 'events', label: 'Events', detail: 'Share school event notices', icon: 'event', tone: 'violet', roles: ['Admin'] }

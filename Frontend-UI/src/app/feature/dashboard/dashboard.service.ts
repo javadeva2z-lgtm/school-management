@@ -12,14 +12,17 @@ export class DashboardService {
     return this.http.get<DashboardData>('/api/dashboard').pipe(
       map(data => {
         const adminMenus = data.menus.Admin ?? [];
-        const classManagementMenu = FALLBACK_DASHBOARD_DATA.menus.Admin.filter(item => item.id === 'classes-sections');
+        const requiredAdminMenus = FALLBACK_DASHBOARD_DATA.menus.Admin.filter(item =>
+          item.id === 'classes-sections' || item.id === 'subjects' || item.id === 'optional-fee-mapping'
+        );
+        const missingRequiredMenus = requiredAdminMenus.filter(menu =>
+          !adminMenus.some(item => item.id === menu.id)
+        );
         return {
           ...data,
           menus: {
             ...data.menus,
-            Admin: adminMenus.some(item => item.id === 'classes-sections')
-              ? adminMenus
-              : [...adminMenus, ...classManagementMenu]
+            Admin: [...adminMenus, ...missingRequiredMenus]
           }
         };
       }),

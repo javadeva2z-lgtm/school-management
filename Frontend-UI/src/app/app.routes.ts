@@ -29,6 +29,8 @@ import { NotificationsPageComponent } from './feature/notifications/notification
 import { StudentFeeComponent } from './feature/fees/student-fee.component';
 import { StudentDatesheetComponent } from './feature/exams/student-datesheet.component';
 import { AdminClassSectionComponent } from './feature/class-section/admin-class-section.component';
+import { AdminSubjectsComponent } from './feature/subjects/admin-subjects.component';
+import { AdminOptionalFeeMappingComponent } from './feature/fees/admin-optional-fee-mapping.component';
 
 export const routes: Routes = [
 	{ path: 'login', component: LoginComponent },
@@ -44,7 +46,9 @@ export const routes: Routes = [
 	{ path: 'workspace/class-teachers', component: AdminClassTeacherComponent, canActivate: [authGuard] },
 	{ path: 'workspace/students', component: AdminStudentsComponent, canActivate: [authGuard] },
 	{ path: 'workspace/fees', component: AdminFeesComponent, canActivate: [authGuard, adminGuard] },
+	{ path: 'workspace/optional-fee-mapping', component: AdminOptionalFeeMappingComponent, canActivate: [authGuard, adminGuard] },
 	{ path: 'workspace/classes-sections', component: AdminClassSectionComponent, canActivate: [authGuard, adminGuard] },
+	{ path: 'workspace/subjects', component: AdminSubjectsComponent, canActivate: [authGuard, adminGuard] },
 	{ path: 'workspace/import-data', component: AdminDataComponent, canActivate: [authGuard, adminGuard] },
 	{ path: 'student/attendance', component: StudentAttendanceComponent, canActivate: [authGuard] },
 	{ path: 'student/announcements', component: StudentAnnouncementsComponent, canActivate: [authGuard] },

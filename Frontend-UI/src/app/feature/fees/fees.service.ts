@@ -46,6 +46,12 @@ export interface FeeItem {
 
 export type FeeItemRequest = Omit<FeeItem, 'id'>;
 
+export interface StudentServiceSubscription {
+  id: number;
+  admissionNumber: number;
+  feeItemId: number;
+}
+
 export interface PaymentReminder {
   id: number;
   monthlyFeeId: number;
@@ -117,6 +123,28 @@ export class FeesService {
     return this.http.put<ApiResponse<FeeItem>>(
       paymentServiceApiUrl(`/fee-items/${id}`),
       feeItem
+    ).pipe(map(response => response.data));
+  }
+
+  getStudentServiceSubscriptions(admissionNumber: number): Observable<StudentServiceSubscription[]> {
+    return this.http.get<ApiResponse<StudentServiceSubscription[]>>(
+      paymentServiceApiUrl(`/student-service-subscriptions/student/${admissionNumber}`)
+    ).pipe(map(response => response.data ?? []));
+  }
+
+  createStudentServiceSubscription(
+    admissionNumber: number,
+    feeItemId: number
+  ): Observable<StudentServiceSubscription> {
+    return this.http.post<ApiResponse<StudentServiceSubscription>>(
+      paymentServiceApiUrl('/student-service-subscriptions'),
+      { admissionNumber, feeItemId }
+    ).pipe(map(response => response.data));
+  }
+
+  deleteStudentServiceSubscription(id: number): Observable<void> {
+    return this.http.delete<ApiResponse<void>>(
+      paymentServiceApiUrl(`/student-service-subscriptions/${id}`)
     ).pipe(map(response => response.data));
   }
 

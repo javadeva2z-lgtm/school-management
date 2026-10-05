@@ -1,9 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { apiUrl, bulkApiUrl } from '../../core/config/api.config';
+import { bulkApiUrl } from '../../core/config/api.config';
 import { Observable } from 'rxjs';
 
-export type AdminDataType = 'Student' | 'Teacher' | 'Section';
+export type AdminDataType = 'Student' | 'Teacher' | 'Section' | 'Subject';
 
 @Injectable({ providedIn: 'root' })
 export class AdminDataService {
@@ -12,6 +12,9 @@ export class AdminDataService {
   importFile(file: File, dataType: AdminDataType): Observable<void> {
     const formData = new FormData();
     formData.append('file', file);
+    if (dataType === 'Subject') {
+      return this.http.post<void>(bulkApiUrl('/import-csv/Subject'), formData);
+    }
     return this.http.post<void>(bulkApiUrl('/import-csv/' + dataType), formData);
   }
 
@@ -26,6 +29,9 @@ export class AdminDataService {
         responseType: 'blob'
       });
     }
+    else if (dataType === 'Subject') {
+      return this.http.get(bulkApiUrl(`/export/subject?classId=${encodeURIComponent(classId)}`), { responseType: 'blob' });
+    }
     else {
       return this.http.get(bulkApiUrl('/export/section'), {
         responseType: 'blob'
@@ -33,6 +39,9 @@ export class AdminDataService {
     }
   }
   exportSample(dataType: AdminDataType): Observable<Blob> {
+    if (dataType === 'Subject') {
+      return this.http.get(bulkApiUrl('/template/Subject'), { responseType: 'blob' });
+    }
     return this.http.get(bulkApiUrl('/template/' + dataType), {
       responseType: 'blob'
     });

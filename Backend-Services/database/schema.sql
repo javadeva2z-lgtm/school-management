@@ -99,6 +99,16 @@ CREATE TABLE IF NOT EXISTS sections (
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS class_subjects (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    class_id BIGINT NOT NULL,
+    subject_name VARCHAR(255) NOT NULL,
+    subject_code VARCHAR(255) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_class_subject_code (class_id, subject_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS students (
     admission_number BIGINT NOT NULL AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
@@ -320,7 +330,8 @@ CREATE TABLE IF NOT EXISTS student_service_subscriptions (
     id BIGINT NOT NULL AUTO_INCREMENT,
     admission_number BIGINT NOT NULL,
     fee_item_id BIGINT NOT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_student_service_subscription (admission_number, fee_item_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS announcements (

@@ -3,7 +3,7 @@
   <section class="feature-panel">
     <p class="eyebrow">Oakridge workspace</p>
     <h1>Import/Export Data</h1>
-    <p>Manage teachers, students, classes and sections.</p>
+    <p>Manage teachers, students, classes, sections and subjects.</p>
     <section class="admin-data-tools" aria-labelledby="admin-data-tools-title">
       <h2 id="admin-data-tools-title">Data management</h2>
       <div class="admin-data-tabs" role="tablist" aria-label="Data actions">
@@ -49,7 +49,7 @@
             @for (dataType of adminDataTypes; track dataType) { <option [value]="dataType">{{ dataType }}</option> }
           </select>
           </label>
-          @if (selectedExportType === 'Student') {
+          @if (selectedExportType === 'Student' || selectedExportType === 'Subject') {
           <label class="admin-data-export-field" for="export-class">Class
           <select id="export-class" [value]="selectedExportClassId" (change)="onExportClassChange($any($event.target).value)">
             <option value="0">All classes</option>
@@ -58,6 +58,8 @@
             }
           </select>
           </label>
+          }
+          @if (selectedExportType === 'Student') {
           <label class="admin-data-export-field" for="export-section">Section
           <select id="export-section" [value]="selectedExportSectionName"
             [disabled]="selectedExportClassId === '0'"

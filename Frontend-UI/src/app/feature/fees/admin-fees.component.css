@@ -100,13 +100,66 @@
   margin-bottom: 17px;
 }
 
-.fee-types-form label {
+.fee-type-row,
+.add-fee-type-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+  padding: 13px;
+  border: 1px solid #e4e5d9;
+  border-radius: 4px;
+  background: #fbfcf8;
+}
+
+.fee-types-form label,
+.add-fee-type-form label {
   display: flex;
   flex-direction: column;
   gap: 7px;
   color: #829191;
   font: 700 10px 'Trebuchet MS', sans-serif;
   text-transform: uppercase;
+}
+
+.fee-types-form input[type='number'],
+.add-fee-type-form input:not([type='checkbox']) {
+  width: 100%;
+  min-height: 36px;
+  padding: 0 9px;
+  border: 1px solid #d9e0d8;
+  border-radius: 3px;
+  color: #17383b;
+  background: #fff;
+  font: 12px 'Trebuchet MS', sans-serif;
+}
+
+.fee-types-form .optional-fee-toggle,
+.add-fee-type-form .optional-fee-toggle {
+  flex-direction: row;
+  align-items: center;
+  min-height: 36px;
+  color: #527174;
+  font-size: 11px;
+  text-transform: none;
+}
+
+.add-fee-type,
+.optional-enrollment {
+  margin-top: 25px;
+  padding-top: 20px;
+  border-top: 1px solid #edf0e9;
+}
+
+.add-fee-type h3,
+.optional-enrollment h3 {
+  margin: 0 0 13px;
+  color: #17383b;
+  font: 400 20px Georgia, serif;
+}
+
+.add-fee-type-form {
+  grid-template-columns: minmax(160px, 1fr) minmax(120px, .6fr) auto auto;
 }
 
 .pending-count {
@@ -204,6 +257,10 @@
   }
 
   .fee-types-form {
+    grid-template-columns: 1fr;
+  }
+
+  .add-fee-type-form {
     grid-template-columns: 1fr;
   }
 }
