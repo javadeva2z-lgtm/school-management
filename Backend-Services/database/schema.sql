@@ -49,6 +49,14 @@ CREATE TABLE IF NOT EXISTS schools (
     UNIQUE KEY uk_schools_school_code (school_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+INSERT INTO schools (school_code, school_name, is_active, created_at, created_by, updated_by)
+SELECT 'school_management', 'School Management Application', TRUE, NOW(), 'schema-seed', 'schema-seed'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM schools
+    WHERE school_code COLLATE utf8mb4_unicode_ci = 'school_management' COLLATE utf8mb4_unicode_ci
+);
+
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT NOT NULL AUTO_INCREMENT,
     username VARCHAR(255) NOT NULL,
@@ -477,7 +485,8 @@ WHERE NOT EXISTS (
     SELECT 1
     FROM classes existing
     WHERE existing.class_id = seed.class_id
-      AND existing.academic_year = @seed_academic_year
+      AND existing.academic_year COLLATE utf8mb4_unicode_ci =
+          @seed_academic_year COLLATE utf8mb4_unicode_ci
 );
 
 INSERT INTO sections (class_id, section_name, is_active, created_at, updated_by)

@@ -28,6 +28,7 @@ export class WorkspaceComponent {
     if ((role === 'Admin' || role === 'Manager') && item.id === 'subjects') return ['/workspace/subjects'];
     if ((role === 'Admin' || role === 'Manager') && item.id === 'optional-fee-mapping') return ['/workspace/optional-fee-mapping'];
     if (role === 'Admin' && item.id === 'user-accounts') return ['/workspace/user-accounts'];
+    if (role === 'SuperAdmin' && item.id === 'schools') return ['/workspace/schools'];
     if (role === 'Student' && item.id === 'announcements') return ['/student/announcements'];
     if (role === 'Student' && item.id === 'events') return ['/student/events'];
     if (role === 'Student' && item.id === 'result') return ['/student/result'];

@@ -455,7 +455,8 @@ WHERE NOT EXISTS (
     SELECT 1
     FROM classes existing
     WHERE existing.class_id = seed.class_id
-      AND existing.academic_year = @seed_academic_year
+      AND existing.academic_year COLLATE utf8mb4_unicode_ci =
+          @seed_academic_year COLLATE utf8mb4_unicode_ci
 );
 
 INSERT INTO sections (class_id, section_name, is_active, created_at, updated_by)

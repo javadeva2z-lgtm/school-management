@@ -34,6 +34,8 @@ import { AdminOptionalFeeMappingComponent } from './feature/fees/admin-optional-
 import { AdminUserAccountsComponent } from './feature/people/admin-user-accounts.component';
 import { adminOnlyGuard } from './core/auth/admin-only.guard';
 import { ChangePasswordComponent } from './feature/profile/change-password.component';
+import { superAdminGuard } from './core/auth/super-admin.guard';
+import { SuperAdminSchoolsComponent } from './feature/schools/super-admin-schools.component';
 
 export const routes: Routes = [
 	{ path: 'login', component: LoginComponent },
@@ -54,6 +56,7 @@ export const routes: Routes = [
 	{ path: 'workspace/subjects', component: AdminSubjectsComponent, canActivate: [authGuard, adminGuard] },
 	{ path: 'workspace/import-data', component: AdminDataComponent, canActivate: [authGuard, adminOnlyGuard] },
 	{ path: 'workspace/user-accounts', component: AdminUserAccountsComponent, canActivate: [authGuard, adminOnlyGuard] },
+	{ path: 'workspace/schools', component: SuperAdminSchoolsComponent, canActivate: [authGuard, superAdminGuard] },
 	{ path: 'student/attendance', component: StudentAttendanceComponent, canActivate: [authGuard] },
 	{ path: 'student/announcements', component: StudentAnnouncementsComponent, canActivate: [authGuard] },
 	{ path: 'student/events', component: StudentEventsComponent, canActivate: [authGuard] },

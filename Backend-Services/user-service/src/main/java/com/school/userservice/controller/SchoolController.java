@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.school.common.response.ApiResponse;
 import com.school.userservice.dto.SchoolDTO;
 import com.school.userservice.dto.SchoolPartialDTO;
+import com.school.userservice.dto.ManagedSchoolDTO;
 import com.school.userservice.service.SchoolService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -42,6 +43,13 @@ public class SchoolController {
                 .body(ApiResponse.success(response, "Schools retrieved successfully"));
     }
 
+    @GetMapping("/management")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    @Operation(summary = "Get schools for Super Admin management")
+    public ResponseEntity<ApiResponse<List<ManagedSchoolDTO>>> getSchoolsForManagement() {
+        return ResponseEntity.ok(ApiResponse.success(schoolService.getSchoolsForManagement()));
+    }
+
     @GetMapping("/public/code/{schoolCode}")
     @Operation(summary = "Get school by code")
     public ResponseEntity<ApiResponse<SchoolDTO>> getSchoolByCode(@PathVariable String schoolCode) {
@@ -61,7 +69,7 @@ public class SchoolController {
     }
 
     @PutMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPER_ADMIN')")
     @Operation(summary = "Update an existing school")
     public ResponseEntity<ApiResponse<SchoolDTO>> updateSchool(@Valid @RequestBody SchoolDTO schoolDTO) {
         log.info("Update school request received for school name: {}", schoolDTO.getSchoolName());

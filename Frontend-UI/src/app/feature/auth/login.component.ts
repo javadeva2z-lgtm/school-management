@@ -88,15 +88,14 @@ export class LoginComponent {
   }
   protected submit(): void {
     const selectedSchool = this.schools().find(school => String(school.id) === this.selectedSchoolId());
-    if (!selectedSchool || !this.username().trim() || !this.password()) {
-      this.errorMessage.set('Select your school and enter your username and password to continue.');
+    if (!this.username().trim() || !this.password()) {
+      this.errorMessage.set('Enter your username and password to continue. Select a school unless you are a Super Admin.');
       return;
     }
 
     this.isSubmitting.set(true);
     this.errorMessage.set('');
-    this.authService.setSchoolCode(String(selectedSchool.schoolCode));
-    this.authService
+    this.authService.setSchoolCode(selectedSchool?.schoolCode ?? 'school_management');
     this.authService.login({
       username: this.username().trim(),
       password: this.password()

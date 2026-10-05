@@ -1,4 +1,4 @@
-export type Role = 'Teacher' | 'Student' | 'Admin' | 'Manager';
+export type Role = 'Teacher' | 'Student' | 'Admin' | 'Manager' | 'SuperAdmin';
 export type ClassLevel = 'PRE_PRIMARY' | 'PRIMARY' | 'UPPER_PRIMARY' | 'SECONDARY' | 'HIGHER_SECONDARY' | 'COMMON';
 
 export interface MenuItem {
@@ -13,6 +13,21 @@ export interface MenuItem {
 export interface DashboardData {
   menus: Record<Role, MenuItem[]>;
 }
+
+export interface ManagedSchool {
+  id: number;
+  schoolCode: string;
+  schoolName: string;
+  address?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  website?: string | null;
+  principalName?: string | null;
+  announcement?: string | null;
+  isActive: boolean;
+}
+
+export type SchoolManagementRequest = Omit<ManagedSchool, 'id'> & { id?: number };
 
 export interface ClassSectionApiResponse {
   status: string;
@@ -180,6 +195,7 @@ export interface LoginResponse {
     refreshToken: string | null;
     roles: string[];
     active: boolean;
+    schoolCode: string;
   };
   timestamp: string;
 }

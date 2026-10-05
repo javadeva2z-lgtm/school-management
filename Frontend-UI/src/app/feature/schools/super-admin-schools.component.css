@@ -1,0 +1,159 @@
+.super-admin-schools-page {
+  max-width: 900px;
+  padding-bottom: 42px;
+}
+
+.schools-panel {
+  max-width: none;
+}
+
+.school-editor,
+.school-list {
+  margin-top: 24px;
+  padding-top: 21px;
+  border-top: 1px solid #edf0e9;
+}
+
+.school-editor-heading,
+.school-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.school-editor-heading h2,
+.school-list h2 {
+  margin: 0;
+  color: #17383b;
+  font: 400 23px Georgia, serif;
+}
+
+.school-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 16px;
+  padding: 18px;
+  border: 1px solid #e4e5d9;
+  border-radius: 4px;
+  background: #fbfcf8;
+}
+
+.school-form > label:not(.school-active-toggle) {
+  display: grid;
+  gap: 7px;
+  color: #718081;
+  font: 700 10px 'Trebuchet MS', sans-serif;
+  text-transform: uppercase;
+}
+
+.school-form input:not([type='checkbox']),
+.school-form textarea {
+  width: 100%;
+  min-height: 38px;
+  padding: 9px 10px;
+  border: 1px solid #d9e0d8;
+  border-radius: 3px;
+  color: #17383b;
+  background: #fff;
+  font: 12px 'Trebuchet MS', sans-serif;
+  text-transform: none;
+}
+
+.school-form textarea {
+  resize: vertical;
+}
+
+.school-form input[readonly] {
+  background: #f0f2ec;
+}
+
+.school-announcement,
+.school-submit {
+  grid-column: 1 / -1;
+}
+
+.school-active-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #527174;
+  font: 600 11px 'Trebuchet MS', sans-serif;
+}
+
+.school-submit {
+  justify-self: start;
+}
+
+.school-secondary-button {
+  min-height: 34px;
+  padding: 7px 12px;
+  border: 1px solid #2e8581;
+  border-radius: 3px;
+  color: #2e8581;
+  background: #fff;
+  font: 600 10px 'Trebuchet MS', sans-serif;
+  cursor: pointer;
+}
+
+.school-list h2 {
+  margin-bottom: 14px;
+}
+
+.school-list > p {
+  color: #829191;
+  font: 12px 'Trebuchet MS', sans-serif;
+}
+
+.school-list-items {
+  display: grid;
+  gap: 9px;
+}
+
+.school-list-item {
+  padding: 13px;
+  border: 1px solid #e4e5d9;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.school-list-item > div {
+  display: grid;
+  gap: 5px;
+}
+
+.school-list-item strong {
+  color: #17383b;
+  font: 600 12px 'Trebuchet MS', sans-serif;
+}
+
+.school-list-item small {
+  color: #829191;
+  font: 11px 'Trebuchet MS', sans-serif;
+}
+
+.school-success,
+.school-error {
+  font: 12px/1.5 'Trebuchet MS', sans-serif;
+}
+
+.school-success {
+  color: #2e8581;
+}
+
+.school-error {
+  color: #a24332;
+}
+
+@media (max-width: 600px) {
+  .school-form {
+    grid-template-columns: 1fr;
+    padding: 14px;
+  }
+
+  .school-announcement,
+  .school-submit {
+    grid-column: auto;
+  }
+}

@@ -2,14 +2,14 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { catchError, map, Observable, of, tap } from 'rxjs';
 import { schoolsApiUrl } from '../config/api.config';
-import { School } from '../../common/model/models';
+import { ManagedSchool, School, SchoolManagementRequest } from '../../common/model/models';
 
 const DEFAULT_LOGO = '/image/default-logo.svg';
 const DEFAULT_WELCOME_BACKGROUND = '/image/school-welcom-background.svg';
 const DEFAULT_WELCOME_MESSAGE = 'Welcom to the school management application, Please contact +91-8130579771 to get onBoarded as a school.';
 const DEFAULT_SCHOOL: School = {
   schoolName: 'School Management Application',
-  schoolCode: 'School Management',
+  schoolCode: 'school_management',
   logo: DEFAULT_LOGO,
   favicon: DEFAULT_LOGO,
   banner: DEFAULT_WELCOME_BACKGROUND,
@@ -27,6 +27,14 @@ interface SchoolResponse {
   data: School[];
   timestamp: string;
 }
+
+interface SchoolManagementResponse {
+  status: string;
+  code: number;
+  message: string;
+  data: ManagedSchool[];
+  timestamp: string;
+}
 @Injectable({ providedIn: 'root' })
 export class SchoolService {
   private readonly http = inject(HttpClient);
@@ -37,6 +45,32 @@ export class SchoolService {
       map(response => response.data.map(school => this.withBranding(school))),
       tap(schools => this.schools.set(schools)),
       catchError(() => of(DUMMY_SCHOOLS))
+    );
+  }
+
+  getSchoolsForManagement(): Observable<ManagedSchool[]> {
+    return this.http.get<SchoolManagementResponse>(schoolsApiUrl('/management')).pipe(
+      map(response => response.data ?? [])
+    );
+  }
+
+  createSchool(school: Omit<SchoolManagementRequest, 'id'>): Observable<void> {
+    return this.http.post<{ code: number }>(schoolsApiUrl('/register/new-school'), school).pipe(
+      map(response => {
+        if (response.code > 299) {
+          throw new Error('School creation failed.');
+        }
+      })
+    );
+  }
+
+  updateSchool(school: SchoolManagementRequest): Observable<void> {
+    return this.http.put<{ code: number }>(schoolsApiUrl(''), school).pipe(
+      map(response => {
+        if (response.code > 299) {
+          throw new Error('School update failed.');
+        }
+      })
     );
   }
 
@@ -59,7 +93,7 @@ export class SchoolService {
   }
 
   getBranding(schoolCode: string | null): School {
-    if (schoolCode === null) return this.withBranding(DEFAULT_SCHOOL);
+    if (!schoolCode) return this.withBranding(DEFAULT_SCHOOL);
 
     var school = this.schools().find(school => String(school.schoolCode) === String(schoolCode));
     if (!school) {

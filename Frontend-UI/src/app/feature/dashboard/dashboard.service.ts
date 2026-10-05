@@ -22,12 +22,16 @@ export class DashboardService {
         const managerMenus = adminMenuItems
           .filter(item => item.id !== 'import-data' && item.id !== 'user-accounts')
           .map(item => ({ ...item, roles: ['Manager' as const] }));
+        const superAdminMenus = data.menus.SuperAdmin?.length
+          ? data.menus.SuperAdmin
+          : FALLBACK_DASHBOARD_DATA.menus.SuperAdmin;
         return {
           ...data,
           menus: {
             ...data.menus,
             Admin: adminMenuItems,
-            Manager: managerMenus
+            Manager: managerMenus,
+            SuperAdmin: superAdminMenus
           }
         };
       }),

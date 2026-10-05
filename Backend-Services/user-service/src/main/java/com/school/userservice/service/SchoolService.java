@@ -2,6 +2,7 @@ package com.school.userservice.service;
 
 import com.school.userservice.dto.SchoolDTO;
 import com.school.userservice.dto.SchoolPartialDTO;
+import com.school.userservice.dto.ManagedSchoolDTO;
 import com.school.userservice.entity.School;
 import com.school.userservice.repository.SchoolRepository;
 import com.school.userservice.converter.SchoolConverter;
@@ -29,10 +30,27 @@ public class SchoolService extends BaseService {
 
     public List<SchoolDTO> getAllSchools() {
         log.info("Fetching all schools");
-        List<School> schools = schoolRepository.findAll();
+        List<School> schools = schoolRepository.findByIsActiveTrue();
         return schools.stream()
                 .map(schoolConverter::entityToDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ManagedSchoolDTO> getSchoolsForManagement() {
+        return schoolRepository.findAll().stream()
+                .map(school -> new ManagedSchoolDTO(
+                        school.getId(),
+                        school.getSchoolCode(),
+                        school.getSchoolName(),
+                        school.getAddress(),
+                        school.getPhone(),
+                        school.getEmail(),
+                        school.getWebsite(),
+                        school.getPrincipalName(),
+                        school.getAnnouncement(),
+                        school.getIsActive()))
+                .toList();
     }
 
     public SchoolDTO getSchoolByCode(String schoolCode) {
@@ -125,10 +143,19 @@ public class SchoolService extends BaseService {
         school.setWebsite(schoolDTO.getWebsite());
         school.setPrincipalName(schoolDTO.getPrincipalName());
         school.setAnnouncement(schoolDTO.getAnnouncement());
-        school.setLogo(schoolDTO.getLogo());
-        school.setFavicon(schoolDTO.getFavicon());
-        school.setBanner(schoolDTO.getBanner());
+        if (schoolDTO.getLogo() != null) {
+            school.setLogo(schoolDTO.getLogo());
+        }
+        if (schoolDTO.getFavicon() != null) {
+            school.setFavicon(schoolDTO.getFavicon());
+        }
+        if (schoolDTO.getBanner() != null) {
+            school.setBanner(schoolDTO.getBanner());
+        }
         school.setPhone(schoolDTO.getPhone());
+        if (schoolDTO.getIsActive() != null) {
+            school.setIsActive(schoolDTO.getIsActive());
+        }
 
         school = schoolRepository.save(school);
         log.info("School updated successfully with id: {}", school.getId());

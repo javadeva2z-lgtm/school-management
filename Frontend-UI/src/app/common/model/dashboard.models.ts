@@ -14,6 +14,10 @@ const adminMenus: DashboardData['menus']['Admin'] = [
   { id: 'events', label: 'Events', detail: 'Share school event notices', icon: 'event', tone: 'violet', roles: ['Admin'] }
 ];
 
+const superAdminMenus: DashboardData['menus']['SuperAdmin'] = [
+  { id: 'schools', label: 'Manage schools', detail: 'Create and update schools', icon: 'users', tone: 'teal', roles: ['SuperAdmin'] }
+];
+
 export const FALLBACK_DASHBOARD_DATA: DashboardData = {
   menus: {
     Teacher: [
@@ -41,6 +45,7 @@ export const FALLBACK_DASHBOARD_DATA: DashboardData = {
     Admin: adminMenus,
     Manager: adminMenus
       .filter(item => item.id !== 'import-data' && item.id !== 'user-accounts')
-      .map(item => ({ ...item, roles: ['Manager'] }))
+      .map(item => ({ ...item, roles: ['Manager'] })),
+    SuperAdmin: superAdminMenus
   }
 };

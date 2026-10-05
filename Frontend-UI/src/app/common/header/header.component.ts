@@ -1,6 +1,7 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { Router, RouterLink } from '@angular/router';
+import { of, switchMap } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
 import { AuthSessionService } from '../../core/auth/auth-session.service';
@@ -19,11 +20,16 @@ export class HeaderComponent {
   private readonly schoolService = inject(SchoolService);
   private readonly router = inject(Router);
   protected readonly isProfileMenuOpen = signal(false);
-  protected readonly profile = toSignal(this.profileService.getProfile(), { initialValue: null });
+  protected readonly isAuthenticated = computed(() => this.authSession.isAuthenticatedState());
+  protected readonly profile = toSignal(
+    toObservable(this.isAuthenticated).pipe(
+      switchMap(isAuthenticated => isAuthenticated ? this.profileService.getProfile() : of(null))
+    ),
+    { initialValue: null }
+  );
   protected readonly today = new Intl.DateTimeFormat('en-US', {
     weekday: 'long', month: 'long', day: 'numeric'
   }).format(new Date());
-  protected readonly isAuthenticated = computed(() => this.authSession.isAuthenticatedState());
   protected readonly school = computed(() => this.schoolService.getBranding(this.authSession.selectedSchoolIdState()));
   protected readonly defaultLogo = DEFAULT_LOGO;
 
