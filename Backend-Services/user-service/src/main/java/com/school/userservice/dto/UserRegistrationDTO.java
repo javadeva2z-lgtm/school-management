@@ -24,7 +24,7 @@ public class UserRegistrationDTO {
     private String phoneNumber;
 
     @NotBlank(message = "Role is required")
-    private String role; // ADMIN, TEACHER, STUDENT
+    private String role; // ADMIN, MANAGER, TEACHER, STUDENT
 
     private String token;
 }

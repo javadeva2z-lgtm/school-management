@@ -59,7 +59,7 @@ public class HomeworkController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get homework by ID")
     public ResponseEntity<ApiResponse<HomeworkDTO>> getHomeworkById(@PathVariable Long id) {
         log.info("Get homework request received for id: {}", id);
@@ -68,7 +68,7 @@ public class HomeworkController {
     }
 
     @GetMapping("/class/{classId}/section/{sectionName}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get homework by class and section")
     public ResponseEntity<ApiResponse<List<HomeworkDTO>>> getHomeworkByClassAndSection(
             @PathVariable Long classId,
@@ -79,7 +79,7 @@ public class HomeworkController {
     }
     
     @GetMapping("/class/{classId}/section/{sectionName}/date/{date}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get homework by class, section, and due date")
     public ResponseEntity<ApiResponse<List<HomeworkDTO>>> getHomeworkByClassSectionAndDueDate(
             @PathVariable Long classId,
@@ -92,7 +92,7 @@ public class HomeworkController {
 
 
     @GetMapping("/teacher/{teacherId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'MANAGER')")
     @Operation(summary = "Get homework assigned by teacher")
     public ResponseEntity<ApiResponse<List<HomeworkDTO>>> getHomeworkByTeacher(@PathVariable Long teacherId) {
         log.info("Get homework request for teacher: {}", teacherId);
@@ -101,7 +101,7 @@ public class HomeworkController {
     }
 
     @GetMapping("/upcoming")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get upcoming homework")
     public ResponseEntity<ApiResponse<List<HomeworkDTO>>> getUpcomingHomework(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
@@ -134,7 +134,7 @@ public class HomeworkController {
     }
 
     @GetMapping("/files/{fileId}/download")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Download a homework file")
     public ResponseEntity<Resource> downloadHomeworkFile(@PathVariable Long fileId) throws IOException {
         HomeworkFileDTO file = homeworkService.getFile(fileId);

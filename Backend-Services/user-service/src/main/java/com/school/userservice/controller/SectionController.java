@@ -28,7 +28,7 @@ public class SectionController {
 	private final CommonService commonService;
 
 	@PostMapping
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	@Operation(summary = "Create a new section")
 	public ResponseEntity<ApiResponse<SectionDTO>> createSection(@Valid @RequestBody SectionDTO sectionDTO) {
 		log.info("Create section request received for section name: {}", sectionDTO.getSectionName());
@@ -38,7 +38,7 @@ public class SectionController {
 	}
 
 	@GetMapping("/{id}")
-	@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
 	@Operation(summary = "Get section by ID")
 	public ResponseEntity<ApiResponse<SectionDTO>> getSectionById(@PathVariable Long id) {
 		log.info("Get section request received for id: {}", id);
@@ -63,7 +63,7 @@ public class SectionController {
 	}
 
 	@PutMapping("/{id}")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	@Operation(summary = "Update section")
 	public ResponseEntity<ApiResponse<SectionDTO>> updateSection(@PathVariable Long id,
 			@Valid @RequestBody SectionDTO sectionDTO) {
@@ -73,7 +73,7 @@ public class SectionController {
 	}
 
 	@DeleteMapping("/{id}")
-	@PreAuthorize("hasRole('ADMIN')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
 	@Operation(summary = "Delete section")
 	public ResponseEntity<ApiResponse<Void>> deleteSection(@PathVariable Long id) {
 		log.info("Delete section request received for id: {}", id);

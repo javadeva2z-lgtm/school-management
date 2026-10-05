@@ -27,7 +27,7 @@ public class NotificationController {
     private final NotificationService notificationService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Create notification")
     public ResponseEntity<ApiResponse<NotificationDTO>> createNotification(@Valid @RequestBody NotificationDTO notificationDTO) {
         log.info("Create notification request received for recipient: {}", notificationDTO.getRecipientId());
@@ -37,7 +37,7 @@ public class NotificationController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get notification by ID")
     public ResponseEntity<ApiResponse<NotificationDTO>> getNotificationById(@PathVariable Long id) {
         log.info("Get notification request for id: {}", id);
@@ -46,7 +46,7 @@ public class NotificationController {
     }
 
     @GetMapping("/recipient/{recipientId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get all notifications for recipient")
     public ResponseEntity<ApiResponse<List<NotificationDTO>>> getNotificationsByRecipient(@PathVariable Long recipientId) {
         log.info("Get notifications request for recipient: {}", recipientId);
@@ -55,7 +55,7 @@ public class NotificationController {
     }
 
     @GetMapping("/recipient/{recipientId}/paginated")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get paginated notifications for recipient")
     public ResponseEntity<ApiResponse<Page<NotificationDTO>>> getNotificationsByRecipientPaginated(
             @PathVariable Long recipientId,
@@ -66,7 +66,7 @@ public class NotificationController {
     }
 
     @GetMapping("/recipient/{recipientId}/unread")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get unread notifications for recipient")
     public ResponseEntity<ApiResponse<List<NotificationDTO>>> getUnreadNotifications(@PathVariable Long recipientId) {
         log.info("Get unread notifications for recipient: {}", recipientId);
@@ -75,7 +75,7 @@ public class NotificationController {
     }
 
     @GetMapping("/recipient/{recipientId}/unread/paginated")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get paginated unread notifications")
     public ResponseEntity<ApiResponse<Page<NotificationDTO>>> getUnreadNotificationsPaginated(
             @PathVariable Long recipientId,
@@ -86,7 +86,7 @@ public class NotificationController {
     }
 
     @GetMapping("/recipient/{recipientId}/unread-count")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get unread notification count")
     public ResponseEntity<ApiResponse<Long>> getUnreadNotificationCount(@PathVariable Long recipientId) {
         log.info("Get unread notification count for recipient: {}", recipientId);
@@ -95,7 +95,7 @@ public class NotificationController {
     }
 
     @GetMapping("/type/{notificationType}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Get notifications by type")
     public ResponseEntity<ApiResponse<List<NotificationDTO>>> getNotificationsByType(
             @PathVariable String notificationType) {
@@ -105,7 +105,7 @@ public class NotificationController {
     }
 
     @GetMapping("/recipient/{recipientId}/type/{notificationType}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get notifications by recipient and type")
     public ResponseEntity<ApiResponse<List<NotificationDTO>>> getNotificationsByRecipientAndType(
             @PathVariable Long recipientId,
@@ -116,7 +116,7 @@ public class NotificationController {
     }
 
     @PutMapping("/{id}/read")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Mark notification as read")
     public ResponseEntity<ApiResponse<Void>> markAsRead(@PathVariable Long id) {
         log.info("Mark notification as read request for id: {}", id);
@@ -125,7 +125,7 @@ public class NotificationController {
     }
 
     @PutMapping("/recipient/{recipientId}/read-all")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Mark all notifications as read")
     public ResponseEntity<ApiResponse<Void>> markAllAsRead(@PathVariable Long recipientId) {
         log.info("Mark all notifications as read request for recipient: {}", recipientId);
@@ -134,7 +134,7 @@ public class NotificationController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Delete notification")
     public ResponseEntity<ApiResponse<Void>> deleteNotification(@PathVariable Long id) {
         log.info("Delete notification request for id: {}", id);
@@ -143,7 +143,7 @@ public class NotificationController {
     }
 
     @DeleteMapping("/recipient/{recipientId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Delete all notifications for recipient")
     public ResponseEntity<ApiResponse<Void>> deleteNotificationsByRecipient(@PathVariable Long recipientId) {
         log.info("Delete all notifications for recipient: {}", recipientId);

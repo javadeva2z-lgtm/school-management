@@ -6,9 +6,11 @@ import com.school.paymentservice.converter.MonthlyFeeConverter;
 import com.school.paymentservice.client.StudentIdentity;
 import com.school.paymentservice.client.StudentServiceClient;
 import com.school.paymentservice.dto.MonthlyFeeDTO;
+import com.school.paymentservice.entity.FeeItem;
 import com.school.paymentservice.entity.MonthlyFee;
 import com.school.paymentservice.repository.FeeItemRepository;
 import com.school.paymentservice.repository.MonthlyFeeRepository;
+import com.school.paymentservice.repository.StudentServiceSubscriptionRepository;
 import com.school.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,7 @@ public class MonthlyFeeService {
     private final MonthlyFeeRepository monthlyFeeRepository;
     private final MonthlyFeeConverter monthlyFeeConverter;
     private final FeeItemRepository feeItemRepository;
+    private final StudentServiceSubscriptionRepository studentServiceSubscriptionRepository;
     private final StudentServiceClient studentServiceClient;
 
     public MonthlyFeeDTO createMonthlyFee(MonthlyFeeDTO monthlyFeeDTO) {
@@ -66,7 +69,14 @@ public class MonthlyFeeService {
         HashSet<String> existingMonths = existingFees.stream()
                 .map(MonthlyFee::getMonthYear)
                 .collect(Collectors.toCollection(HashSet::new));
-        double monthlyAmount = feeItemRepository.findByClassIdAndActiveTrue(student.classId()).stream()
+        List<FeeItem> activeFeeItems = feeItemRepository.findByClassIdAndActiveTrue(student.classId());
+        HashSet<Long> subscribedFeeItemIds = studentServiceSubscriptionRepository
+                .findByAdmissionNumber(admissionNumber).stream()
+                .map(subscription -> subscription.getFeeItemId())
+                .collect(Collectors.toCollection(HashSet::new));
+        double monthlyAmount = activeFeeItems.stream()
+                .filter(feeItem -> Boolean.TRUE.equals(feeItem.getMandatory())
+                        || subscribedFeeItemIds.contains(feeItem.getId()))
                 .mapToDouble(feeItem -> feeItem.getDefaultAmount() == null ? 0 : feeItem.getDefaultAmount())
                 .sum();
         if (monthlyAmount <= 0) {

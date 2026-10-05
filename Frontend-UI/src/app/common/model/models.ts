@@ -1,4 +1,4 @@
-export type Role = 'Teacher' | 'Student' | 'Admin';
+export type Role = 'Teacher' | 'Student' | 'Admin' | 'Manager' | 'SuperAdmin';
 export type ClassLevel = 'PRE_PRIMARY' | 'PRIMARY' | 'UPPER_PRIMARY' | 'SECONDARY' | 'HIGHER_SECONDARY' | 'COMMON';
 
 export interface MenuItem {
@@ -13,6 +13,23 @@ export interface MenuItem {
 export interface DashboardData {
   menus: Record<Role, MenuItem[]>;
 }
+
+export interface ManagedSchool {
+  id: number;
+  schoolCode: string;
+  schoolName: string;
+  address?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  website?: string | null;
+  principalName?: string | null;
+  announcement?: string | null;
+  keywords?: string | null;
+  isActive: boolean;
+}
+
+export type SchoolManagementRequest = Omit<ManagedSchool, 'id'> & { id?: number };
+export type SchoolCreateRequest = Omit<SchoolManagementRequest, 'id'> & { keywords: string };
 
 export interface ClassSectionApiResponse {
   status: string;
@@ -147,7 +164,13 @@ export interface UserRegistrationRequest {
   username: string;
   password: string;
   phoneNumber?: string;
-  role: 'TEACHER' | 'STUDENT' | 'ADMIN';
+  role: 'TEACHER' | 'STUDENT' | 'ADMIN' | 'MANAGER';
+}
+
+export interface PasswordManagedUser {
+  username: string;
+  role: string;
+  displayName: string;
 }
 
 export interface UserRegistrationResponse {
@@ -175,6 +198,7 @@ export interface LoginResponse {
     refreshToken: string | null;
     roles: string[];
     active: boolean;
+    schoolCode: string;
   };
   timestamp: string;
 }

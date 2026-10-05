@@ -3,9 +3,15 @@ import { RouterLink } from '@angular/router';
 import { ClassSectionService } from '../class-section/class-section.service';
 import { classDisplayName, ClassSectionOption, Student } from '../../common/model/models';
 import { FormsModule } from '@angular/forms';
-import { FeeItemRequest, FeesService, MonthlyFee } from './fees.service';
+import {
+  FeeItem,
+  FeeItemRequest,
+  FeesService,
+  MonthlyFee
+} from './fees.service';
 import { PeopleService } from '../people/people.service';
 import { forkJoin, map, of, switchMap } from 'rxjs';
+import { AuthSessionService } from '../../core/auth/auth-session.service';
 
 interface PendingFee {
   monthlyFeeId: number;
@@ -31,27 +37,33 @@ export class AdminFeesComponent {
   private readonly classSectionService = inject(ClassSectionService);
   private readonly peopleService = inject(PeopleService);
   private readonly feesService = inject(FeesService);
+  private readonly authSession = inject(AuthSessionService);
+  protected get isAdmin(): boolean {
+    return this.authSession.role === 'Admin';
+  }
   protected activeTab: 'structure' | 'pending' = 'structure';
   protected readonly classOptions = signal<ClassSectionOption[]>([]);
   protected readonly selectedClass = signal('');
   protected readonly isLoadingStructure = signal(false);
   protected readonly isSavingStructure = signal(false);
+  protected readonly deletingFeeItemId = signal<number | null>(null);
   protected readonly structureError = signal('');
+  protected readonly feeItems = signal<FeeItem[]>([]);
+  protected readonly newFeeType = signal('');
+  protected readonly newFeeAmount = signal(0);
+  protected readonly newFeeOptional = signal(false);
+  protected readonly isAddingFeeType = signal(false);
   protected readonly isLoadingPending = signal(false);
   protected readonly pendingError = signal('');
   protected readonly pendingWarning = signal('');
   protected readonly reminderCreatedForMonthlyFeeIds = signal<number[]>([]);
   protected statusError = false;
-  protected readonly feeTypes = [
-    { key: 'tuition', serviceName: 'TUITION', label: 'Tuition fee' },
-    { key: 'transport', serviceName: 'TRANSPORT', label: 'Transport fee' },
-    { key: 'activities', serviceName: 'ACTIVITIES', label: 'Activities fee' },
-    { key: 'examination', serviceName: 'EXAMINATION', label: 'Examination fee' },
-    { key: 'other', serviceName: 'OTHER', label: 'Other fee' }
-  ];
-  protected readonly feeAmounts = signal<Record<string, number>>({});
+  protected readonly optionalFeeItems = computed(() =>
+    this.feeItems().filter(item => item.active && !item.mandatory)
+  );
   protected readonly monthlyTotal = computed(() =>
-    Object.values(this.feeAmounts()).reduce((total, amount) => total + amount, 0)
+    this.feeItems().filter(item => item.active)
+      .reduce((total, item) => total + item.defaultAmount, 0)
   );
   protected readonly pendingFees = signal<PendingFee[]>([]);
   protected readonly pendingStudentCount = computed(() =>
@@ -89,11 +101,91 @@ export class AdminFeesComponent {
     }
   }
 
-  protected updateFee(key: string, event: Event): void {
+  protected updateFee(feeItem: FeeItem, event: Event): void {
     const amount = Number((event.target as HTMLInputElement).value);
-    this.feeAmounts.update(current => ({ ...current, [key]: Number.isFinite(amount) && amount >= 0 ? amount : 0 }));
+    this.feeItems.update(items => items.map(item => item.id === feeItem.id
+      ? { ...item, defaultAmount: Number.isFinite(amount) && amount >= 0 ? amount : 0 }
+      : item));
     this.statusMessage = '';
     this.statusError = false;
+  }
+
+  protected updateFeeOptional(feeItem: FeeItem, event: Event): void {
+    const optional = (event.target as HTMLInputElement).checked;
+    this.feeItems.update(items => items.map(item => item.id === feeItem.id
+      ? { ...item, mandatory: !optional }
+      : item));
+    this.statusMessage = '';
+    this.statusError = false;
+  }
+
+  protected deleteFeeItem(feeItem: FeeItem): void {
+    if (!this.isAdmin || this.isSavingStructure() || this.deletingFeeItemId() !== null) {
+      return;
+    }
+    const confirmed = window.confirm(
+      `Delete "${feeItem.serviceName}"? Students' enrollments for this fee type will also be removed. Previously generated monthly fees will not change.`
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    this.deletingFeeItemId.set(feeItem.id);
+    this.statusMessage = '';
+    this.statusError = false;
+    this.feesService.deleteFeeItem(feeItem.id).subscribe({
+      next: () => {
+        this.feeItems.update(items => items.filter(item => item.id !== feeItem.id));
+        this.statusMessage = `"${feeItem.serviceName}" was deleted.`;
+        this.deletingFeeItemId.set(null);
+      },
+      error: () => {
+        this.structureError.set(`Unable to delete "${feeItem.serviceName}". Please try again.`);
+        this.deletingFeeItemId.set(null);
+      }
+    });
+  }
+
+  protected updateNewFeeAmount(event: Event): void {
+    const amount = Number((event.target as HTMLInputElement).value);
+    this.newFeeAmount.set(Number.isFinite(amount) && amount >= 0 ? amount : 0);
+  }
+
+  protected addFeeType(): void {
+    const classId = Number(this.selectedClass());
+    const serviceName = this.newFeeType().trim();
+    if (!classId || !serviceName || this.isAddingFeeType()) {
+      return;
+    }
+    if (this.feeItems().some(item => item.serviceName.trim().toLocaleLowerCase() === serviceName.toLocaleLowerCase())) {
+      this.structureError.set('A fee type with this name already exists for the selected class.');
+      return;
+    }
+
+    const request: FeeItemRequest = {
+      serviceName,
+      classId,
+      mandatory: !this.newFeeOptional(),
+      defaultAmount: this.newFeeAmount(),
+      active: true
+    };
+    this.isAddingFeeType.set(true);
+    this.structureError.set('');
+    this.statusMessage = '';
+    this.feesService.createFeeItem(request).subscribe({
+      next: () => {
+        this.newFeeType.set('');
+        this.newFeeAmount.set(0);
+        this.newFeeOptional.set(false);
+        this.statusMessage = `Fee type added for Class ${classDisplayName(String(classId), this.classOptions())}.`;
+        this.isAddingFeeType.set(false);
+        this.loadFeeStructure();
+      },
+      error: () => {
+        this.structureError.set('Unable to add this fee type. Please try again.');
+        this.isAddingFeeType.set(false);
+      }
+    });
   }
 
   protected reloadFeeStructure(): void {
@@ -111,23 +203,14 @@ export class AdminFeesComponent {
     this.statusMessage = '';
     this.statusError = false;
 
-    this.feesService.getFeeItemsByClass(classId).pipe(
-      switchMap(existingItems => forkJoin(this.feeTypes.map(feeType => {
-        const existing = existingItems.find(item =>
-          item.serviceName.trim().toUpperCase() === feeType.serviceName
-        );
-        const request: FeeItemRequest = {
-          serviceName: feeType.serviceName,
-          classId,
-          mandatory: true,
-          defaultAmount: this.feeAmounts()[feeType.key] ?? 0,
-          active: true
-        };
-        return existing
-          ? this.feesService.updateFeeItem(existing.id, request)
-          : this.feesService.createFeeItem(request);
-      })))
-    ).subscribe({
+    const updates = this.feeItems().map(item => this.feesService.updateFeeItem(item.id, {
+      serviceName: item.serviceName,
+      classId,
+      mandatory: item.mandatory,
+      defaultAmount: item.defaultAmount,
+      active: item.active
+    }));
+    forkJoin(updates).subscribe({
       next: () => {
         if (this.selectedClass() === selectedClass) {
           this.statusMessage = `Monthly fee structure saved for Class ${classDisplayName(selectedClass, this.classOptions())}.`;
@@ -195,24 +278,19 @@ export class AdminFeesComponent {
   private loadFeeStructure(): void {
     const selectedClass = this.selectedClass();
     if (!selectedClass) {
-      this.feeAmounts.set({});
+      this.feeItems.set([]);
       this.isLoadingStructure.set(false);
       return;
     }
     this.isLoadingStructure.set(true);
     this.structureError.set('');
-    this.feeAmounts.set({});
+    this.feeItems.set([]);
     this.feesService.getFeeItemsByClass(Number(selectedClass)).subscribe({
       next: items => {
         if (this.selectedClass() !== selectedClass) {
           return;
         }
-        this.feeAmounts.set(Object.fromEntries(this.feeTypes.map(feeType => {
-          const item = items.find(candidate =>
-            candidate.serviceName.trim().toUpperCase() === feeType.serviceName
-          );
-          return [feeType.key, item?.defaultAmount ?? 0];
-        })));
+        this.feeItems.set(items);
         this.isLoadingStructure.set(false);
       },
       error: () => {

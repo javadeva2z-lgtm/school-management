@@ -2,6 +2,7 @@ package com.school.userservice.service;
 
 import com.school.userservice.dto.SchoolDTO;
 import com.school.userservice.dto.SchoolPartialDTO;
+import com.school.userservice.dto.ManagedSchoolDTO;
 import com.school.userservice.entity.School;
 import com.school.userservice.repository.SchoolRepository;
 import com.school.userservice.converter.SchoolConverter;
@@ -29,10 +30,28 @@ public class SchoolService extends BaseService {
 
     public List<SchoolDTO> getAllSchools() {
         log.info("Fetching all schools");
-        List<School> schools = schoolRepository.findAll();
+        List<School> schools = schoolRepository.findByIsActiveTrue();
         return schools.stream()
                 .map(schoolConverter::entityToDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ManagedSchoolDTO> getSchoolsForManagement() {
+        return schoolRepository.findAll().stream()
+                .map(school -> new ManagedSchoolDTO(
+                        school.getId(),
+                        school.getSchoolCode(),
+                        school.getSchoolName(),
+                        school.getAddress(),
+                        school.getPhone(),
+                        school.getEmail(),
+                        school.getWebsite(),
+                        school.getPrincipalName(),
+                        school.getAnnouncement(),
+                        school.getKeywords(),
+                        school.getIsActive()))
+                .toList();
     }
 
     public SchoolDTO getSchoolByCode(String schoolCode) {
@@ -86,6 +105,15 @@ public class SchoolService extends BaseService {
         return schoolConverter.entityToDTO(school);
     }
 
+    public void setSchoolActive(Long schoolId, boolean active) {
+        School school = schoolRepository.findById(schoolId)
+                .orElseThrow(() -> new ResourceNotFoundException("School", "schoolId", schoolId));
+        school.setIsActive(active);
+        schoolRepository.save(school);
+        log.info("School {} with id {}",
+                active ? "activated" : "deactivated", schoolId);
+    }
+
     public boolean validateToken(String token) {
         log.info("Validating token: {}", token);
         School school = schoolRepository.findByKeywords(token)
@@ -96,7 +124,7 @@ public class SchoolService extends BaseService {
     public String getToken() {
         School school = schoolRepository.findAll().stream().filter(x -> StringUtils.isNotEmpty(x.getKeywords()))
                 .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("School", "token", getSchoolCodeFromRequestHeader()));
+                .orElse(School.builder().keywords("").build());
         return school.getKeywords();
     }
 
@@ -125,10 +153,20 @@ public class SchoolService extends BaseService {
         school.setWebsite(schoolDTO.getWebsite());
         school.setPrincipalName(schoolDTO.getPrincipalName());
         school.setAnnouncement(schoolDTO.getAnnouncement());
-        school.setLogo(schoolDTO.getLogo());
-        school.setFavicon(schoolDTO.getFavicon());
-        school.setBanner(schoolDTO.getBanner());
+        school.setKeywords(schoolDTO.getKeywords());
+        if (schoolDTO.getLogo() != null) {
+            school.setLogo(schoolDTO.getLogo());
+        }
+        if (schoolDTO.getFavicon() != null) {
+            school.setFavicon(schoolDTO.getFavicon());
+        }
+        if (schoolDTO.getBanner() != null) {
+            school.setBanner(schoolDTO.getBanner());
+        }
         school.setPhone(schoolDTO.getPhone());
+        if (schoolDTO.getIsActive() != null) {
+            school.setIsActive(schoolDTO.getIsActive());
+        }
 
         school = schoolRepository.save(school);
         log.info("School updated successfully with id: {}", school.getId());

@@ -22,7 +22,7 @@ public class EventController {
 	private final EventService service;
 
 	@PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN','TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'MANAGER')")
 	public ResponseEntity<ApiResponse<EventDTO>> create(@Valid @RequestBody EventDTO dto) {
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(ApiResponse.success(service.create(dto), "Event created successfully"));
@@ -39,13 +39,13 @@ public class EventController {
 	}
 
 	@PutMapping("/{id}")
-	@PreAuthorize("hasAnyRole('ADMIN','TEACHER')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'MANAGER')")
 	public ApiResponse<EventDTO> update(@PathVariable Long id, @Valid @RequestBody EventDTO dto) {
 		return ApiResponse.success(service.update(id, dto), "Event updated successfully");
 	}
 
 	@DeleteMapping("/{id}")
-	@PreAuthorize("hasAnyRole('ADMIN','TEACHER')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'MANAGER')")
 	public ApiResponse<Void> delete(@PathVariable Long id) {
 		service.delete(id);
 		return ApiResponse.success(null, "Event deleted successfully");

@@ -38,6 +38,8 @@ export class AdminClassSectionComponent {
   protected readonly sections = signal<ManagedSection[]>([]);
   protected readonly isLoading = signal(false);
   protected readonly isSaving = signal(false);
+  protected readonly deletingClassId = signal<number | null>(null);
+  protected readonly deletingSectionId = signal<number | null>(null);
   protected readonly message = signal('');
   protected readonly error = signal('');
   protected readonly editingClassId = signal<number | null>(null);
@@ -119,6 +121,33 @@ export class AdminClassSectionComponent {
     this.classForm = this.emptyClassForm();
   }
 
+  protected deleteClass(clazz: ManagedClass): void {
+    const classId = Number(clazz.classId);
+    if (this.isSaving() || this.deletingClassId() !== null || this.deletingSectionId() !== null) {
+      return;
+    }
+    if (!window.confirm(`Delete class ${this.displayClassName(clazz.classId)} (ID ${classId})? This removes every class record with this ID.`)) {
+      return;
+    }
+
+    this.clearFeedback();
+    this.deletingClassId.set(classId);
+    this.classManagementService.deleteClass(classId).subscribe({
+      next: response => {
+        this.deletingClassId.set(null);
+        if (this.editingClassId() === classId) {
+          this.resetClassForm();
+        }
+        this.message.set(response.message || 'Class deleted successfully.');
+        this.loadCatalog();
+      },
+      error: error => {
+        this.deletingClassId.set(null);
+        this.error.set(this.readableError(error, 'The class could not be deleted. Please try again.'));
+      }
+    });
+  }
+
   protected saveSection(): void {
     const classId = Number(this.sectionForm.classId);
     const sectionName = this.sectionForm.sectionName.trim();
@@ -176,6 +205,32 @@ export class AdminClassSectionComponent {
     this.activeTab.set('new');
   }
 
+  protected deleteSection(section: ManagedSection): void {
+    if (this.isSaving() || this.deletingClassId() !== null || this.deletingSectionId() !== null) {
+      return;
+    }
+    if (!window.confirm(`Delete section "${section.sectionName}" from class ${this.displayClassName(section.classId)}?`)) {
+      return;
+    }
+
+    this.clearFeedback();
+    this.deletingSectionId.set(section.id);
+    this.classManagementService.deleteSection(section.id).subscribe({
+      next: response => {
+        this.deletingSectionId.set(null);
+        if (this.editingSectionId() === section.id) {
+          this.resetSectionForm();
+        }
+        this.message.set(response.message || 'Section deleted successfully.');
+        this.loadCatalog();
+      },
+      error: error => {
+        this.deletingSectionId.set(null);
+        this.error.set(this.readableError(error, 'The section could not be deleted. Please try again.'));
+      }
+    });
+  }
+
   protected resetSectionForm(): void {
     this.editingSectionId.set(null);
     this.sectionForm = this.emptySectionForm();
@@ -184,6 +239,10 @@ export class AdminClassSectionComponent {
   protected displayClassName(classId: number | string): string {
     const specialName = SPECIAL_CLASS_NAMES[Number(classId)];
     return specialName ?? this.classes().find(clazz => Number(clazz.classId) === Number(classId))?.className ?? String(classId);
+  }
+
+  protected isDeletingClass(clazz: ManagedClass): boolean {
+    return this.deletingClassId() === Number(clazz.classId);
   }
 
   private loadCatalog(): void {

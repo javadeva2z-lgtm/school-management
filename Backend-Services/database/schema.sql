@@ -49,6 +49,14 @@ CREATE TABLE IF NOT EXISTS schools (
     UNIQUE KEY uk_schools_school_code (school_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+INSERT INTO schools (school_code, school_name, is_active, created_at, created_by, updated_by)
+SELECT 'school_management', 'School Management Application', TRUE, NOW(), 'schema-seed', 'schema-seed'
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM schools
+    WHERE school_code COLLATE utf8mb4_unicode_ci = 'school_management' COLLATE utf8mb4_unicode_ci
+);
+
 CREATE TABLE IF NOT EXISTS users (
     id BIGINT NOT NULL AUTO_INCREMENT,
     username VARCHAR(255) NOT NULL,
@@ -97,6 +105,16 @@ CREATE TABLE IF NOT EXISTS sections (
     created_by VARCHAR(255),
     updated_by VARCHAR(255) NOT NULL,
     PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS class_subjects (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    class_id BIGINT NOT NULL,
+    subject_name VARCHAR(255) NOT NULL,
+    subject_code VARCHAR(255) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_class_subject_code (class_id, subject_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS students (
@@ -320,7 +338,8 @@ CREATE TABLE IF NOT EXISTS student_service_subscriptions (
     id BIGINT NOT NULL AUTO_INCREMENT,
     admission_number BIGINT NOT NULL,
     fee_item_id BIGINT NOT NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_student_service_subscription (admission_number, fee_item_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS announcements (
@@ -429,3 +448,96 @@ CREATE TABLE IF NOT EXISTS file_metadata (
     created_at DATETIME,
     PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Seed the standard classes, sections, subjects, and fee types.
+-- Re-running this block will not create duplicate seed records.
+-- Class ID 0 is reserved; -3, -2, and -1 represent Nursery, LKG, and UKG.
+-- Change this value if the seeded class records should use another academic year.
+SET @seed_academic_year = CONCAT(YEAR(CURDATE()), '-', YEAR(CURDATE()) + 1);
+
+DROP TEMPORARY TABLE IF EXISTS seed_school_classes;
+CREATE TEMPORARY TABLE seed_school_classes (
+    class_id BIGINT NOT NULL PRIMARY KEY,
+    class_name VARCHAR(255) NOT NULL
+);
+
+INSERT INTO seed_school_classes (class_id, class_name) VALUES
+    (-3, 'Nursery'),
+    (-2, 'LKG'),
+    (-1, 'UKG'),
+    (1, 'Class 1'),
+    (2, 'Class 2'),
+    (3, 'Class 3'),
+    (4, 'Class 4'),
+    (5, 'Class 5'),
+    (6, 'Class 6'),
+    (7, 'Class 7'),
+    (8, 'Class 8'),
+    (9, 'Class 9'),
+    (10, 'Class 10'),
+    (11, 'Class 11'),
+    (12, 'Class 12');
+
+INSERT INTO classes (class_id, class_name, academic_year, is_active, created_at)
+SELECT seed.class_id, seed.class_name, @seed_academic_year, TRUE, NOW()
+FROM seed_school_classes seed
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM classes existing
+    WHERE existing.class_id = seed.class_id
+      AND existing.academic_year COLLATE utf8mb4_unicode_ci =
+          @seed_academic_year COLLATE utf8mb4_unicode_ci
+);
+
+INSERT INTO sections (class_id, section_name, is_active, created_at, updated_by)
+SELECT seed.class_id, section_seed.section_name, TRUE, NOW(), 'schema-seed'
+FROM seed_school_classes seed
+CROSS JOIN (
+    SELECT 'A' AS section_name
+    UNION ALL SELECT 'B'
+    UNION ALL SELECT 'C'
+    UNION ALL SELECT 'D'
+) section_seed
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM sections existing
+    WHERE existing.class_id = seed.class_id
+      AND existing.section_name = section_seed.section_name
+);
+
+INSERT INTO class_subjects (class_id, subject_name, subject_code, is_active)
+SELECT seed.class_id, subject_seed.subject_name, subject_seed.subject_code, TRUE
+FROM seed_school_classes seed
+CROSS JOIN (
+    SELECT 'Hindi' AS subject_name, 'HIN' AS subject_code
+    UNION ALL SELECT 'English', 'ENG'
+    UNION ALL SELECT 'Math', 'MAT'
+    UNION ALL SELECT 'GK', 'GK'
+    UNION ALL SELECT 'Activity', 'ACT'
+) subject_seed
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM class_subjects existing
+    WHERE existing.class_id = seed.class_id
+      AND existing.subject_code = subject_seed.subject_code
+);
+
+INSERT INTO fee_items (class_id, service_name, mandatory, default_amount, active)
+SELECT seed.class_id, fee_seed.service_name, fee_seed.mandatory, 0.00, TRUE
+FROM seed_school_classes seed
+CROSS JOIN (
+    SELECT 'Tuition Fee' AS service_name, TRUE AS mandatory
+    UNION ALL SELECT 'Exam Fee', TRUE
+    UNION ALL SELECT 'Computer Lab', TRUE
+    UNION ALL SELECT 'Annual Fee', TRUE
+    UNION ALL SELECT 'Transport Fee', FALSE
+    UNION ALL SELECT 'Other Fee', TRUE
+) fee_seed
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM fee_items existing
+    WHERE existing.class_id = seed.class_id
+      AND existing.service_name = fee_seed.service_name
+);
+
+DROP TEMPORARY TABLE seed_school_classes;

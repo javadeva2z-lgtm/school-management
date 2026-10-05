@@ -2,6 +2,7 @@ package com.school.common.enums;
 
 public enum UserRoleWithRolePrefix {
     ADMIN("ROLE_ADMIN"),
+    MANAGER("ROLE_MANAGER"),
     TEACHER("ROLE_TEACHER"),
     STUDENT("ROLE_STUDENT"),
     SUPER_ADMIN("ROLE_SUPER_ADMIN");

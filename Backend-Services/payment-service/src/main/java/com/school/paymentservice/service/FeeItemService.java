@@ -5,6 +5,7 @@ import com.school.paymentservice.converter.FeeItemConverter;
 import com.school.paymentservice.dto.FeeItemDTO;
 import com.school.paymentservice.entity.FeeItem;
 import com.school.paymentservice.repository.FeeItemRepository;
+import com.school.paymentservice.repository.StudentServiceSubscriptionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import java.util.stream.Collectors;
 @Transactional
 public class FeeItemService {
     private final FeeItemRepository feeItemRepository;
+    private final StudentServiceSubscriptionRepository studentServiceSubscriptionRepository;
     private final FeeItemConverter feeItemConverter;
 
     public FeeItemDTO createFeeItem(FeeItemDTO feeItemDTO) {
@@ -80,6 +82,8 @@ public class FeeItemService {
         if (!feeItemRepository.existsById(id)) {
             throw new ResourceNotFoundException("FeeItem", "id", id);
         }
+        studentServiceSubscriptionRepository.deleteByFeeItemId(id);
         feeItemRepository.deleteById(id);
+        log.info("Deleted fee item {} and its student service subscriptions", id);
     }
 }

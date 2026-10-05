@@ -36,35 +36,35 @@ public class FeeItemController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get all fee items")
     public ResponseEntity<ApiResponse<List<FeeItemDTO>>> getAllFeeItems() {
         return ResponseEntity.ok(ApiResponse.success(feeItemService.getAllFeeItems()));
     }
 
     @GetMapping("/active")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get active fee items")
     public ResponseEntity<ApiResponse<List<FeeItemDTO>>> getActiveFeeItems() {
         return ResponseEntity.ok(ApiResponse.success(feeItemService.getActiveFeeItems()));
     }
 
     @GetMapping("/class/{classId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get fee items by class")
     public ResponseEntity<ApiResponse<List<FeeItemDTO>>> getFeeItemsByClass(@PathVariable Long classId) {
         return ResponseEntity.ok(ApiResponse.success(feeItemService.getFeeItemsByClass(classId)));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get fee item by id")
     public ResponseEntity<ApiResponse<FeeItemDTO>> getFeeItemById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(feeItemService.getFeeItemById(id)));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Update fee item")
     public ResponseEntity<ApiResponse<FeeItemDTO>> updateFeeItem(@PathVariable Long id,
             @Valid @RequestBody FeeItemDTO feeItemDTO) {

@@ -28,7 +28,7 @@ public class MonthlyFeeController {
     private final MonthlyFeeService monthlyFeeService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Create monthly fee")
     public ResponseEntity<ApiResponse<MonthlyFeeDTO>> createMonthlyFee(
             @Valid @RequestBody MonthlyFeeDTO monthlyFeeDTO) {
@@ -38,14 +38,14 @@ public class MonthlyFeeController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get monthly fee by id")
     public ResponseEntity<ApiResponse<MonthlyFeeDTO>> getMonthlyFeeById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(monthlyFeeService.getMonthlyFeeById(id)));
     }
 
     @GetMapping("/student/{admissionNumber}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get monthly fees by student")
     public ResponseEntity<ApiResponse<List<MonthlyFeeDTO>>> getMonthlyFeesByStudent(
             @PathVariable Long admissionNumber) {
@@ -54,7 +54,7 @@ public class MonthlyFeeController {
     }
 
     @PostMapping("/student/{admissionNumber}/generate")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Generate missing monthly fees from the student's admission month")
     public ResponseEntity<ApiResponse<List<MonthlyFeeDTO>>> generateMissingFees(
             @PathVariable Long admissionNumber,
@@ -64,7 +64,7 @@ public class MonthlyFeeController {
     }
 
     @GetMapping("/student/{admissionNumber}/month/{monthYear}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get monthly fee by student and month")
     public ResponseEntity<ApiResponse<MonthlyFeeDTO>> getMonthlyFeeByStudentAndMonth(
             @PathVariable Long admissionNumber,
@@ -75,7 +75,7 @@ public class MonthlyFeeController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Update monthly fee")
     public ResponseEntity<ApiResponse<MonthlyFeeDTO>> updateMonthlyFee(@PathVariable Long id,
             @Valid @RequestBody MonthlyFeeDTO monthlyFeeDTO) {
@@ -84,7 +84,7 @@ public class MonthlyFeeController {
     }
 
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'MANAGER')")
     @Operation(summary = "Update monthly fee status")
     public ResponseEntity<ApiResponse<MonthlyFeeDTO>> updateStatus(@PathVariable Long id,
             @RequestParam PaymentStatus status) {
@@ -93,7 +93,7 @@ public class MonthlyFeeController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Delete monthly fee")
     public ResponseEntity<ApiResponse<Void>> deleteMonthlyFee(@PathVariable Long id) {
         monthlyFeeService.deleteMonthlyFee(id);

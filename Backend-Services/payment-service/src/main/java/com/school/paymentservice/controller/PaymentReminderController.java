@@ -28,7 +28,7 @@ public class PaymentReminderController {
     private final PaymentReminderService paymentReminderService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Create payment reminder")
     public ResponseEntity<ApiResponse<PaymentReminderDTO>> createReminder(
             @Valid @RequestBody PaymentReminderDTO reminderDTO) {
@@ -38,14 +38,14 @@ public class PaymentReminderController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get reminder by id")
     public ResponseEntity<ApiResponse<PaymentReminderDTO>> getReminderById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(paymentReminderService.getReminderById(id)));
     }
 
     @GetMapping("/student/{admissionNumber}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get reminders by student")
     public ResponseEntity<ApiResponse<List<PaymentReminderDTO>>> getRemindersByStudent(
             @PathVariable Long admissionNumber) {
@@ -54,7 +54,7 @@ public class PaymentReminderController {
     }
 
     @GetMapping("/monthly-fee/{monthlyFeeId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get reminders by monthly fee")
     public ResponseEntity<ApiResponse<List<PaymentReminderDTO>>> getRemindersByMonthlyFee(
             @PathVariable Long monthlyFeeId) {
@@ -62,7 +62,7 @@ public class PaymentReminderController {
     }
 
     @GetMapping("/due-date")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get pending reminders by date")
     public ResponseEntity<ApiResponse<List<PaymentReminderDTO>>> getPendingRemindersByDate(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
@@ -70,14 +70,14 @@ public class PaymentReminderController {
     }
 
     @GetMapping("/pending")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get all pending reminders")
     public ResponseEntity<ApiResponse<List<PaymentReminderDTO>>> getPendingReminders() {
         return ResponseEntity.ok(ApiResponse.success(paymentReminderService.getPendingReminders()));
     }
 
     @PatchMapping("/{id}/send")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Mark reminder as sent")
     public ResponseEntity<ApiResponse<PaymentReminderDTO>> markReminderAsSent(@PathVariable Long id) {
         PaymentReminderDTO response = paymentReminderService.markReminderAsSent(id);
@@ -85,7 +85,7 @@ public class PaymentReminderController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Delete reminder")
     public ResponseEntity<ApiResponse<Void>> deleteReminder(@PathVariable Long id) {
         paymentReminderService.deleteReminder(id);

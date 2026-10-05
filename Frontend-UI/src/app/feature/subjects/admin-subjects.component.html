@@ -1,0 +1,97 @@
+<main class="dashboard feature-page subject-management-page">
+  <a class="back-link" routerLink="/" [queryParams]="{ role: 'Admin' }">&#8592; Back to workspace</a>
+  <section class="feature-panel subject-management-panel">
+    <p class="eyebrow">Admin workspace</p>
+    <h1>Subjects</h1>
+    <p>Manage subjects assigned to each class.</p>
+
+    <div class="subject-tabs" role="tablist" aria-label="Subject actions">
+      <button type="button" role="tab" [attr.aria-selected]="activeTab() === 'new'"
+        [class.active]="activeTab() === 'new'" (click)="selectTab('new')">Add or update</button>
+      <button type="button" role="tab" [attr.aria-selected]="activeTab() === 'existing'"
+        [class.active]="activeTab() === 'existing'" (click)="selectTab('existing')">Existing subjects</button>
+    </div>
+
+    @if (isLoading()) {
+    <p class="subject-status" role="status">Loading classes...</p>
+    }
+
+    @if (activeTab() === 'new') {
+    <section class="subject-section" aria-labelledby="subject-form-title" role="tabpanel">
+      <div class="subject-heading">
+        <div>
+          <p class="eyebrow">{{ editingSubjectId() === null ? 'Class subject setup' : 'Update subject' }}</p>
+          <h2 id="subject-form-title">{{ editingSubjectId() === null ? 'Add a subject to a class' : 'Edit subject details' }}</h2>
+        </div>
+        @if (editingSubjectId() !== null) {
+        <button class="subject-secondary-button" type="button" (click)="resetForm()">Cancel edit</button>
+        }
+      </div>
+
+      <form class="subject-form" (submit)="$event.preventDefault(); saveSubject()">
+        <label>Class
+          <select name="subjectClassId" [(ngModel)]="subjectForm.classId" required [disabled]="isLoading()">
+            <option value="" disabled>Select a class</option>
+            @for (clazz of classOptions(); track clazz.classId) {
+            <option [value]="clazz.classId">Class {{ displayClassName(clazz.classId) }}</option>
+            }
+          </select>
+        </label>
+        <label>Subject name
+          <input type="text" name="subjectName" [(ngModel)]="subjectForm.subjectName" required maxlength="100">
+        </label>
+        <label>Subject code
+          <input type="text" name="subjectCode" [(ngModel)]="subjectForm.subjectCode" required maxlength="50">
+        </label>
+        <label class="subject-active-toggle">
+          <input type="checkbox" name="subjectActive" [(ngModel)]="subjectForm.isActive">
+          Active subject
+        </label>
+        <button class="subject-primary-button" type="submit"
+          [disabled]="isSaving() || isLoading() || !classes().length">
+          {{ isSaving() ? 'Saving...' : editingSubjectId() === null ? 'Add subject' : 'Update subject' }}
+        </button>
+      </form>
+    </section>
+    } @else {
+    <section class="subject-section" aria-label="Existing class subjects" role="tabpanel">
+      <label class="subject-class-filter">Class
+        <select name="existingSubjectClass" [value]="selectedClassId()"
+          (change)="onClassChange($any($event.target).value)" [disabled]="isLoading()">
+          <option value="" disabled>Select a class</option>
+          @for (clazz of classOptions(); track clazz.classId) {
+          <option [value]="clazz.classId">Class {{ displayClassName(clazz.classId) }}</option>
+          }
+        </select>
+      </label>
+      @if (isLoadingSubjects()) {
+      <p class="subject-status" role="status">Loading subjects...</p>
+      } @else if (subjects().length) {
+      <div class="subject-record-list" aria-label="Class subjects">
+        @for (subject of subjects(); track subject.id) {
+        <article class="subject-record-card">
+          <div class="subject-record-details">
+            <strong>{{ subject.subjectName }}</strong>
+            <small>Class {{ displayClassName(subject.classId) }} · Code {{ subject.subjectCode }}</small>
+          </div>
+          <div class="subject-record-actions">
+            <span class="subject-record-state" [class.inactive]="!subject.isActive">
+              {{ subject.isActive ? 'Active' : 'Inactive' }}
+            </span>
+            <button class="subject-secondary-button" type="button" (click)="editSubject(subject)">Edit subject</button>
+            <button class="subject-secondary-button subject-delete-button" type="button" [disabled]="isSaving()"
+              (click)="deleteSubject(subject)">Delete subject</button>
+          </div>
+        </article>
+        }
+      </div>
+      } @else if (!isLoading()) {
+      <p class="subject-empty-state">No subjects are assigned to this class yet.</p>
+      }
+    </section>
+    }
+
+    @if (message()) { <p class="subject-message" role="status">{{ message() }}</p> }
+    @if (error()) { <p class="subject-error" role="alert">{{ error() }}</p> }
+  </section>
+</main>

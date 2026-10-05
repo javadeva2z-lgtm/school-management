@@ -3,7 +3,7 @@
   <section class="feature-panel class-management-panel">
     <p class="eyebrow">Admin workspace</p>
     <h1>Classes &amp; sections</h1>
-    <p>Create and update classes and manage their sections using the user-service records.</p>
+    <p>Manage school classes and their sections.</p>
 
     <div class="management-tabs" role="tablist" aria-label="New or existing records">
       <button type="button" role="tab" [attr.aria-selected]="activeTab() === 'new'"
@@ -16,7 +16,7 @@
     <p class="management-status" role="status">Loading classes and sections...</p>
     }
 
-    <div class="record-type-tabs" role="tablist" aria-label="Choose class or section records">
+    <div class="record-type-tabs" role="tablist" aria-label="Choose records to manage">
       <button type="button" role="tab" [attr.aria-selected]="activeRecordType() === 'classes'"
         [class.active]="activeRecordType() === 'classes'" (click)="selectRecordType('classes')">Classes</button>
       <button type="button" role="tab" [attr.aria-selected]="activeRecordType() === 'sections'"
@@ -114,7 +114,14 @@
           </div>
           <div class="record-actions">
             <span class="record-state" [class.inactive]="!clazz.isActive">{{ clazz.isActive ? 'Active' : 'Inactive' }}</span>
-            <button class="secondary-button" type="button" (click)="editClass(clazz)">Edit class</button>
+            <button class="secondary-button" type="button"
+              [disabled]="isSaving() || deletingClassId() !== null || deletingSectionId() !== null"
+              (click)="editClass(clazz)">Edit class</button>
+            <button class="secondary-button" type="button"
+              [disabled]="isSaving() || deletingClassId() !== null || deletingSectionId() !== null"
+              (click)="deleteClass(clazz)">
+              {{ isDeletingClass(clazz) ? 'Deleting...' : 'Delete class' }}
+            </button>
           </div>
         </article>
         }
@@ -136,7 +143,14 @@
           </div>
           <div class="record-actions">
             <span class="record-state" [class.inactive]="!section.isActive">{{ section.isActive ? 'Active' : 'Inactive' }}</span>
-            <button class="secondary-button" type="button" (click)="editSection(section)">Edit section</button>
+            <button class="secondary-button" type="button"
+              [disabled]="isSaving() || deletingClassId() !== null || deletingSectionId() !== null"
+              (click)="editSection(section)">Edit section</button>
+            <button class="secondary-button" type="button"
+              [disabled]="isSaving() || deletingClassId() !== null || deletingSectionId() !== null"
+              (click)="deleteSection(section)">
+              {{ deletingSectionId() === section.id ? 'Deleting...' : 'Delete section' }}
+            </button>
           </div>
         </article>
         }
@@ -146,7 +160,6 @@
       }
     </section>
     }
-
     @if (message()) { <p class="management-message" role="status">{{ message() }}</p> }
     @if (error()) { <p class="management-error" role="alert">{{ error() }}</p> }
   </section>

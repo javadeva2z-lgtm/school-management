@@ -21,7 +21,7 @@ public class AnnouncementController {
 	private final AnnouncementService service;
 
 	@PostMapping
-	@PreAuthorize("hasAnyRole('ADMIN','TEACHER')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'MANAGER')")
 	public ResponseEntity<ApiResponse<AnnouncementDTO>> create(@Valid @RequestBody AnnouncementDTO dto) {
 		return ResponseEntity.status(HttpStatus.CREATED)
 				.body(ApiResponse.success(service.create(dto), "Announcement created successfully"));

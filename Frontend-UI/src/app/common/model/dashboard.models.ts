@@ -1,5 +1,23 @@
 import { DashboardData } from "./models";
 
+const adminMenus: DashboardData['menus']['Admin'] = [
+  { id: 'teachers', label: 'Manage teachers', detail: 'View and manage faculty', icon: 'teacher', tone: 'teal', roles: ['Admin'] },
+  { id: 'class-teachers', label: 'Class teacher mapping', detail: 'Assign a teacher to a class and section', icon: 'teacher', tone: 'blue', roles: ['Admin'] },
+  { id: 'classes-sections', label: 'Classes & sections', detail: 'Create and update classes and sections', icon: 'book', tone: 'violet', roles: ['Admin'] },
+  { id: 'subjects', label: 'Subjects', detail: 'Manage subjects assigned to each class', icon: 'book', tone: 'gold', roles: ['Admin'] },
+  { id: 'students', label: 'Manage students', detail: 'Keep student records current', icon: 'users', tone: 'coral', roles: ['Admin'] },
+  { id: 'fees', label: 'Fee management', detail: 'Track fees and payments', icon: 'fee', tone: 'gold', roles: ['Admin'] },
+  { id: 'optional-fee-mapping', label: 'Optional fee mapping', detail: 'Map optional class fees to students', icon: 'fee', tone: 'orange', roles: ['Admin'] },
+  { id: 'user-accounts', label: 'Create admin or manager', detail: 'Create privileged staff accounts', icon: 'users', tone: 'coral', roles: ['Admin'] },
+  { id: 'import-data', label: 'Import/Export Data', detail: 'Teachers, students, classes & sections', icon: 'import', tone: 'orange', roles: ['Admin'] },
+  { id: 'announcements', label: 'Announcements', detail: 'Keep families informed', icon: 'announce', tone: 'blue', roles: ['Admin'] },
+  { id: 'events', label: 'Events', detail: 'Share school event notices', icon: 'event', tone: 'violet', roles: ['Admin'] }
+];
+
+const superAdminMenus: DashboardData['menus']['SuperAdmin'] = [
+  { id: 'schools', label: 'Manage schools', detail: 'Create and update schools', icon: 'users', tone: 'teal', roles: ['SuperAdmin'] }
+];
+
 export const FALLBACK_DASHBOARD_DATA: DashboardData = {
   menus: {
     Teacher: [
@@ -24,15 +42,10 @@ export const FALLBACK_DASHBOARD_DATA: DashboardData = {
       { id: 'datesheet', label: 'Exam datesheet', detail: 'Plan your exam days', icon: 'datesheet', tone: 'violet', roles: ['Student'] },
       { id: 'events', label: 'Events', detail: 'What is happening next', icon: 'event', tone: 'violet', roles: ['Student'] }
     ],
-    Admin: [
-      { id: 'teachers', label: 'Manage teachers', detail: 'View and manage faculty', icon: 'teacher', tone: 'teal', roles: ['Admin'] },
-      { id: 'class-teachers', label: 'Class teacher mapping', detail: 'Assign a teacher to a class and section', icon: 'teacher', tone: 'blue', roles: ['Admin'] },
-      { id: 'classes-sections', label: 'Classes & sections', detail: 'Create and update classes and sections', icon: 'book', tone: 'violet', roles: ['Admin'] },
-      { id: 'students', label: 'Manage students', detail: 'Keep student records current', icon: 'users', tone: 'coral', roles: ['Admin'] },
-      { id: 'fees', label: 'Fee management', detail: 'Track fees and payments', icon: 'fee', tone: 'gold', roles: ['Admin'] },
-      { id: 'import-data', label: 'Import/Export Data', detail: 'Teachers, students, classes & sections', icon: 'import', tone: 'orange', roles: ['Admin'] },
-      { id: 'announcements', label: 'Announcements', detail: 'Keep families informed', icon: 'announce', tone: 'blue', roles: ['Admin'] },
-      { id: 'events', label: 'Events', detail: 'Share school event notices', icon: 'event', tone: 'violet', roles: ['Admin'] }
-    ]
+    Admin: adminMenus,
+    Manager: adminMenus
+      .filter(item => item.id !== 'import-data' && item.id !== 'user-accounts')
+      .map(item => ({ ...item, roles: ['Manager'] })),
+    SuperAdmin: superAdminMenus
   }
 };

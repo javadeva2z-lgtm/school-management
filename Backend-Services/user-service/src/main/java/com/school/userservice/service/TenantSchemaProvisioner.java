@@ -58,7 +58,7 @@ public class TenantSchemaProvisioner {
                 ps.setString(1, school.getSchoolCode());
                 ps.setString(2, school.getSchoolName());
                 ps.setString(3, school.getKeywords());
-                ps.setBoolean(4, true);
+                ps.setBoolean(4, school.getIsActive() == null || school.getIsActive());
                 ps.setDate(5, Date.valueOf(LocalDate.now()));
                 ps.setString(6, "superadmin");
 

@@ -67,8 +67,11 @@ Authorization: ******
 ```
 
 The payment service retrieves the student's trusted `admissionDate` and class from the user service, sums that
-class's active fee items, and creates one full monthly charge for each missing month from the admission month
-through the current month. Existing monthly fee records are retained, so paid balances are not overwritten.
+class's active mandatory fee items and active optional fee items to which the student is subscribed, and creates
+one full monthly charge for each missing month from the admission month through the current month. Optional
+student enrollments are managed through `POST /student-service-subscriptions` and
+`DELETE /student-service-subscriptions/{id}`. Existing monthly fee records are retained, so previously generated
+balances and paid records are not overwritten.
 The admission month is charged in full regardless of the day the student joined. Existing records can then be
 retrieved with `GET /monthly-fees/student/{admissionNumber}`. Monthly fees, payment reminders, and student fee
 subscriptions identify the student by admission number; `monthlyFeeId` remains the separate record identifier

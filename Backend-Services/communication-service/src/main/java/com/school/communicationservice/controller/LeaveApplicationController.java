@@ -55,27 +55,27 @@ public class LeaveApplicationController {
 	}
 	
 	@GetMapping("/year/all")
-	@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'MANAGER')")
 	public ApiResponse<List<LeaveApplicationDTO>> allCurrentYear() {
 		return ApiResponse.success(service.getCurrentYearLeave());
 	}
 
 	@GetMapping("/date/{date}")
-	@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'MANAGER')")
 	public ApiResponse<List<LeaveApplicationDTO>> byDate(@PathVariable LocalDate date) {
 		return ApiResponse.success(service.byDate(date));
 	}
 	
 	
 	@GetMapping
-	@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'MANAGER')")
 	public ApiResponse<List<LeaveApplicationDTO>> allRecent(@RequestParam(defaultValue = "PENDING") LeaveStatus status) {
 		return ApiResponse.success(service.byStatus(status));
 	}
 	
 
 	@PostMapping("/{id}/decision/{status}")
-	@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'MANAGER')")
 	public ApiResponse<LeaveApplicationDTO> decide(@PathVariable Long id, @PathVariable LeaveStatus status) {
 		return ApiResponse.success(service.decide(id, status, ""),
 				"Leave application updated successfully");

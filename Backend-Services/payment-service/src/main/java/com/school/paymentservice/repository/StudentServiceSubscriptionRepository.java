@@ -13,4 +13,6 @@ public interface StudentServiceSubscriptionRepository extends JpaRepository<Stud
     List<StudentServiceSubscription> findByAdmissionNumber(Long admissionNumber);
 
     Optional<StudentServiceSubscription> findByAdmissionNumberAndFeeItemId(Long admissionNumber, Long feeItemId);
+
+    void deleteByFeeItemId(Long feeItemId);
 }

@@ -25,7 +25,7 @@ public class NotificationTemplateController {
     private final NotificationTemplateService notificationTemplateService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Create notification template")
     public ResponseEntity<ApiResponse<NotificationTemplateDTO>> createTemplate(@Valid @RequestBody NotificationTemplateDTO templateDTO) {
         log.info("Create notification template request for template: {}", templateDTO.getTemplateName());
@@ -35,7 +35,7 @@ public class NotificationTemplateController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Get notification template by ID")
     public ResponseEntity<ApiResponse<NotificationTemplateDTO>> getTemplateById(@PathVariable Long id) {
         log.info("Get notification template request for id: {}", id);
@@ -44,7 +44,7 @@ public class NotificationTemplateController {
     }
 
     @GetMapping("/name/{templateName}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Get notification template by name")
     public ResponseEntity<ApiResponse<NotificationTemplateDTO>> getTemplateByName(@PathVariable String templateName) {
         log.info("Get notification template request for name: {}", templateName);
@@ -53,7 +53,7 @@ public class NotificationTemplateController {
     }
 
     @GetMapping("/type/{notificationType}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Get templates by notification type")
     public ResponseEntity<ApiResponse<List<NotificationTemplateDTO>>> getTemplatesByType(
             @PathVariable String notificationType) {
@@ -63,7 +63,7 @@ public class NotificationTemplateController {
     }
 
     @GetMapping("/active")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Get all active templates")
     public ResponseEntity<ApiResponse<List<NotificationTemplateDTO>>> getAllActiveTemplates() {
         log.info("Get all active notification templates request");
@@ -72,7 +72,7 @@ public class NotificationTemplateController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Get all templates")
     public ResponseEntity<ApiResponse<List<NotificationTemplateDTO>>> getAllTemplates() {
         log.info("Get all notification templates request");
@@ -81,7 +81,7 @@ public class NotificationTemplateController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Update notification template")
     public ResponseEntity<ApiResponse<NotificationTemplateDTO>> updateTemplate(
             @PathVariable Long id,
@@ -92,7 +92,7 @@ public class NotificationTemplateController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Delete notification template")
     public ResponseEntity<ApiResponse<Void>> deleteTemplate(@PathVariable Long id) {
         log.info("Delete notification template request for id: {}", id);

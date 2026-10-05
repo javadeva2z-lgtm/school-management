@@ -1,0 +1,86 @@
+<main class="dashboard feature-page optional-fee-mapping-page">
+  <a class="back-link" routerLink="/" [queryParams]="{ role: 'Admin' }">&#8592; Back to workspace</a>
+  <section class="feature-panel optional-fee-mapping-panel">
+    <p class="eyebrow">Admin workspace</p>
+    <h1>Optional fee mapping</h1>
+    <p>Assign optional class fee items to students who use those services.</p>
+
+    <div class="mapping-filters">
+      <label>Class
+        <select [value]="selectedClassId()" (change)="selectClass($any($event.target).value)"
+          [disabled]="isLoadingClasses()">
+          <option value="" disabled>Select a class</option>
+          @for (option of classOptions(); track option.classId) {
+          <option [value]="option.classId">Class {{ option.className }}</option>
+          }
+        </select>
+      </label>
+      <label>Section
+        <select [value]="selectedSectionName()" (change)="selectSection($any($event.target).value)"
+          [disabled]="!selectedClassId() || isLoadingClasses()">
+          <option value="" disabled>Select a section</option>
+          @for (section of sections(); track section.sectionId) {
+          <option [value]="section.sectionName">{{ section.sectionName }}</option>
+          }
+        </select>
+      </label>
+    </div>
+
+    @if (isLoadingClasses()) {
+    <p class="mapping-status" role="status">Loading classes...</p>
+    } @else if (isLoadingFeeItems()) {
+    <p class="mapping-status" role="status">Loading optional fee items...</p>
+    } @else if (!selectedClassId()) {
+    <p class="mapping-empty">No classes are available.</p>
+    } @else if (!sections().length) {
+    <p class="mapping-empty">No sections are configured for this class.</p>
+    } @else if (!selectedSectionName()) {
+    <p class="mapping-empty">Select a section to load its students.</p>
+    } @else if (!optionalFeeItems().length) {
+    <p class="mapping-empty">This class has no active optional fee items. Add one in Fee management first.</p>
+    } @else if (isLoadingStudents()) {
+    <p class="mapping-status" role="status">Loading students and fee assignments...</p>
+    } @else if (enrollments().length) {
+    <div class="mapping-table-wrap">
+      <table class="mapping-table">
+        <thead>
+          <tr>
+            <th scope="col">Student</th>
+            @for (feeItem of optionalFeeItems(); track feeItem.id) {
+            <th scope="col">{{ feeItem.serviceName }}</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (enrollment of enrollments(); track enrollment.student.admissionNumber) {
+          <tr>
+            <th scope="row">
+              <span>{{ enrollment.student.name }}</span>
+              <small>Roll {{ enrollment.student.rollNumber }} · Admission {{ enrollment.student.admissionNumber }}</small>
+            </th>
+            @for (feeItem of optionalFeeItems(); track feeItem.id) {
+            <td>
+              <input type="checkbox"
+                [attr.aria-label]="'Apply ' + feeItem.serviceName + ' to ' + enrollment.student.name"
+                [checked]="isSubscribed(enrollment.student.admissionNumber, feeItem.id)"
+                [disabled]="savingEnrollment() !== ''"
+                (change)="toggleEnrollment(enrollment.student, feeItem, $any($event.target).checked)">
+            </td>
+            }
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    } @else {
+    <p class="mapping-empty">No students are enrolled in this class and section.</p>
+    }
+
+    @if (errorMessage()) {
+    <p class="mapping-error" role="alert">{{ errorMessage() }}</p>
+    }
+    @if (statusMessage()) {
+    <p class="mapping-success" role="status">{{ statusMessage() }}</p>
+    }
+  </section>
+</main>
