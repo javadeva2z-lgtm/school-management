@@ -21,8 +21,8 @@
         </div>
         <label>Class
           <select name="adminFeesClass" [ngModel]="selectedClass()" (ngModelChange)="selectClass($event)">
-            @for (option of classOptions(); track option.classId) { <option [value]="option.classId"> Class {{
-              option.classId }}</option> }
+            @for (option of classOptions(); track option.classId) { <option [value]="option.classId">{{
+              option.className }}</option> }
           </select>
         </label>
       </div>
@@ -30,6 +30,13 @@
         <span>Total monthly fee</span>
         <strong>{{ formatCurrency(monthlyTotal()) }}</strong>
       </div>
+      @if (isLoadingStructure()) {
+      <p class="empty-fees" role="status">Loading monthly fee structure...</p>
+      }
+      @if (structureError()) {
+      <p class="fee-error" role="alert">{{ structureError() }}</p>
+      <button type="button" (click)="reloadFeeStructure()">Retry loading</button>
+      }
       <div class="fee-types-form">
         @for (feeType of feeTypes; track feeType.key) {
         <label>{{ feeType.label }}
@@ -38,7 +45,9 @@
         </label>
         }
       </div>
-      <button class="save-attendance" type="button" (click)="saveClassFees()">Save class fee</button>
+      <button class="save-attendance" type="button"
+        [disabled]="isLoadingStructure() || isSavingStructure() || !!structureError()"
+        (click)="saveClassFees()">{{ isSavingStructure() ? 'Saving...' : 'Save class fee' }}</button>
     </section>
     }
 
@@ -49,19 +58,41 @@
           <p class="eyebrow">Payment follow-up</p>
           <h2 id="pending-fees-title">Pending student fees</h2>
         </div>
-        <span class="pending-count">{{ pendingFees().length }} students</span>
+        <label class="pending-class-select">Class
+          <select name="pendingFeesClass" [ngModel]="selectedClass()" (ngModelChange)="selectClass($event)">
+            @for (option of classOptions(); track option.classId) {
+            <option [value]="option.classId">{{ option.className }}</option>
+            }
+          </select>
+        </label>
       </div>
+      @if (isLoadingPending()) {
+      <p class="empty-fees" role="status">Loading pending fee balances...</p>
+      } @else if (pendingError()) {
+      <p class="fee-error" role="alert">{{ pendingError() }}</p>
+      } @else {
+      @if (pendingWarning()) {
+      <p class="fee-error" role="status">{{ pendingWarning() }}</p>
+      }
       @if (pendingFees().length) {
+      <p class="pending-count">{{ pendingFees().length }} pending month(s) across {{ pendingStudentCount() }} student(s)</p>
       <div class="pending-fees-list">
-        @for (student of pendingFees(); track student.studentName) {
+        @for (student of pendingFees(); track student.monthlyFeeId) {
         <article class="pending-fee-card">
           <div>
             <strong>{{ student.studentName }}</strong>
             <small>{{ student.className }} · Section {{ student.section }} · {{ student.parentMobile }}</small>
+            <small>{{ formatMonth(student.monthYear) }} · Due on the 8th ({{ student.dueDate }})</small>
           </div>
           <div class="pending-fee-action">
             <strong>{{ formatCurrency(student.amount) }}</strong>
-            <button class="whatsapp-button" type="button" (click)="notifyParent(student)">Notify on WhatsApp</button>
+            @if (isOverdue(student)) {
+            <span class="overdue-label">Overdue</span>
+            <button class="whatsapp-button" type="button" [disabled]="reminderCreatedForMonthlyFeeIds().includes(student.monthlyFeeId)"
+              (click)="createReminder(student)">
+              {{ reminderCreatedForMonthlyFeeIds().includes(student.monthlyFeeId) ? 'Reminder created' : 'Create reminder' }}
+            </button>
+            }
           </div>
         </article>
         }
@@ -69,8 +100,13 @@
       } @else {
       <p class="empty-fees">No pending student fees are available.</p>
       }
+      }
     </section>
     }
-    @if (statusMessage) { <p class="fee-status" role="status">{{ statusMessage }}</p> }
+    @if (statusMessage) {
+    <p class="fee-status" [class.fee-error]="statusError" [attr.role]="statusError ? 'alert' : 'status'">
+      {{ statusMessage }}
+    </p>
+    }
   </section>
 </main>

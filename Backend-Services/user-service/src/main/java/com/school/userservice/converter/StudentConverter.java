@@ -16,7 +16,6 @@ public class StudentConverter {
             return null;
         }
         return StudentDTO.builder()
-                .id(student.getId())
                 .name(student.getName())
                 .gender(student.getGender())
                 .email(student.getEmail())
@@ -27,6 +26,7 @@ public class StudentConverter {
                 .fatherName(student.getFatherName())
                 .motherName(student.getMotherName())
                 .dateOfBirth(student.getDateOfBirth())
+                .admissionDate(student.getAdmissionDate())
                 .address(student.getAddress())
                 .parentPhone(student.getParentPhone())
                 .isEws(student.getIsEWS())
@@ -38,17 +38,16 @@ public class StudentConverter {
             return null;
         }
         return Student.builder()
-                .id(studentDTO.getId())
                 .email(studentDTO.getEmail())
                 .name(studentDTO.getName())
                 .gender(studentDTO.getGender())
-                .admissionNumber(studentDTO.getAdmissionNumber())
                 .rollNumber(studentDTO.getRollNumber())
                 .classId(studentDTO.getClassId())
                 .sectionName(studentDTO.getSectionName())
                 .fatherName(studentDTO.getFatherName())
                 .motherName(studentDTO.getMotherName())
                 .dateOfBirth(studentDTO.getDateOfBirth())
+                .admissionDate(studentDTO.getAdmissionDate())
                 .address(studentDTO.getAddress())
                 .parentPhone(studentDTO.getParentPhone())
                 .isEWS(studentDTO.getIsEws())

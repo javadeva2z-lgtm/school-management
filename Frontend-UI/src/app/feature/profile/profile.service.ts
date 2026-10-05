@@ -29,7 +29,7 @@ export class ProfileService {
         }
         else if (studentProfile) {
           const profile: ProfilePayload = {
-            id: studentProfile.id,
+            id: studentProfile.admissionNumber,
             name: studentProfile.name,
             username: studentProfile.admissionNumber.toString(),
             email: studentProfile.email,

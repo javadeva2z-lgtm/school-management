@@ -1,7 +1,6 @@
 package com.school.userservice;
 
 public class Constants {
-    public static final String IMPORT_STUDENT_COLUMN_ID = "id";
     public static final String IMPORT_STUDENT_COLUMN_NAME = "name";
     public static final String IMPORT_STUDENT_COLUMN_GENDER = "gender";
     public static final String IMPORT_STUDENT_COLUMN_EMAIL = "email";
@@ -12,6 +11,7 @@ public class Constants {
     public static final String IMPORT_STUDENT_COLUMN_FATHER_NAME = "fatherName";
     public static final String IMPORT_STUDENT_COLUMN_MOTHER_NAME = "motherName";
     public static final String IMPORT_STUDENT_COLUMN_DOB = "dateOfBirth";
+    public static final String IMPORT_STUDENT_COLUMN_ADMISSION_DATE = "admissionDate";
     public static final String IMPORT_STUDENT_COLUMN_ADDRESS = "address";
     public static final String IMPORT_STUDENT_COLUMN_PARENT_PHONE = "parentPhone";
     public static final String IMPORT_STUDENT_COLUMN_CREATE_LOGIN = "createLogin";

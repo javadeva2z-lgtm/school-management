@@ -47,6 +47,38 @@ All endpoints require JWT token in Authorization header:
 Authorization: Bearer <jwt_token>
 ```
 
+## Admin monthly fee management
+
+Retrieve the active class fee structure with:
+
+```http
+GET /fee-items/class/{classId}
+Authorization: ******
+```
+
+Create an item with `POST /fee-items` or update one with `PUT /fee-items/{id}`. The request body contains
+`classId`, `serviceName`, `mandatory`, `defaultAmount`, and `active`.
+
+When the admin opens pending fees, generate any missing monthly fee records for a student with:
+
+```http
+POST /monthly-fees/student/{admissionNumber}/generate
+Authorization: ******
+```
+
+The payment service retrieves the student's trusted `admissionDate` and class from the user service, sums that
+class's active fee items, and creates one full monthly charge for each missing month from the admission month
+through the current month. Existing monthly fee records are retained, so paid balances are not overwritten.
+The admission month is charged in full regardless of the day the student joined. Existing records can then be
+retrieved with `GET /monthly-fees/student/{admissionNumber}`. Monthly fees, payment reminders, and student fee
+subscriptions identify the student by admission number; `monthlyFeeId` remains the separate record identifier
+used to link payments to a particular month.
+
+This application is under development and uses a fresh database schema. Initialize new databases from
+[`schema.sql`](../user-service/src/main/resources/database/schema.sql); no separate migration scripts are needed.
+Student create requests should omit `admissionNumber`; the database generates it and returns it in the created
+student response. Student lookup, update, and delete paths use that admission number.
+
 ## Fee Structure Endpoints
 
 ### Create Fee Structure
@@ -133,7 +165,7 @@ Content-Type: application/json
 Authorization: Bearer <token>
 
 {
-  "studentId": 1,
+  "admissionNumber": 42001,
   "feeStructureId": 1,
   "amount": 5000.00,
   "dueDate": "2024-12-31",
@@ -149,19 +181,19 @@ Authorization: Bearer <token>
 
 ### Get All Fees for Student
 ```http
-GET /fees/student/{studentId}
+GET /fees/student/{admissionNumber}
 Authorization: Bearer <token>
 ```
 
 ### Get Paginated Fees for Student
 ```http
-GET /fees/student/{studentId}/paginated?page=0&size=10
+GET /fees/student/{admissionNumber}/paginated?page=0&size=10
 Authorization: Bearer <token>
 ```
 
 ### Get Fees by Academic Year
 ```http
-GET /fees/student/{studentId}/academic-year/{academicYear}
+GET /fees/student/{admissionNumber}/academic-year/{academicYear}
 Authorization: Bearer <token>
 ```
 
@@ -180,7 +212,7 @@ Authorization: Bearer <token>
   "data": [
     {
       "id": 1,
-      "studentId": 1,
+      "admissionNumber": 42001,
       "feeStructureId": 1,
       "amount": 5000.00,
       "dueDate": "2024-12-31",
@@ -218,6 +250,64 @@ Authorization: Bearer <token>
 
 ## Payment Endpoints
 
+### Razorpay and PayU UPI QR payments
+
+Student QR payments are created from server-calculated monthly fee balances. The UI does not send an amount, and a student can only create or check orders for their own student record. A payment is recorded only after a verified Razorpay capture or a PayU server-side `verify_payment` result. Browser redirects are not treated as payment confirmation.
+
+Configure gateway secrets as environment variables for the payment service; never put provider secrets in the frontend:
+
+| Variable | Purpose |
+| --- | --- |
+| `PAYMENT_GATEWAY_MODE` | `test` (default) or `prod` for PayU |
+| `PAYMENT_PUBLIC_BASE_URL` | Public API gateway origin used to form PayU callback URLs and Razorpay webhook paths |
+| `RAZORPAY_KEY_ID` / `RAZORPAY_KEY_SECRET` | Razorpay API credentials |
+| `RAZORPAY_WEBHOOK_SECRET` | Secret configured for the Razorpay webhook |
+| `PAYU_KEY` / `PAYU_SALT` | PayU India merchant credentials |
+
+Payment-to-user lookups use the `user-service` Eureka service ID through OpenFeign and forward the caller's bearer token. Ensure both services register with the same Eureka server.
+
+Razorpay must enable the on-demand `upi_qr` feature. Configure its webhook to send `qr_code.credited` events to:
+
+```text
+{PAYMENT_PUBLIC_BASE_URL}/payment-service/api/v1/payments/gateway-orders/webhooks/razorpay/{schoolCode}/{reference}
+```
+
+Use the same webhook secret as `RAZORPAY_WEBHOOK_SECRET`. Webhook signatures are checked against the raw request body. PayU must enable the Dynamic QR / DBQR feature for the merchant; its callback URLs are generated per order and use the same public gateway base URL.
+
+Create a QR (authenticated student or admin):
+
+```http
+POST /payments/gateway-orders
+Content-Type: application/json
+Authorization: Bearer <token>
+```
+
+```json
+{
+  "provider": "RAZORPAY",
+  "admissionNumber": 42001,
+  "monthlyFeeIds": [101, 102],
+  "customerName": "Student Name",
+  "customerEmail": "student@example.com",
+  "customerPhone": "+91 9876543210"
+}
+```
+
+`provider` is `RAZORPAY` or `PAYU`. The server validates fee ownership and outstanding balances, sums the selected months, and returns a `GatewayPaymentOrderDTO` with `reference`, `status`, `amountPaise`, `currency`, `expiresAt`, and either `qrImageUrl` (Razorpay) or `qrPayload` (PayU UPI URI).
+
+Check status (authenticated order owner or admin):
+
+```http
+GET /payments/gateway-orders/{reference}/status
+Authorization: Bearer <token>
+```
+
+Status checks query the provider; signed callbacks also reconcile payments. Repeated callbacks/status checks are idempotent. The UI displays the QR and refreshes status until paid or expired.
+
+### Existing tenant database migration
+
+The project is under development and uses a fresh database schema. The full schema, including payment transactions and gateway orders tracked by `admission_number`, is defined in [`schema.sql`](../user-service/src/main/resources/database/schema.sql). Initialize new databases from that schema; no separate payment migration scripts are required.
+
 ### Record Payment
 ```http
 POST /payments
@@ -226,7 +316,7 @@ Authorization: Bearer <token>
 
 {
   "feeId": 1,
-  "studentId": 1,
+  "admissionNumber": 42001,
   "amountPaid": 5000.00,
   "paymentMethod": "CARD",
   "transactionId": "TXN123456",
@@ -245,7 +335,7 @@ Authorization: Bearer <token>
   "data": {
     "id": 1,
     "feeId": 1,
-    "studentId": 1,
+    "admissionNumber": 42001,
     "amountPaid": 5000.00,
     "paymentMethod": "CARD",
     "transactionId": "TXN123456",
@@ -266,13 +356,13 @@ Authorization: Bearer <token>
 
 ### Get All Payments for Student
 ```http
-GET /payments/student/{studentId}
+GET /payments/admission/{admissionNumber}
 Authorization: Bearer <token>
 ```
 
 ### Get Paginated Payments for Student
 ```http
-GET /payments/student/{studentId}/paginated?page=0&size=10
+GET /payments/admission/{admissionNumber}/paginated?page=0&size=10
 Authorization: Bearer <token>
 ```
 
@@ -302,7 +392,7 @@ Authorization: Bearer <token>
 
 {
   "feeId": 1,
-  "studentId": 1,
+  "admissionNumber": 42001,
   "amountPaid": 5000.00,
   "paymentMethod": "CARD",
   "receiptUrl": "https://gcs.example.com/receipt.pdf",
@@ -312,7 +402,7 @@ Authorization: Bearer <token>
 
 ### Get Total Payments for Student
 ```http
-GET /payments/student/{studentId}/total
+GET /payments/student/{admissionNumber}/total
 Authorization: Bearer <token>
 
 Response: { "status": "SUCCESS", "data": 15000.00, ... }
@@ -333,10 +423,11 @@ Content-Type: application/json
 Authorization: Bearer <token>
 
 {
-  "feeId": 1,
-  "studentId": 1,
+  "monthlyFeeId": 1,
+  "admissionNumber": 42001,
   "reminderType": "DUE_DATE",
-  "reminderDate": "2024-12-28"
+  "amount": 5000.00,
+  "dueDate": "2024-12-28"
 }
 ```
 
@@ -348,7 +439,7 @@ Authorization: Bearer <token>
 
 ### Get Reminders for Student
 ```http
-GET /payment-reminders/student/{studentId}
+GET /payment-reminders/student/{admissionNumber}
 Authorization: Bearer <token>
 ```
 
@@ -368,7 +459,7 @@ Authorization: Bearer <token>
     {
       "id": 1,
       "feeId": 1,
-      "studentId": 1,
+      "admissionNumber": 42001,
       "reminderType": "DUE_DATE",
       "reminderDate": "2024-12-28",
       "isSent": false,
@@ -498,7 +589,7 @@ curl -X POST http://localhost:8003/api/v1/fees \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
-    "studentId": 1,
+    "admissionNumber": 42001,
     "feeStructureId": 1,
     "amount": 5000,
     "dueDate": "2024-12-31",
@@ -513,7 +604,7 @@ curl -X POST http://localhost:8003/api/v1/payments \
   -H "Content-Type: application/json" \
   -d '{
     "feeId": 1,
-    "studentId": 1,
+    "admissionNumber": 42001,
     "amountPaid": 5000,
     "paymentMethod": "CARD",
     "transactionId": "TXN123456",
@@ -560,7 +651,7 @@ CREATE TABLE fee_structure (
 ```sql
 CREATE TABLE fees (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  student_id BIGINT NOT NULL,
+  admission_number BIGINT NOT NULL,
   fee_structure_id BIGINT NOT NULL,
   amount DECIMAL(10, 2) NOT NULL,
   due_date DATE NOT NULL,
@@ -568,9 +659,8 @@ CREATE TABLE fees (
   status VARCHAR(20) DEFAULT 'PENDING',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
   FOREIGN KEY (fee_structure_id) REFERENCES fee_structure(id),
-  INDEX idx_student_id (student_id),
+  INDEX idx_fee_admission_number (admission_number),
   INDEX idx_status (status),
   INDEX idx_due_date (due_date)
 );
@@ -581,7 +671,7 @@ CREATE TABLE fees (
 CREATE TABLE payments (
   id BIGINT PRIMARY KEY AUTO_INCREMENT,
   fee_id BIGINT NOT NULL,
-  student_id BIGINT NOT NULL,
+  admission_number BIGINT NOT NULL,
   amount_paid DECIMAL(10, 2) NOT NULL,
   payment_method VARCHAR(50) NOT NULL,
   transaction_id VARCHAR(100) UNIQUE,
@@ -592,8 +682,7 @@ CREATE TABLE payments (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (fee_id) REFERENCES fees(id),
-  FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
-  INDEX idx_student_id (student_id),
+  INDEX idx_payment_admission_number (admission_number),
   INDEX idx_payment_date (payment_date),
   INDEX idx_transaction_id (transaction_id)
 );
@@ -602,20 +691,18 @@ CREATE TABLE payments (
 ### payment_reminders table
 ```sql
 CREATE TABLE payment_reminders (
-  id BIGINT PRIMARY KEY AUTO_INCREMENT,
-  fee_id BIGINT NOT NULL,
-  student_id BIGINT NOT NULL,
+  id BIGINT AUTO_INCREMENT,
+  monthly_fee_id BIGINT NOT NULL,
+  admission_number BIGINT NOT NULL,
   reminder_type VARCHAR(50) NOT NULL,
-  reminder_date DATE NOT NULL,
+  amount DECIMAL(10, 2) NOT NULL,
+  due_date DATE NOT NULL,
   is_sent BOOLEAN DEFAULT false,
   sent_at TIMESTAMP,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  FOREIGN KEY (fee_id) REFERENCES fees(id),
-  FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
-  INDEX idx_student_id (student_id),
-  INDEX idx_reminder_date (reminder_date),
-  INDEX idx_is_sent (is_sent)
+  PRIMARY KEY (id),
+  INDEX idx_payment_reminder_admission_number (admission_number),
+  INDEX idx_payment_reminder_due_date (due_date),
+  INDEX idx_payment_reminder_sent (is_sent)
 );
 ```
 

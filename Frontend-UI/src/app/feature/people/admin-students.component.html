@@ -8,7 +8,7 @@
       <h2 id="admin-students-title">Student records</h2>
       <div class="admin-data-tabs" role="tablist" aria-label="Student management actions">
         <button type="button" role="tab" [attr.aria-selected]="activeTab === 'add'" [class.active]="activeTab === 'add'"
-          (click)="activeTab = 'add'">{{ editingStudentId === null ? 'Add new' : 'Update' }}</button>
+          (click)="activeTab = 'add'">{{ editingAdmissionNumber === null ? 'Add new' : 'Update' }}</button>
         <button type="button" role="tab" [attr.aria-selected]="activeTab === 'manage'"
           [class.active]="activeTab === 'manage'" (click)="showManage()">Manage</button>
       </div>
@@ -26,12 +26,18 @@
           <input type="number" [(ngModel)]="studentModel.rollNumber" name="studentRollNumber" required>
         </label>
 
-        <label>Admission no
-          <input type="number" [(ngModel)]="studentModel.admissionNumber" name="studentAdmissionNumber" required>
-        </label>
+        @if (editingAdmissionNumber !== null) {
+        <p>Admission no {{ editingAdmissionNumber }} (assigned by the system and cannot be changed)</p>
+        } @else {
+        <p>Admission number will be assigned automatically when the student is added.</p>
+        }
 
         <label>Date of birth
           <input type="date" [(ngModel)]="studentModel.dob" name="studentDob" required>
+        </label>
+
+        <label>Admission date
+          <input type="date" [(ngModel)]="studentModel.admissionDate" name="studentAdmissionDate" required>
         </label>
 
         <label>Address
@@ -51,10 +57,11 @@
         </label>
 
         <label>Class
-          <select [(ngModel)]="studentModel.className" name="studentClassName" required>
+          <select [ngModel]="studentModel.className" (ngModelChange)="onStudentClassChange($event)"
+            name="studentClassName" required>
             <option value="" disabled>Select a class</option>
             @for (option of classOptions(); track option.classId) {
-            <option [value]="option.classId">Class {{ option.classId }}</option>
+            <option [value]="option.classId">{{ option.className }}</option>
             }
           </select>
         </label>
@@ -62,7 +69,7 @@
         <label>Section
           <select [(ngModel)]="studentModel.section" name="studentSection" required>
             <option value="" disabled>Select a section</option>
-            @for (option of sectionOptions(); track option.sectionName) {
+            @for (option of studentFormSectionOptions(); track option.sectionName) {
             <option [value]="option.sectionName">Section {{ option.sectionName }}</option>
             }
           </select>
@@ -72,20 +79,20 @@
           <input type="email" [(ngModel)]="studentModel.email" name="studentEmail" required>
         </label>
 
-        <button class="save-attendance" type="submit">{{ editingStudentId === null ? 'Add student' : 'Update student'
+        <button class="save-attendance" type="submit">{{ editingAdmissionNumber === null ? 'Add student' : 'Update student'
           }}</button>
       </form>
       } @else {
       <div class="admin-manage-controls" aria-label="Student filters">
         <label>Class
           <select [value]="selectedClassId()" (change)="onManageClassChange($event)">
-            @for (option of classOptions(); track option.classId) { <option [value]="option.classId">Class {{
-              option.classId }}</option> }
+            @for (option of classOptions(); track option.classId) { <option [value]="option.classId">{{
+              option.className }}</option> }
           </select>
         </label>
         <label>Section
           <select [value]="selectedSection()" (change)="onManageSectionChange($event)">
-            @for (option of sectionOptions(); track option.sectionName) { <option [value]="option.sectionName">Section
+            @for (option of manageSectionOptions(); track option.sectionName) { <option [value]="option.sectionName">Section
               {{ option.sectionName }}</option> }
           </select>
         </label>
@@ -100,6 +107,7 @@
             <strong>{{ student.name }}</strong>
             <span>{{ student.gender }} · Roll no {{ student.rollNumber }} · Admission no {{ student.admissionNumber
               }}</span>
+            <span>Admission date {{ student.admissionDate || 'Not recorded' }}</span>
           </div>
           <div>
             <span>{{ student.email }}</span>
@@ -112,7 +120,7 @@
       } @else {
       <div class="admin-manage-placeholder" role="status">
         <strong>No students found</strong>
-        <span>No students are available for Class {{ selectedClassId() }}, Section {{ selectedSection() }}.</span>
+        <span>No students are available for Class {{ classDisplayName(selectedClassId(), classOptions()) }}, Section {{ selectedSection() }}.</span>
       </div>
       }
       }

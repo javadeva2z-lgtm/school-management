@@ -31,7 +31,7 @@
         <select name="teacherHomeworkNewClass" [ngModel]="selectedClass()" (ngModelChange)="onClassChange($event)">
           <option value="" disabled>Select a class</option>
           @for (option of classOptions(); track option.classId) {
-          <option [value]="option.classId">Class {{ option.classId }}</option>
+          <option [value]="option.classId">{{ option.className }}</option>
           }
         </select>
       </label>
@@ -60,6 +60,9 @@
       <label>Title
         <input type="text" placeholder="e.g. Fractions practice" [value]="title()" (input)="onTitleChange($event)" />
       </label>
+      <label>Due date
+        <input type="date" [value]="dueDate()" (change)="onDueDateChange($event)" />
+      </label>
       <label>Type
         <select [value]="workType()" (change)="onWorkTypeChange($event)">
           <option value="CLASSWORK">CLASSWORK</option>
@@ -83,8 +86,13 @@
     </div>
     <div class="homework-form-footer">
       <span>Accepted file types depend on the connected API.</span>
-      <button class="upload-work-button" type="button" [disabled]="isUploading()" (click)="uploadWork()">{{
-        isUploading() ? 'Uploading...' : 'Upload work' }}</button>
+      <div class="homework-form-actions">
+        @if (editingAssignment()) {
+        <button class="homework-cancel-button" type="button" [disabled]="isUploading()" (click)="cancelEdit()">Cancel edit</button>
+        }
+        <button class="upload-work-button" type="button" [disabled]="isUploading()" (click)="uploadWork()">{{
+          isUploading() ? (editingAssignment() ? 'Updating...' : 'Uploading...') : (editingAssignment() ? 'Update work' : 'Upload work') }}</button>
+      </div>
     </div>
     } @else {
     <div class="homework-form">
@@ -92,7 +100,7 @@
         <select name="teacherHomeworkListClass" [ngModel]="selectedClass()" (ngModelChange)="onClassChange($event)">
           <option value="" disabled>Select a class</option>
           @for (option of classOptions(); track option.classId) {
-          <option [value]="option.classId">Class {{ option.classId }}</option>
+          <option [value]="option.classId">{{ option.className }}</option>
           }
         </select>
       </label>
@@ -126,6 +134,11 @@
                   <span class="homework-assignment-meta">{{ assignment.workType }} · Due {{ assignment.dueDate }}</span>
                 </div>
                 <span class="homework-assignment-badge">{{ assignment.workType }}</span>
+              </div>
+              <div class="homework-assignment-actions">
+                <button type="button" [disabled]="deletingAssignmentId() === assignment.id" (click)="editAssignment(assignment)">Edit</button>
+                <button type="button" class="homework-delete-button" [disabled]="deletingAssignmentId() === assignment.id"
+                  (click)="deleteAssignment(assignment)">{{ deletingAssignmentId() === assignment.id ? 'Deleting...' : 'Delete' }}</button>
               </div>
 
               @if (assignment.description) {
@@ -170,6 +183,11 @@
                 </div>
                 <span class="homework-assignment-badge">{{ assignment.workType }}</span>
               </div>
+              <div class="homework-assignment-actions">
+                <button type="button" [disabled]="deletingAssignmentId() === assignment.id" (click)="editAssignment(assignment)">Edit</button>
+                <button type="button" class="homework-delete-button" [disabled]="deletingAssignmentId() === assignment.id"
+                  (click)="deleteAssignment(assignment)">{{ deletingAssignmentId() === assignment.id ? 'Deleting...' : 'Delete' }}</button>
+              </div>
 
               @if (assignment.description) {
               <p class="homework-assignment-description">{{ assignment.description }}</p>
@@ -205,7 +223,7 @@
     } @else {
     <div class="admin-manage-placeholder" role="status">
       <strong>No assignments found</strong>
-      <span>No HOMEWORK or CLASSWORK is available for Class {{ selectedClass() }}, Section {{ selectedSection()
+      <span>No HOMEWORK or CLASSWORK is available for Class {{ classDisplayName(selectedClass(), classOptions()) }}, Section {{ selectedSection()
         }}.</span>
     </div>
     }

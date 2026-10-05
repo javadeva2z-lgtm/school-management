@@ -28,6 +28,7 @@ import { ProfilePageComponent } from './feature/profile/profile-page.component';
 import { NotificationsPageComponent } from './feature/notifications/notifications-page.component';
 import { StudentFeeComponent } from './feature/fees/student-fee.component';
 import { StudentDatesheetComponent } from './feature/exams/student-datesheet.component';
+import { AdminClassSectionComponent } from './feature/class-section/admin-class-section.component';
 
 export const routes: Routes = [
 	{ path: 'login', component: LoginComponent },
@@ -42,7 +43,8 @@ export const routes: Routes = [
 	{ path: 'workspace/teachers', component: AdminTeachersComponent, canActivate: [authGuard] },
 	{ path: 'workspace/class-teachers', component: AdminClassTeacherComponent, canActivate: [authGuard] },
 	{ path: 'workspace/students', component: AdminStudentsComponent, canActivate: [authGuard] },
-	{ path: 'workspace/fees', component: AdminFeesComponent, canActivate: [authGuard] },
+	{ path: 'workspace/fees', component: AdminFeesComponent, canActivate: [authGuard, adminGuard] },
+	{ path: 'workspace/classes-sections', component: AdminClassSectionComponent, canActivate: [authGuard, adminGuard] },
 	{ path: 'workspace/import-data', component: AdminDataComponent, canActivate: [authGuard, adminGuard] },
 	{ path: 'student/attendance', component: StudentAttendanceComponent, canActivate: [authGuard] },
 	{ path: 'student/announcements', component: StudentAnnouncementsComponent, canActivate: [authGuard] },

@@ -5,6 +5,8 @@ import com.school.common.exception.ResourceNotFoundException;
 import com.school.paymentservice.converter.PaymentConverter;
 import com.school.paymentservice.dto.PaymentDTO;
 import com.school.paymentservice.entity.Payment;
+import com.school.paymentservice.entity.MonthlyFee;
+import com.school.paymentservice.repository.MonthlyFeeRepository;
 import com.school.paymentservice.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,9 +26,11 @@ import java.util.stream.Collectors;
 public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final PaymentConverter paymentConverter;
+    private final MonthlyFeeRepository monthlyFeeRepository;
 
-    public PaymentDTO createPayment(PaymentDTO paymentDTO) {
-        log.info("Recording payment for student {} amount {}", paymentDTO.getStudentId(), paymentDTO.getAmountPaid());
+    public PaymentDTO createPayment(PaymentDTO paymentDTO, Long verifiedAdmissionNumber) {
+        log.info("Recording payment for admission number {} amount {}",
+                paymentDTO.getAdmissionNumber(), paymentDTO.getAmountPaid());
         Payment payment = paymentConverter.dtoToEntity(paymentDTO);
         if (payment.getPaymentDate() == null) {
             payment.setPaymentDate(LocalDateTime.now());
@@ -34,7 +38,49 @@ public class PaymentService {
         if (payment.getStatus() == null) {
             payment.setStatus(PaymentStatus.PAID);
         }
+
+        MonthlyFee monthlyFee = null;
+        if (payment.getStatus() == PaymentStatus.PAID) {
+            if (payment.getAdmissionNumber() == null || payment.getMonthlyFeeId() == null
+                    || verifiedAdmissionNumber == null
+                    || payment.getMonthYear() == null || payment.getTransactionId() == null
+                    || payment.getTransactionId().isBlank() || payment.getPaymentMethod() == null
+                    || payment.getPaymentMethod().isBlank()) {
+                throw new IllegalArgumentException("A paid transaction must include its admission number, fee, month, "
+                        + "transaction id, and payment method");
+            }
+            if (payment.getAmountPaid() == null || !Double.isFinite(payment.getAmountPaid())
+                    || payment.getAmountPaid() <= 0) {
+                throw new IllegalArgumentException("A paid transaction must have a positive amount");
+            }
+
+            monthlyFee = monthlyFeeRepository.findById(payment.getMonthlyFeeId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "MonthlyFee", "id", payment.getMonthlyFeeId()));
+            if (!monthlyFee.getAdmissionNumber().equals(verifiedAdmissionNumber)
+                    || !monthlyFee.getMonthYear().equals(payment.getMonthYear())) {
+                throw new IllegalArgumentException("Payment student and month must match the monthly fee");
+            }
+            if (monthlyFee.getTotalPayable() == null || monthlyFee.getPaidAmount() == null) {
+                throw new IllegalArgumentException("Monthly fee balance is not configured");
+            }
+
+            if (monthlyFee.getStatus() == PaymentStatus.EXEMPT) {
+                throw new IllegalArgumentException("This monthly fee is exempt from payment");
+            }
+
+            double recordedPaidAmount = getRecordedPaidAmount(monthlyFee.getId());
+            double outstanding = monthlyFee.getTotalPayable() - recordedPaidAmount;
+            if (outstanding <= 0 || payment.getAmountPaid() > outstanding) {
+                throw new IllegalArgumentException("Payment amount exceeds the outstanding monthly fee balance");
+            }
+            monthlyFee.setPaidAmount(recordedPaidAmount);
+        }
+
         Payment saved = paymentRepository.save(payment);
+        if (monthlyFee != null) {
+            refreshMonthlyFeeBalance(monthlyFee.getId());
+        }
         return paymentConverter.entityToDTO(saved);
     }
 
@@ -46,15 +92,15 @@ public class PaymentService {
     }
 
     @Transactional(readOnly = true)
-    public List<PaymentDTO> getPaymentsByStudent(Long studentId) {
-        return paymentRepository.findByStudentId(studentId).stream()
+    public List<PaymentDTO> getPaymentsByAdmissionNumber(Long admissionNumber) {
+        return paymentRepository.findByAdmissionNumber(admissionNumber).stream()
                 .map(paymentConverter::entityToDTO)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public Page<PaymentDTO> getPaymentsByStudent(Long studentId, Pageable pageable) {
-        return paymentRepository.findByStudentId(studentId, pageable)
+    public Page<PaymentDTO> getPaymentsByAdmissionNumber(Long admissionNumber, Pageable pageable) {
+        return paymentRepository.findByAdmissionNumber(admissionNumber, pageable)
                 .map(paymentConverter::entityToDTO);
     }
 
@@ -89,14 +135,57 @@ public class PaymentService {
     public PaymentDTO updatePaymentStatus(Long id, PaymentStatus status) {
         Payment payment = paymentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Payment", "id", id));
+        if (status == PaymentStatus.PAID && payment.getStatus() != PaymentStatus.PAID) {
+            MonthlyFee monthlyFee = monthlyFeeRepository.findById(payment.getMonthlyFeeId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "MonthlyFee", "id", payment.getMonthlyFeeId()));
+            if (monthlyFee.getStatus() == PaymentStatus.EXEMPT
+                    || monthlyFee.getTotalPayable() == null
+                    || payment.getAmountPaid() == null
+                    || payment.getAmountPaid() <= 0
+                    || payment.getAmountPaid() > monthlyFee.getTotalPayable()
+                            - getRecordedPaidAmount(monthlyFee.getId())) {
+                throw new IllegalArgumentException("Payment amount exceeds the outstanding monthly fee balance");
+            }
+        }
         payment.setStatus(status);
-        return paymentConverter.entityToDTO(paymentRepository.save(payment));
+        Payment saved = paymentRepository.save(payment);
+        refreshMonthlyFeeBalance(payment.getMonthlyFeeId());
+        return paymentConverter.entityToDTO(saved);
     }
 
     public void deletePayment(Long id) {
-        if (!paymentRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Payment", "id", id);
+        Payment payment = paymentRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Payment", "id", id));
+        paymentRepository.delete(payment);
+        refreshMonthlyFeeBalance(payment.getMonthlyFeeId());
+    }
+
+    private double getRecordedPaidAmount(Long monthlyFeeId) {
+        double paidAmount = 0;
+        for (Payment payment : paymentRepository.findByMonthlyFeeId(monthlyFeeId)) {
+            if (payment.getStatus() == PaymentStatus.PAID && payment.getAmountPaid() != null) {
+                paidAmount += payment.getAmountPaid();
+            }
         }
-        paymentRepository.deleteById(id);
+        return paidAmount;
+    }
+
+    private void refreshMonthlyFeeBalance(Long monthlyFeeId) {
+        MonthlyFee monthlyFee = monthlyFeeRepository.findById(monthlyFeeId)
+                .orElseThrow(() -> new ResourceNotFoundException("MonthlyFee", "id", monthlyFeeId));
+        if (monthlyFee.getStatus() == PaymentStatus.EXEMPT) {
+            return;
+        }
+        if (monthlyFee.getTotalPayable() == null) {
+            throw new IllegalArgumentException("Monthly fee balance is not configured");
+        }
+
+        double paidAmount = getRecordedPaidAmount(monthlyFeeId);
+        monthlyFee.setPaidAmount(paidAmount);
+        monthlyFee.setStatus(paidAmount >= monthlyFee.getTotalPayable()
+                ? PaymentStatus.PAID
+                : paidAmount > 0 ? PaymentStatus.PARTIAL : PaymentStatus.PENDING);
+        monthlyFeeRepository.save(monthlyFee);
     }
 }

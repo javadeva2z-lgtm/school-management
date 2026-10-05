@@ -1,0 +1,231 @@
+.class-management-page {
+  max-width: 960px;
+}
+
+.class-management-panel {
+  padding-bottom: 30px;
+}
+
+.management-tabs {
+  display: flex;
+  gap: 4px;
+  margin-top: 27px;
+  padding: 4px;
+  border-radius: 4px;
+  background: #e8e9df;
+}
+
+.management-tabs button {
+  flex: 1;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 3px;
+  color: #718081;
+  background: transparent;
+  font: 600 11px 'Trebuchet MS', sans-serif;
+  cursor: pointer;
+}
+
+.management-tabs button.active {
+  color: #fff;
+  background: #2e8581;
+}
+
+.record-type-tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 17px;
+}
+
+.record-type-tabs button {
+  min-height: 34px;
+  padding: 7px 13px;
+  border: 1px solid #d9e0d8;
+  border-radius: 3px;
+  color: #718081;
+  background: #fbfcf8;
+  font: 600 11px 'Trebuchet MS', sans-serif;
+  cursor: pointer;
+}
+
+.record-type-tabs button.active {
+  border-color: #2e8581;
+  color: #2e8581;
+  background: #eaf4f1;
+}
+
+.management-section {
+  margin-top: 27px;
+  padding-top: 22px;
+  border-top: 1px solid #edf0e9;
+}
+
+.management-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 17px;
+}
+
+.management-heading h2 {
+  margin: 0;
+  font: 400 24px Georgia, serif;
+}
+
+.management-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: end;
+  gap: 14px;
+  padding: 17px;
+  border: 1px solid #e4e5d9;
+  border-radius: 4px;
+  background: #fbfcf8;
+}
+
+.management-form label {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+  color: #718081;
+  font: 700 10px 'Trebuchet MS', sans-serif;
+  text-transform: uppercase;
+}
+
+.management-form label small {
+  color: #829191;
+  font: 11px 'Trebuchet MS', sans-serif;
+  text-transform: none;
+}
+
+.management-form input:not([type='checkbox']),
+.management-form select {
+  width: 100%;
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid #d9e0d8;
+  border-radius: 3px;
+  color: #17383b;
+  background: #fff;
+  font: 12px 'Trebuchet MS', sans-serif;
+  text-transform: none;
+}
+
+.management-form .active-toggle {
+  flex-direction: row;
+  align-items: center;
+  min-height: 38px;
+  color: #17383b;
+  font-size: 12px;
+  text-transform: none;
+}
+
+.primary-button,
+.secondary-button {
+  min-height: 36px;
+  padding: 8px 13px;
+  border: 1px solid #2e8581;
+  border-radius: 3px;
+  font: 600 11px 'Trebuchet MS', sans-serif;
+  cursor: pointer;
+}
+
+.primary-button {
+  color: #fff;
+  background: #2e8581;
+}
+
+.primary-button:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+.secondary-button {
+  color: #2e8581;
+  background: transparent;
+}
+
+.record-list {
+  display: grid;
+  gap: 9px;
+  margin-top: 17px;
+}
+
+.record-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 14px;
+  border: 1px solid #e4e5d9;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.record-card > div:first-child,
+.record-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.record-card > div:first-child {
+  min-width: 0;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.record-card strong {
+  color: #17383b;
+  font: 600 13px 'Trebuchet MS', sans-serif;
+}
+
+.record-card small,
+.record-state,
+.management-status,
+.empty-state,
+.management-message,
+.management-error {
+  font: 12px 'Trebuchet MS', sans-serif;
+}
+
+.record-card small,
+.management-status,
+.empty-state {
+  color: #829191;
+}
+
+.record-state {
+  color: #2e8581;
+  font-weight: 700;
+}
+
+.record-state.inactive {
+  color: #c96450;
+}
+
+.management-message {
+  color: #2e8581;
+}
+
+.management-error {
+  color: #c96450;
+}
+
+@media (max-width: 640px) {
+  .management-form {
+    grid-template-columns: 1fr;
+  }
+
+  .record-card {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .record-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

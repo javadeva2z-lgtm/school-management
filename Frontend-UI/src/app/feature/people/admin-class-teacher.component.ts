@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { PeopleService } from './people.service';
-import { AdminTeacher, ClassSectionOption, ClassTeacherAssignment } from '../../common/model/models';
+import { AdminTeacher, classDisplayName, ClassSectionOption, ClassTeacherAssignment } from '../../common/model/models';
 import { ClassSectionService } from '../class-section/class-section.service';
 import { FormsModule } from '@angular/forms';
 
@@ -13,6 +13,7 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './admin-people-management.css'
 })
 export class AdminClassTeacherComponent {
+  protected readonly classDisplayName = classDisplayName;
   private readonly peopleService = inject(PeopleService);
   private readonly classSectionService = inject(ClassSectionService);
 

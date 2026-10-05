@@ -103,6 +103,9 @@ public class HomeworkService {
         Homework homework = homeworkRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Homework", "id", id));
 
+        homework.setClassId(homeworkDTO.getClassId());
+        homework.setSectionName(homeworkDTO.getSectionName());
+        homework.setWorkType(homeworkDTO.getWorkType());
         homework.setTitle(homeworkDTO.getTitle());
         homework.setDescription(homeworkDTO.getDescription());
         homework.setFileUrl(homeworkDTO.getFileUrl());
@@ -116,11 +119,24 @@ public class HomeworkService {
     public HomeworkDTO updateHomework(Long id, HomeworkDTO homeworkDTO, List<MultipartFile> files) throws IOException {
         Homework homework = homeworkRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Homework", "id", id));
+        homework.setClassId(homeworkDTO.getClassId());
+        homework.setSectionName(homeworkDTO.getSectionName());
+        homework.setWorkType(homeworkDTO.getWorkType());
         homework.setTitle(homeworkDTO.getTitle());
         homework.setDescription(homeworkDTO.getDescription());
         homework.setFileUrl(homeworkDTO.getFileUrl());
         homework.setDueDate(homeworkDTO.getDueDate());
         if (files != null && !files.isEmpty()) {
+            homework.getFiles().forEach(file -> {
+                if (file.getFilePath() != null) {
+                    try {
+                        Files.deleteIfExists(Path.of(file.getFilePath()));
+                    } catch (IOException e) {
+                        log.warn("Failed to delete replaced homework file at path {} for homework id {}",
+                                file.getFilePath(), id, e);
+                    }
+                }
+            });
             homework.getFiles().clear();
             addFiles(homework, files);
         }

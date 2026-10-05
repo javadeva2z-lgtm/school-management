@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class StudentServiceSubscriptionDTO {
     private Long id;
-    private Long studentId;
+    private Long admissionNumber;
     private Long feeItemId;
 }

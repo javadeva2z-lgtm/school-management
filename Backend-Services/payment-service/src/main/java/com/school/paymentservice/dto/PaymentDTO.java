@@ -5,9 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.DecimalMin;
-import jakarta.validation.constraints.NotBlank;
-import java.math.BigDecimal;
+import jakarta.validation.constraints.Positive;
 import java.time.LocalDateTime;
 
 import com.school.common.enums.PaymentStatus;
@@ -19,7 +17,9 @@ import com.school.common.enums.PaymentStatus;
 public class PaymentDTO {
     private Long id;
 
-    private Long studentId;
+    @NotNull
+    @Positive
+    private Long admissionNumber;
 
     private Long monthlyFeeId;
 

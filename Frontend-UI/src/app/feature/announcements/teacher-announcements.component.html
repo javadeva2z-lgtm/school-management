@@ -28,12 +28,12 @@
             placeholder="e.g. Parent meeting this Friday" /></label>
         <label>Class<select name="className" [ngModel]="className()"
             (ngModelChange)="onSelectChange($event, 'className')">@for (option of
-            classOptions(); track option.classId) { <option [value]="option.classId">Class {{ option.classId }}
+            classOptions(); track option.classId) { <option [value]="option.classId">{{ option.className }}
             </option> }</select></label>
         <label>Section<select name="section" [ngModel]="section()"
             (ngModelChange)="onSelectChange($event, 'section')">@for (option of
             sectionOptions(); track option) { <option [value]="option.sectionName">Section {{ option.sectionName
-              }}</option> }</select></label>
+              }}</option> }<option value="All">All sections</option></select></label>
         <label class="full-width">Message<textarea rows="6" [value]="message()"
             (input)="onTextChange($event, 'message')"
             placeholder="Write the announcement for students and families"></textarea></label>
@@ -61,7 +61,7 @@
         <div class="announcement-item">
           <div class="announcement-item-heading">
             <div>
-              <h3>{{ announcement.title }}</h3><small>{{ announcement.postedDate }} · {{ announcement.classId }} · {{
+              <h3>{{ announcement.title }}</h3><small>{{ announcement.postedDate }} · {{ classDisplayName(announcement.classId, classOptions()) }} · {{
                 announcement.sectionName === 'All' ? 'All sections' : 'Section ' + announcement.sectionName }}</small>
             </div><button type="button" class="edit-link" (click)="edit(announcement)">Edit</button>
           </div>

@@ -42,11 +42,33 @@
       @if (activeDataTab === 'records') {
       <div class="admin-data-tool" role="tabpanel">
         <label for="export-type">Export existing records</label>
-        <div class="admin-data-controls attendance-controls">
+        <div class="admin-data-controls attendance-controls admin-data-export-controls">
+          <label class="admin-data-export-field" for="export-type">Export type
           <select id="export-type" [value]="selectedExportType"
-            (change)="selectedExportType = $any($event.target).value">
+            (change)="onExportTypeChange($any($event.target).value)">
             @for (dataType of adminDataTypes; track dataType) { <option [value]="dataType">{{ dataType }}</option> }
           </select>
+          </label>
+          @if (selectedExportType === 'Student') {
+          <label class="admin-data-export-field" for="export-class">Class
+          <select id="export-class" [value]="selectedExportClassId" (change)="onExportClassChange($any($event.target).value)">
+            <option value="0">All classes</option>
+            @for (classOption of classOptions; track classOption.classId) {
+            <option [value]="classOption.classId">{{ classOption.className }}</option>
+            }
+          </select>
+          </label>
+          <label class="admin-data-export-field" for="export-section">Section
+          <select id="export-section" [value]="selectedExportSectionName"
+            [disabled]="selectedExportClassId === '0'"
+            (change)="selectedExportSectionName = $any($event.target).value">
+            <option value="0">All sections</option>
+            @for (section of selectedExportSections; track section.sectionId) {
+            <option [value]="section.sectionName">{{ section.sectionName }}</option>
+            }
+          </select>
+          </label>
+          }
           <button class="save-attendance" type="button" (click)="exportRecords()">Export records</button>
         </div>
       </div>

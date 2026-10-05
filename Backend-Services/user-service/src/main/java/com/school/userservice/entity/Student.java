@@ -12,9 +12,9 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
+import jakarta.persistence.Id;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
@@ -35,7 +35,8 @@ import lombok.NoArgsConstructor;
 public class Student {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "admission_number", nullable = false)
+    private Long admissionNumber;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -45,9 +46,6 @@ public class Student {
 
     @Column(name = "email", nullable = false, unique = true)
     private String email;
-
-    @Column(name = "admission_number", nullable = false)
-    private Long admissionNumber;
 
     @Column(name = "roll_number", nullable = false)
     private Long rollNumber;
@@ -66,6 +64,9 @@ public class Student {
 
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
+
+    @Column(name = "admission_date")
+    private LocalDate admissionDate;
 
     @Column(columnDefinition = "TEXT")
     private String address;

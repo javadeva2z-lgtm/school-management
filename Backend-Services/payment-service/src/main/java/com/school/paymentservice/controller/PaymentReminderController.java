@@ -44,11 +44,13 @@ public class PaymentReminderController {
         return ResponseEntity.ok(ApiResponse.success(paymentReminderService.getReminderById(id)));
     }
 
-    @GetMapping("/student/{studentId}")
+    @GetMapping("/student/{admissionNumber}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     @Operation(summary = "Get reminders by student")
-    public ResponseEntity<ApiResponse<List<PaymentReminderDTO>>> getRemindersByStudent(@PathVariable Long studentId) {
-        return ResponseEntity.ok(ApiResponse.success(paymentReminderService.getRemindersByStudent(studentId)));
+    public ResponseEntity<ApiResponse<List<PaymentReminderDTO>>> getRemindersByStudent(
+            @PathVariable Long admissionNumber) {
+        return ResponseEntity.ok(
+                ApiResponse.success(paymentReminderService.getRemindersByAdmissionNumber(admissionNumber)));
     }
 
     @GetMapping("/monthly-fee/{monthlyFeeId}")

@@ -24,7 +24,7 @@
   <section class="attendance-controls" aria-label="Mark attendance filters">
     <label>Class
       <select name="teacherAttendanceMarkClass" [ngModel]="selectedClass()" (ngModelChange)="onClassChange($event)">
-        @for (option of classOptions(); track option.classId) { <option [value]="option.classId">Class {{ option.classId
+        @for (option of classOptions(); track option.classId) { <option [value]="option.classId">{{ option.className
           }}</option> }
       </select>
     </label>
@@ -48,7 +48,7 @@
   <section class="attendance-controls history-controls" aria-label="Student attendance filters">
     <label>Class
       <select name="teacherHistoryClass" [ngModel]="selectedClass()" (ngModelChange)="onClassChange($event)">
-        @for (option of classOptions(); track option.classId) { <option [value]="option.classId">Class {{ option.classId
+        @for (option of classOptions(); track option.classId) { <option [value]="option.classId">{{ option.className
           }}</option> }
       </select>
     </label>
@@ -65,7 +65,7 @@
       <input type="date" [value]="selectedEndDate()" (change)="onEndDateChange($event)" />
     </label>
     <label class="student-filter">Student
-      <select name="teacherHistoryStudent" [ngModel]="selectedStudentId() ?? ''"
+      <select name="teacherHistoryStudent" [ngModel]="selectedAdmissionNumber() ?? ''"
         (ngModelChange)="onStudentChange($event)">
         <option value="">Select a student</option>
         @for (student of students(); track student.admissionNumber) { <option [value]="student.admissionNumber">{{
@@ -94,11 +94,11 @@
   <section class="student-history-panel" aria-labelledby="history-title">
     <div class="student-list-heading">
       <div>
-        <p class="eyebrow">{{ selectedClass() }} / Section {{ selectedSection() }}</p>
+        <p class="eyebrow">Class {{ classDisplayName(selectedClass(), classOptions()) }} / Section {{ selectedSection() }}</p>
         <h2 id="history-title">{{ selectedStudent() ? selectedStudent()?.name : 'Student attendance' }}</h2>
       </div><span>{{ selectedStudent() ? 'Attendance history' : 'Select a student above' }}</span>
     </div>
-    @if (selectedStudentId() !== null && history().length) {
+    @if (selectedAdmissionNumber() !== null && history().length) {
     <div class="attendance-calendar" aria-label="Student attendance calendar">
       @for (month of calendarMonths(); track month.key) {
       <section class="calendar-month" aria-labelledby="month-{{ month.key }}">
@@ -125,7 +125,7 @@
       </section>
       }
     </div>
-    } @else if (selectedStudentId() !== null) {
+    } @else if (selectedAdmissionNumber() !== null) {
     <p class="empty-students">No attendance records found for this student and date range.</p>
     } @else {
     <p class="empty-students">Select a student to see attendance for the selected date range.</p>
@@ -135,7 +135,7 @@
   <section class="student-list" aria-labelledby="student-list-title">
     <div class="student-list-heading">
       <div>
-        <p class="eyebrow">{{ selectedClass() }} / Section {{ selectedSection() }}</p>
+        <p class="eyebrow">Class {{ classDisplayName(selectedClass(), classOptions()) }} / Section {{ selectedSection() }}</p>
         <h2 id="student-list-title">Student register</h2>
       </div><span>{{ students().length }} students</span>
     </div>

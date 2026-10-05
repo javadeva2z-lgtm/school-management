@@ -7,6 +7,10 @@
 .admin-data-tool label { display: block; margin-bottom: 7px; }
 .admin-data-controls { padding: 12px; }
 .admin-data-controls input { flex: 1; min-width: 0; padding: 7px 9px; }
+.admin-data-export-controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); align-items: end; }
+.admin-data-export-controls .admin-data-export-field { min-width: 0; margin: 0; }
+.admin-data-export-controls select { width: 100%; min-width: 0; }
+.admin-data-export-controls .save-attendance { min-height: 38px; }
 .admin-data-message, .admin-data-error { margin: 15px 0 0; font: 12px 'Trebuchet MS', sans-serif; }
 .admin-data-message { color: #2e8581; }
 .admin-data-error { color: #c96450; }

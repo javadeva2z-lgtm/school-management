@@ -60,6 +60,34 @@
   gap: 10px;
 }
 
+.homework-assignment-actions,
+.homework-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.homework-assignment-actions button,
+.homework-cancel-button {
+  padding: 7px 10px;
+  border: 1px solid #d9e0d8;
+  border-radius: 4px;
+  color: #2e8581;
+  background: #fff;
+  font: 600 11px 'Trebuchet MS', sans-serif;
+  cursor: pointer;
+}
+
+.homework-assignment-actions .homework-delete-button {
+  color: #b84f42;
+}
+
+.homework-assignment-actions button:disabled,
+.homework-cancel-button:disabled {
+  cursor: wait;
+  opacity: .65;
+}
+
 .homework-assignment-main {
   display: flex;
   flex: 1;

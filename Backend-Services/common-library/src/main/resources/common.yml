@@ -47,6 +47,8 @@ app:
     - /api/v1/auth/login/**
     - /api/test/**
     - /internal/**
+    - /payment-service/api/v1/payments/gateway-orders/webhooks/**
+    - /api/v1/payments/gateway-orders/webhooks/**
     - /v3/api-docs/**
     - /swagger-ui/**
     - /swagger-ui.html

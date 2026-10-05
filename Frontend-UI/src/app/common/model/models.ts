@@ -36,7 +36,42 @@ export interface Section {
 
 export interface ClassSectionOption {
   classId: string;
+  className: string;
   sections: Section[];
+}
+
+export interface ClassApiResponse {
+  status: string;
+  code: number;
+  message: string;
+  data: {
+    classId: number | string;
+    className: string;
+    academicYear: string;
+    isActive: boolean;
+  }[];
+  timestamp: string;
+}
+
+export const SPECIAL_CLASS_NAMES: Readonly<Record<number, string>> = {
+  [-1]: 'UKG',
+  [-2]: 'LKG',
+  [-3]: 'Nursery'
+};
+
+export function classDisplayName(
+  classId: number | string,
+  classOptions: readonly ClassSectionOption[] = []
+): string {
+  const specialClassName = SPECIAL_CLASS_NAMES[Number(classId)];
+  if (specialClassName) {
+    return specialClassName;
+  }
+  const className = classOptions.find(option => Number(option.classId) === Number(classId))?.className;
+  if (className) {
+    return className;
+  }
+  return String(classId);
 }
 
 export interface ClassTeacherAssignment {
@@ -57,7 +92,6 @@ export interface ClassTeacherApiResponse {
 export interface AttendanceSummary { present: number; absent: number; late: number; }
 
 export interface AttendanceStudent {
-  id: number | null;
   name: string;
   rollNumber: string;
   present?: boolean;
@@ -72,7 +106,6 @@ export interface AttendanceRecord { date: string; present: boolean; onLeave?: bo
 export interface ClassAttendanceDay { date: string; present: number; absent: number; onLeave: number; }
 
 export interface StudentRosterEntry {
-  id: number;
   name: string;
   rollNumber: number;
   admissionNumber: number;
@@ -260,7 +293,6 @@ export interface ResponseData {
 }
 
 export interface Student {
-  id: number | null;
   name: string;
   gender: string;
   email: string;
@@ -271,6 +303,7 @@ export interface Student {
   fatherName: string;
   motherName: string;
   dateOfBirth: string;
+  admissionDate?: string | null;
   address: string;
   parentPhone: string;
 }

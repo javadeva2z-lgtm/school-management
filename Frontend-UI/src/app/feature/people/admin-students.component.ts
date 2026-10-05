@@ -3,15 +3,15 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import { PeopleService } from './people.service';
-import { Student, ClassSectionOption } from '../../common/model/models';
+import { classDisplayName, Student, ClassSectionOption } from '../../common/model/models';
 import { ClassSectionService } from '../class-section/class-section.service';
 
 interface StudentFormModel {
   name: string;
   gender: string;
   rollNumber: string;
-  admissionNumber: string;
   dob: string;
+  admissionDate: string;
   address: string;
   fatherName: string;
   motherName: string;
@@ -28,17 +28,24 @@ interface StudentFormModel {
   styleUrl: './admin-people-management.css'
 })
 export class AdminStudentsComponent {
+  protected readonly classDisplayName = classDisplayName;
   private readonly peopleService = inject(PeopleService);
   private readonly classSectionService = inject(ClassSectionService);
-  protected readonly fields: Array<keyof StudentFormModel> = ['name', 'gender', 'rollNumber', 'admissionNumber', 'dob', 'address', 'fatherName', 'motherName', 'parentMobile', 'className', 'section', 'email'];
+  protected readonly fields: Array<keyof StudentFormModel> = ['name', 'gender', 'rollNumber', 'dob', 'admissionDate', 'address', 'fatherName', 'motherName', 'parentMobile', 'className', 'section', 'email'];
   protected readonly classOptions = signal<ClassSectionOption[]>([]);
-  protected readonly sectionOptions = computed(() => this.classOptions().find(option => Number(option.classId) === this.selectedClassId())?.sections ?? []);
+  protected readonly studentFormClassId = signal('');
+  protected readonly studentFormSectionOptions = computed(() =>
+    this.classOptions().find(option => option.classId === this.studentFormClassId())?.sections ?? []
+  );
+  protected readonly manageSectionOptions = computed(() =>
+    this.classOptions().find(option => Number(option.classId) === this.selectedClassId())?.sections ?? []
+  );
   protected readonly studentModel: StudentFormModel = {
     name: '',
     gender: '',
     rollNumber: '',
-    admissionNumber: '',
     dob: '',
+    admissionDate: '',
     address: '',
     fatherName: '',
     motherName: '',
@@ -52,7 +59,7 @@ export class AdminStudentsComponent {
   protected readonly selectedSection = signal('B');
   protected readonly students = signal<Student[]>([]);
   protected readonly loadingStudents = signal(false);
-  protected editingStudentId: number | null = null;
+  protected editingAdmissionNumber: number | null = null;
   protected message = '';
   protected error = '';
 
@@ -66,7 +73,7 @@ export class AdminStudentsComponent {
   }
 
   protected labelFor(field: string): string {
-    return { rollNumber: 'Roll no', admissionNumber: 'Admission no', dob: 'Date of birth', className: 'Class', parentMobile: 'Parent mobile' }[field] ?? field;
+    return { rollNumber: 'Roll no', dob: 'Date of birth', className: 'Class', parentMobile: 'Parent mobile' }[field] ?? field;
   }
 
   protected save(): void {
@@ -75,38 +82,41 @@ export class AdminStudentsComponent {
       this.message = '';
       return;
     }
-    const student: Student = {
-      id: this.editingStudentId ?? null,
+    const student: Omit<Student, 'admissionNumber'> = {
       name: this.studentModel['name'],
       gender: this.studentModel['gender'],
       email: this.studentModel['email'],
-      admissionNumber: Number(this.studentModel['admissionNumber']),
       rollNumber: Number(this.studentModel['rollNumber']),
       classId: Number(this.studentModel['className']),
       sectionName: this.studentModel['section'],
       fatherName: this.studentModel['fatherName'],
       motherName: this.studentModel['motherName'],
       dateOfBirth: this.studentModel['dob'],
+      admissionDate: this.studentModel['admissionDate'],
       address: this.studentModel['address'],
       parentPhone: this.studentModel['parentMobile']
     };
-    const request = this.editingStudentId === null
+    const editingAdmissionNumber = this.editingAdmissionNumber;
+    const request = editingAdmissionNumber === null
       ? this.peopleService.createStudent(student)
-      : this.peopleService.updateStudent(student);
+      : this.peopleService.updateStudent({ ...student, admissionNumber: editingAdmissionNumber });
     request.subscribe({
-      next: () => {
-        this.message = this.editingStudentId === null
-          ? 'Student added successfully.'
+      next: createdStudent => {
+        this.message = editingAdmissionNumber === null
+          ? `Student added successfully. Admission number: ${createdStudent.admissionNumber}.`
           : 'Student details updated successfully.';
         this.error = '';
-        this.editingStudentId = null;
+        this.editingAdmissionNumber = null;
         this.fields.forEach(field => {
           this.studentModel[field] = '';
         });
+        this.studentFormClassId.set('');
         if (this.activeTab === 'manage') this.loadStudents();
       },
       error: () => {
-        this.error = 'Unable to update student details.';
+        this.error = editingAdmissionNumber === null
+          ? 'Unable to add student. Please try again.'
+          : 'Unable to update student details.';
         this.message = '';
       }
     });
@@ -120,8 +130,15 @@ export class AdminStudentsComponent {
   protected onManageClassChange(event: Event): void {
     const classId = Number((event.target as HTMLSelectElement).value);
     this.selectedClassId.set(classId);
-    this.selectedSection.set(this.classOptions().find(option => Number(option.classId) === classId)?.sections[0]?.sectionName ?? '');
+    this.selectedSection.set(this.manageSectionOptions()[0]?.sectionName ?? '');
     this.loadStudents();
+  }
+
+  protected onStudentClassChange(value: string | number): void {
+    const classId = String(value ?? '');
+    this.studentModel.className = classId;
+    this.studentFormClassId.set(classId);
+    this.studentModel.section = this.studentFormSectionOptions()[0]?.sectionName ?? '';
   }
 
   protected onManageSectionChange(event: Event): void {
@@ -130,7 +147,8 @@ export class AdminStudentsComponent {
   }
 
   protected editStudent(student: Student): void {
-    this.editingStudentId = student.id;
+    this.editingAdmissionNumber = student.admissionNumber;
+    this.studentFormClassId.set(String(student.classId));
     this.fields.forEach(field => {
       this.studentModel[field] = '';
     });
@@ -138,8 +156,8 @@ export class AdminStudentsComponent {
       name: student.name,
       gender: student.gender,
       rollNumber: String(student.rollNumber),
-      admissionNumber: String(student.admissionNumber),
       dob: student.dateOfBirth,
+      admissionDate: student.admissionDate ?? '',
       address: student.address,
       fatherName: student.fatherName,
       motherName: student.motherName,

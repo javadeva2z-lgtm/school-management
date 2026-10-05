@@ -4,6 +4,8 @@ import com.school.common.exception.ResourceNotFoundException;
 import com.school.paymentservice.converter.PaymentReminderConverter;
 import com.school.paymentservice.dto.PaymentReminderDTO;
 import com.school.paymentservice.entity.PaymentReminder;
+import com.school.paymentservice.entity.MonthlyFee;
+import com.school.paymentservice.repository.MonthlyFeeRepository;
 import com.school.paymentservice.repository.PaymentReminderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,9 +23,20 @@ import java.util.stream.Collectors;
 public class PaymentReminderService {
     private final PaymentReminderRepository paymentReminderRepository;
     private final PaymentReminderConverter paymentReminderConverter;
+    private final MonthlyFeeRepository monthlyFeeRepository;
 
     public PaymentReminderDTO createReminder(PaymentReminderDTO reminderDTO) {
-        log.info("Creating payment reminder for student {} and monthlyFee {}", reminderDTO.getStudentId(),
+        if (reminderDTO.getMonthlyFeeId() == null || reminderDTO.getAdmissionNumber() == null) {
+            throw new IllegalArgumentException("Reminder monthly fee id and admission number are required");
+        }
+        MonthlyFee monthlyFee = monthlyFeeRepository.findById(reminderDTO.getMonthlyFeeId())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "MonthlyFee", "id", reminderDTO.getMonthlyFeeId()));
+        if (!monthlyFee.getAdmissionNumber().equals(reminderDTO.getAdmissionNumber())) {
+            throw new IllegalArgumentException("Reminder admission number must match the monthly fee");
+        }
+        log.info("Creating payment reminder for admission number {} and monthlyFee {}",
+                reminderDTO.getAdmissionNumber(),
                 reminderDTO.getMonthlyFeeId());
         PaymentReminder entity = paymentReminderConverter.dtoToEntity(reminderDTO);
         PaymentReminder saved = paymentReminderRepository.save(entity);
@@ -38,8 +51,8 @@ public class PaymentReminderService {
     }
 
     @Transactional(readOnly = true)
-    public List<PaymentReminderDTO> getRemindersByStudent(Long studentId) {
-        return paymentReminderRepository.findByStudentId(studentId).stream()
+    public List<PaymentReminderDTO> getRemindersByAdmissionNumber(Long admissionNumber) {
+        return paymentReminderRepository.findByAdmissionNumber(admissionNumber).stream()
                 .map(paymentReminderConverter::entityToDTO)
                 .collect(Collectors.toList());
     }

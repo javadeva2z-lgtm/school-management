@@ -1,9 +1,9 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { catchError, map, Observable, of, switchMap } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of, switchMap } from 'rxjs';
 
-import { classSectionApiUrl, classTeacherApiUrl } from '../../core/config/api.config';
-import { ClassSectionApiResponse, ClassSectionOption, ClassTeacherApiResponse, ClassTeacherAssignment } from '../../common/model/models';
+import { classesApiUrl, classSectionApiUrl, classTeacherApiUrl } from '../../core/config/api.config';
+import { ClassApiResponse, ClassSectionApiResponse, ClassSectionOption, ClassTeacherApiResponse, ClassTeacherAssignment, classDisplayName, SPECIAL_CLASS_NAMES } from '../../common/model/models';
 import { ProfileService } from '../profile/profile.service';
 
 @Injectable({ providedIn: 'root' })
@@ -12,29 +12,50 @@ export class ClassSectionService {
   private readonly profileService = inject(ProfileService);
 
   getAll(): Observable<ClassSectionOption[]> {
-    return this.http.get<ClassSectionApiResponse>(classSectionApiUrl('')).pipe(
-      map(response => {
-        const classSections = new Map<string, ClassSectionOption>();
+    return forkJoin({
+      sectionsResponse: this.http.get<ClassSectionApiResponse>(classSectionApiUrl('')),
+      classes: this.http.get<ClassApiResponse>(classesApiUrl('/active'))
+    }).pipe(
+      map(({ sectionsResponse, classes }) => {
+        const classNames = new Map(classes.data.map(clazz => [String(clazz.classId), clazz.className]));
+        const classOptions = new Map<string, ClassSectionOption>();
 
-        response.data.forEach(classSection => {
+        classes.data.forEach(clazz => {
+          const classId = String(clazz.classId);
+          classOptions.set(classId, {
+            classId,
+            className: SPECIAL_CLASS_NAMES[Number(classId)] ?? clazz.className,
+            sections: []
+          });
+        });
+
+        sectionsResponse.data.forEach(classSection => {
           const classId = String(classSection.classId);
-          const option = classSections.get(classId);
           const section = {
             sectionId: classSection.id,
             sectionName: classSection.sectionName,
             capacity: classSection.capacity
           };
+          const option = classOptions.get(classId);
 
           if (option) {
-            option.sections.push(section);
+            if (!option.sections.some(item => item.sectionId === section.sectionId)) {
+              option.sections.push(section);
+            }
           } else {
-            classSections.set(classId, {
+            classOptions.set(classId, {
               classId,
+              className: SPECIAL_CLASS_NAMES[Number(classId)] ?? classNames.get(classId) ?? classDisplayName(classId),
               sections: [section]
             });
           }
         });
-        const sorted = [...classSections.values()].sort((a,b) => Number(a.classId) - Number(b.classId));
+        const sorted = [...classOptions.values()]
+          .map(option => ({
+            ...option,
+            sections: option.sections.sort((a, b) => a.sectionName.localeCompare(b.sectionName))
+          }))
+          .sort((a, b) => Number(a.classId) - Number(b.classId));
         return sorted;
       })
     );

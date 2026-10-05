@@ -28,7 +28,7 @@
         <select name="teacherLeaveClass" [ngModel]="selectedClass()" (ngModelChange)="onClassChange($event)">
           <option value="">Select a class</option>
           @for (option of classOptions(); track option.classId) {
-          <option [value]="option.classId">Class {{ option.classId }}</option>
+          <option [value]="option.classId">{{ option.className }}</option>
           }
         </select>
       </label>
@@ -41,7 +41,7 @@
         </select>
       </label>
       <label>Student
-        <select name="teacherLeaveStudent" [ngModel]="selectedStudentId()" (ngModelChange)="onStudentChange($event)">
+        <select name="teacherLeaveStudent" [ngModel]="selectedAdmissionNumber()" (ngModelChange)="onStudentChange($event)">
           <option value="">Select a student</option>
           @for (student of students(); track student.admissionNumber) { <option [value]="student.admissionNumber">{{
             student.name }}
@@ -82,7 +82,7 @@
         <select name="teacherLeaveReviewClass" [ngModel]="selectedClass()" (ngModelChange)="onClassChange($event)">
           <option value="">Select a class</option>
           @for (option of classOptions(); track option.classId) {
-          <option [value]="option.classId">Class {{ option.classId }}</option>
+          <option [value]="option.classId">{{ option.className }}</option>
           }
         </select>
       </label>
@@ -105,8 +105,10 @@
       @for (application of applicationsForSelectedClassSection(); track application.id) {
       <article class="leave-item">
         <div class="leave-student"><span class="student-avatar">{{ application.admissionNumber }}</span>
-          <div><strong>{{ application.admissionNumber }}</strong><small>{{ application.leaveType }} · {{
-              application.fromDate }} to {{ application.toDate }}</small></div>
+          <div><strong>{{ studentForApplication(application)?.name }}</strong>
+            <small>Roll no. {{ studentForApplication(application)?.rollNumber }} · Admission no. {{ application.admissionNumber }}</small>
+            <small>{{ application.leaveType }} · {{ application.fromDate }} to {{ application.toDate }}</small>
+          </div>
         </div>
         <p>{{ application.reason }}</p>
         <div class="leave-status-actions"><span class="leave-status" [class]="application.status.toLowerCase()">{{

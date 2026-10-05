@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class MonthlyFeeDTO {
     private Long id;
-    private Long studentId;
+    private Long admissionNumber;
     private String monthYear;
     private Double baseAmount;
     private Double waiverAmount;

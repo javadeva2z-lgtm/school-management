@@ -59,6 +59,10 @@
   text-transform: uppercase;
 }
 
+.fee-section-heading .pending-class-select {
+  min-width: 110px;
+}
+
 .fee-section-heading select,
 .fee-types-form input {
   min-height: 36px;
@@ -160,6 +164,17 @@
   cursor: pointer;
 }
 
+.whatsapp-button:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.overdue-label {
+  color: #a24332;
+  font: 600 10px 'Trebuchet MS', sans-serif;
+  text-transform: uppercase;
+}
+
 .empty-fees,
 .fee-status {
   color: #527174;
@@ -169,6 +184,11 @@
 .fee-status {
   margin: 17px 0 0;
   color: #2e8581;
+}
+
+.fee-error {
+  color: #a24332;
+  font: 12px 'Trebuchet MS', sans-serif;
 }
 
 @media (max-width: 520px) {

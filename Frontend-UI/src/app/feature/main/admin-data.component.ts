@@ -1,6 +1,8 @@
 import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
+import { ClassSectionOption } from '../../common/model/models';
+import { ClassSectionService } from '../class-section/class-section.service';
 import { AdminDataService, AdminDataType } from './admin-data.service';
 
 @Component({
@@ -11,15 +13,20 @@ import { AdminDataService, AdminDataType } from './admin-data.service';
 })
 export class AdminDataComponent {
   private readonly adminDataService = inject(AdminDataService);
+  private readonly classSectionService = inject(ClassSectionService);
 
   protected readonly adminDataTypes: AdminDataType[] = ['Student', 'Teacher', 'Section'];
+  protected classOptions: ClassSectionOption[] = [];
   protected activeDataTab: 'import' | 'sample' | 'records' = 'import';
   protected selectedImportType: AdminDataType = 'Student';
   protected selectedSampleType: AdminDataType = 'Student';
   protected selectedExportType: AdminDataType = 'Student';
+  protected selectedExportClassId = '0';
+  protected selectedExportSectionName = '0';
   protected selectedFile: File | null = null;
   protected dataMessage = '';
   protected dataError = '';
+  private classOptionsLoaded = false;
 
   protected onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -32,6 +39,27 @@ export class AdminDataComponent {
     this.activeDataTab = tab;
     this.dataMessage = '';
     this.dataError = '';
+    if (tab === 'records') {
+      this.loadClassOptions();
+    }
+  }
+
+  protected onExportTypeChange(value: string): void {
+    this.selectedExportType = value as AdminDataType;
+    this.selectedExportClassId = '0';
+    this.selectedExportSectionName = '0';
+    if (this.selectedExportType === 'Student') {
+      this.loadClassOptions();
+    }
+  }
+
+  protected onExportClassChange(value: string): void {
+    this.selectedExportClassId = value;
+    this.selectedExportSectionName = '0';
+  }
+
+  protected get selectedExportSections(): ClassSectionOption['sections'] {
+    return this.classOptions.find(option => option.classId === this.selectedExportClassId)?.sections ?? [];
   }
 
   protected importSelectedFile(): void {
@@ -66,10 +94,27 @@ export class AdminDataComponent {
   protected exportRecords(): void {
     this.dataMessage = '';
     this.dataError = '';
-    this.adminDataService.exportRecords(this.selectedExportType).subscribe({
+    const classId = this.selectedExportType === 'Student' ? this.selectedExportClassId : '0';
+    const sectionName = this.selectedExportType === 'Student' ? this.selectedExportSectionName : '0';
+    this.adminDataService.exportRecords(this.selectedExportType, classId, sectionName).subscribe({
       next: file => this.downloadBlob(`${this.selectedExportType.toLowerCase().replaceAll(' & ', '-')}-records.csv`, file),
       error: () => {
         this.dataError = 'Existing records could not be exported. Please try again.';
+      }
+    });
+  }
+
+  private loadClassOptions(): void {
+    if (this.classOptionsLoaded) {
+      return;
+    }
+    this.classSectionService.getAll().subscribe({
+      next: options => {
+        this.classOptions = options;
+        this.classOptionsLoaded = true;
+      },
+      error: () => {
+        this.dataError = 'Class and section options could not be loaded. Please try again.';
       }
     });
   }

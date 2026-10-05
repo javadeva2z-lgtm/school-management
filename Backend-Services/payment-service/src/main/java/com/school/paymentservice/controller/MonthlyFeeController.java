@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.HttpHeaders;
 
 import java.util.List;
 
@@ -43,21 +44,34 @@ public class MonthlyFeeController {
         return ResponseEntity.ok(ApiResponse.success(monthlyFeeService.getMonthlyFeeById(id)));
     }
 
-    @GetMapping("/student/{studentId}")
+    @GetMapping("/student/{admissionNumber}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     @Operation(summary = "Get monthly fees by student")
-    public ResponseEntity<ApiResponse<List<MonthlyFeeDTO>>> getMonthlyFeesByStudent(@PathVariable Long studentId) {
-        return ResponseEntity.ok(ApiResponse.success(monthlyFeeService.getMonthlyFeesByStudent(studentId)));
+    public ResponseEntity<ApiResponse<List<MonthlyFeeDTO>>> getMonthlyFeesByStudent(
+            @PathVariable Long admissionNumber) {
+        return ResponseEntity.ok(ApiResponse.success(
+                monthlyFeeService.getMonthlyFeesByAdmissionNumber(admissionNumber)));
     }
 
-    @GetMapping("/student/{studentId}/month/{monthYear}")
+    @PostMapping("/student/{admissionNumber}/generate")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Generate missing monthly fees from the student's admission month")
+    public ResponseEntity<ApiResponse<List<MonthlyFeeDTO>>> generateMissingFees(
+            @PathVariable Long admissionNumber,
+            @RequestHeader(HttpHeaders.AUTHORIZATION) String authorization) {
+        return ResponseEntity.ok(ApiResponse.success(
+                monthlyFeeService.generateMissingFees(admissionNumber, authorization)));
+    }
+
+    @GetMapping("/student/{admissionNumber}/month/{monthYear}")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
     @Operation(summary = "Get monthly fee by student and month")
     public ResponseEntity<ApiResponse<MonthlyFeeDTO>> getMonthlyFeeByStudentAndMonth(
-            @PathVariable Long studentId,
+            @PathVariable Long admissionNumber,
             @PathVariable String monthYear) {
         return ResponseEntity
-                .ok(ApiResponse.success(monthlyFeeService.getMonthlyFeeByStudentAndMonth(studentId, monthYear)));
+                .ok(ApiResponse.success(
+                        monthlyFeeService.getMonthlyFeeByAdmissionNumberAndMonth(admissionNumber, monthYear)));
     }
 
     @PutMapping("/{id}")

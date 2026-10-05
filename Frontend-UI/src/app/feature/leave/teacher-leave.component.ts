@@ -2,7 +2,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { LeaveService } from './leave.service';
-import { ClassSectionOption, LeaveApplication, LeaveStatus, Student } from '../../common/model/models';
+import { classDisplayName, ClassSectionOption, LeaveApplication, LeaveStatus, Student } from '../../common/model/models';
 import { ClassSectionService } from '../class-section/class-section.service';
 import { PeopleService } from '../people/people.service';
 import { FormsModule } from '@angular/forms';
@@ -16,6 +16,7 @@ type LeaveTab = 'apply' | 'applied';
   templateUrl: './teacher-leave.component.html'
 })
 export class TeacherLeaveComponent {
+  protected readonly classDisplayName = classDisplayName;
   private readonly leaveService = inject(LeaveService);
   private readonly peopleService = inject(PeopleService);
   private readonly classSectionService = inject(ClassSectionService);
@@ -29,7 +30,7 @@ export class TeacherLeaveComponent {
   protected readonly applicationsForSelectedClassSection = computed(() => this.applications().filter(application =>
     this.students().some(student => student.admissionNumber === application.admissionNumber)
   ));
-  protected readonly selectedStudentId = signal<number | null>(null);
+  protected readonly selectedAdmissionNumber = signal<number | null>(null);
   protected readonly leaveType = signal('Medical');
   protected readonly startDate = signal(this.today());
   protected readonly endDate = signal(this.today());
@@ -65,19 +66,19 @@ export class TeacherLeaveComponent {
     const className = String(value ?? '');
     this.selectedClass.set(className);
     this.selectedSection.set(this.classOptions().find(option => option.classId === className)?.sections[0]?.sectionName ?? '');
-    this.selectedStudentId.set(null);
+    this.selectedAdmissionNumber.set(null);
     this.loadStudents();
   }
 
   protected onSectionChange(value: string | number): void {
     this.selectedSection.set(String(value ?? ''));
-    this.selectedStudentId.set(null);
+    this.selectedAdmissionNumber.set(null);
     this.loadStudents();
   }
 
   protected onStudentChange(value: string | number): void {
     const nextValue = value === '' || value === null || value === undefined ? null : Number(value);
-    this.selectedStudentId.set(Number.isFinite(nextValue as number) ? (nextValue as number) : null);
+    this.selectedAdmissionNumber.set(Number.isFinite(nextValue as number) ? (nextValue as number) : null);
     this.message.set('');
   }
 
@@ -100,7 +101,7 @@ export class TeacherLeaveComponent {
   }
 
   protected submitLeave(): void {
-    const student = this.students().find(item => item.id === this.selectedStudentId());
+    const student = this.students().find(item => item.admissionNumber === this.selectedAdmissionNumber());
     if (!student || !this.reason().trim()) {
       this.message.set('Select a student and enter a reason before applying.');
       return;
@@ -124,7 +125,7 @@ export class TeacherLeaveComponent {
       this.applications.update(applications => [application, ...applications]);
       this.isSubmitting.set(false);
       this.reason.set('');
-      this.selectedStudentId.set(null);
+      this.selectedAdmissionNumber.set(null);
       this.message.set('Leave application submitted successfully.');
       this.activeTab.set('applied');
     });
@@ -142,6 +143,10 @@ export class TeacherLeaveComponent {
     return status.charAt(0) + status.slice(1).toLowerCase();
   }
 
+  protected studentForApplication(application: LeaveApplication): Student | undefined {
+    return this.students().find(student => student.admissionNumber === application.admissionNumber);
+  }
+
   private loadStudents(): void {
     const className = this.selectedClass();
     const section = this.selectedSection();
@@ -156,7 +161,7 @@ export class TeacherLeaveComponent {
         return;
       }
       this.students.set(res.data);
-      this.selectedStudentId.set(null);
+      this.selectedAdmissionNumber.set(null);
     });
   }
 
