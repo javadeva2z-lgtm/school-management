@@ -42,7 +42,7 @@ public class PaymentController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'MANAGER')")
     @Operation(summary = "Record payment")
     public ResponseEntity<ApiResponse<PaymentDTO>> createPayment(
             @Valid @RequestBody PaymentDTO paymentDTO,
@@ -55,14 +55,14 @@ public class PaymentController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get payment by id")
     public ResponseEntity<ApiResponse<PaymentDTO>> getPaymentById(@PathVariable Long id) {
         return ResponseEntity.ok(ApiResponse.success(paymentService.getPaymentById(id)));
     }
 
     @GetMapping("/admission/{admissionNumber}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get payments by student")
     public ResponseEntity<ApiResponse<List<PaymentDTO>>> getPaymentsByAdmissionNumber(
             @PathVariable Long admissionNumber) {
@@ -70,7 +70,7 @@ public class PaymentController {
     }
 
     @GetMapping("/admission/{admissionNumber}/paginated")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get paginated payments by student")
     public ResponseEntity<ApiResponse<Page<PaymentDTO>>> getPaymentsByAdmissionNumberPaginated(
             @PathVariable Long admissionNumber,
@@ -80,21 +80,21 @@ public class PaymentController {
     }
 
     @GetMapping("/monthly-fee/{monthlyFeeId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get payments for monthly fee")
     public ResponseEntity<ApiResponse<List<PaymentDTO>>> getPaymentsByMonthlyFee(@PathVariable Long monthlyFeeId) {
         return ResponseEntity.ok(ApiResponse.success(paymentService.getPaymentsByMonthlyFee(monthlyFeeId)));
     }
 
     @GetMapping("/transaction/{transactionId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get payment by transaction id")
     public ResponseEntity<ApiResponse<PaymentDTO>> getPaymentByTransactionId(@PathVariable String transactionId) {
         return ResponseEntity.ok(ApiResponse.success(paymentService.getPaymentByTransactionId(transactionId)));
     }
 
     @GetMapping("/date-range")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get payments by date range")
     public ResponseEntity<ApiResponse<List<PaymentDTO>>> getPaymentsByDateRange(
             @RequestParam LocalDateTime fromDate,
@@ -103,14 +103,14 @@ public class PaymentController {
     }
 
     @GetMapping("/status/{status}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get payments by status")
     public ResponseEntity<ApiResponse<List<PaymentDTO>>> getPaymentsByStatus(@PathVariable PaymentStatus status) {
         return ResponseEntity.ok(ApiResponse.success(paymentService.getPaymentsByStatus(status)));
     }
 
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'MANAGER')")
     @Operation(summary = "Update payment status")
     public ResponseEntity<ApiResponse<PaymentDTO>> updatePaymentStatus(@PathVariable Long id,
             @RequestParam PaymentStatus status) {
@@ -119,7 +119,7 @@ public class PaymentController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Delete payment")
     public ResponseEntity<ApiResponse<Void>> deletePayment(@PathVariable Long id) {
         paymentService.deletePayment(id);

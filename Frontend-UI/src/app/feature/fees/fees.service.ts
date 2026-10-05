@@ -126,6 +126,12 @@ export class FeesService {
     ).pipe(map(response => response.data));
   }
 
+  deleteFeeItem(id: number): Observable<void> {
+    return this.http.delete<ApiResponse<void>>(
+      paymentServiceApiUrl(`/fee-items/${id}`)
+    ).pipe(map(response => response.data));
+  }
+
   getStudentServiceSubscriptions(admissionNumber: number): Observable<StudentServiceSubscription[]> {
     return this.http.get<ApiResponse<StudentServiceSubscription[]>>(
       paymentServiceApiUrl(`/student-service-subscriptions/student/${admissionNumber}`)

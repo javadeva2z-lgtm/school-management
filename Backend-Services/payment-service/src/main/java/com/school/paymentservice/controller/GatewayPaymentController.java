@@ -41,7 +41,7 @@ public class GatewayPaymentController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT', 'MANAGER')")
     public ResponseEntity<ApiResponse<GatewayPaymentOrderDTO>> createOrder(
             @Valid @RequestBody CreateGatewayPaymentRequest request,
             HttpServletRequest servletRequest) {
@@ -54,7 +54,7 @@ public class GatewayPaymentController {
     }
 
     @GetMapping("/{reference}/status")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT', 'MANAGER')")
     public ResponseEntity<ApiResponse<GatewayPaymentOrderDTO>> refreshOrder(
             @PathVariable String reference,
             HttpServletRequest servletRequest) {
@@ -95,7 +95,8 @@ public class GatewayPaymentController {
             throw new IllegalArgumentException("A valid admission number and authenticated user are required");
         }
         boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN")
+                        || authority.getAuthority().equals("ROLE_MANAGER"));
         if (!isAdmin && !String.valueOf(admissionNumber).equals(authentication.getName())) {
             throw new IllegalArgumentException("A student can only create payments for their own admission number");
         }
@@ -119,7 +120,8 @@ public class GatewayPaymentController {
             throw new IllegalStateException("Authenticated user is required");
         }
         boolean isAdmin = authentication.getAuthorities().stream()
-                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN")
+                        || authority.getAuthority().equals("ROLE_MANAGER"));
         if (!isAdmin && !String.valueOf(admissionNumber).equals(authentication.getName())) {
             throw new IllegalArgumentException("A student can only check payments for their own admission number");
         }

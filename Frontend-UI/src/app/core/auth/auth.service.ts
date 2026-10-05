@@ -4,7 +4,7 @@ import { Observable, catchError, map, of, tap } from 'rxjs';
 
 import { AuthSessionService } from './auth-session.service';
 import { LOGIN_URL, usersApiUrl } from '../config/api.config';
-import { LoginRequest, LoginResponse, Role, UserRegistrationRequest, UserRegistrationResponse } from '../../common/model/models';
+import { LoginRequest, LoginResponse, PasswordManagedUser, Role, UserRegistrationRequest, UserRegistrationResponse } from '../../common/model/models';
 
 
 @Injectable({ providedIn: 'root' })
@@ -37,6 +37,70 @@ export class AuthService {
     );
   }
 
+  createAdminOrManager(request: UserRegistrationRequest): Observable<void> {
+    return this.http.post<UserRegistrationResponse>(usersApiUrl('/register/admin-manager'), request).pipe(
+      map(response => {
+        if (response.code > 299) {
+          throw new Error('User creation failed.');
+        }
+      })
+    );
+  }
+
+  getManagers(): Observable<{ username: string; phoneNumber: string | null }[]> {
+    return this.http.get<{ data: { username: string; phoneNumber: string | null }[] }>(
+      usersApiUrl('/managers')
+    ).pipe(
+      map(response => response.data ?? [])
+    );
+  }
+
+  deleteManager(username: string): Observable<void> {
+    return this.http.delete<{ code: number }>(
+      usersApiUrl(`/managers/${encodeURIComponent(username)}`)
+    ).pipe(
+      map(response => {
+        if (response.code > 299) {
+          throw new Error('Manager deletion failed.');
+        }
+      })
+    );
+  }
+
+  changePassword(currentPassword: string, newPassword: string): Observable<void> {
+    return this.http.put<{ code: number }>(usersApiUrl('/password/change'), {
+      currentPassword,
+      newPassword
+    }).pipe(
+      map(response => {
+        if (response.code > 299) {
+          throw new Error('Password change failed.');
+        }
+      })
+    );
+  }
+
+  getPasswordManagedUsers(): Observable<PasswordManagedUser[]> {
+    return this.http.get<{ data: PasswordManagedUser[] }>(
+      usersApiUrl('/password/managed-users')
+    ).pipe(
+      map(response => response.data ?? [])
+    );
+  }
+
+  adminResetPassword(username: string, newPassword: string): Observable<void> {
+    return this.http.put<{ code: number }>(
+      usersApiUrl(`/password/admin-reset/${encodeURIComponent(username)}`),
+      { newPassword }
+    ).pipe(
+      map(response => {
+        if (response.code > 299) {
+          throw new Error('Password reset failed.');
+        }
+      })
+    );
+  }
+
   getAdminToken(): Observable<string> {
     return this.http.get<{ data: string }>(usersApiUrl('/register/admin/token')).pipe(
       map(response => response.data),
@@ -57,6 +121,7 @@ export class AuthService {
       case 'teacher': return 'Teacher';
       case 'student': return 'Student';
       case 'admin': return 'Admin';
+      case 'manager': return 'Manager';
       default: return null;
     }
   }

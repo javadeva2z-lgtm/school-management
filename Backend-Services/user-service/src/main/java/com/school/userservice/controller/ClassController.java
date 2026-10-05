@@ -25,7 +25,7 @@ public class ClassController {
     private final ClassService classService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Create a new class")
     public ResponseEntity<ApiResponse<ClassDTO>> createClass(@Valid @RequestBody ClassDTO classDTO) {
         log.info("Create class request received for class name: {}", classDTO.getClassName());
@@ -35,7 +35,7 @@ public class ClassController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get class by ID")
     public ResponseEntity<ApiResponse<ClassDTO>> getClassById(@PathVariable Long id) {
         log.info("Get class request received for id: {}", id);
@@ -44,7 +44,7 @@ public class ClassController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Update class")
     public ResponseEntity<ApiResponse<ClassDTO>> updateClass(
             @PathVariable Long id,
@@ -55,7 +55,7 @@ public class ClassController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Delete class")
     public ResponseEntity<ApiResponse<Void>> deleteClass(@PathVariable Long id) {
         log.info("Delete class request received for id: {}", id);
@@ -64,7 +64,7 @@ public class ClassController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'MANAGER')")
     @Operation(summary = "Get all classes")
     public ResponseEntity<ApiResponse<List<ClassDTO>>> getAllClasses() {
         log.info("Get all classes request received");
@@ -73,7 +73,7 @@ public class ClassController {
     }
 
     @GetMapping("/active")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get all active classes")
     public ResponseEntity<ApiResponse<List<ClassDTO>>> getAllActiveClasses() {
         log.info("Get all active classes request received");

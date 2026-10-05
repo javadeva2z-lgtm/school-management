@@ -37,7 +37,7 @@ public class StudentController {
     private final StudentService studentService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Create a new student")
     public ResponseEntity<ApiResponse<StudentDTO>> createStudent(@Valid @RequestBody StudentDTO studentDTO) {
         log.info("Create student request received for roll number: {}", studentDTO.getRollNumber());
@@ -47,7 +47,7 @@ public class StudentController {
     }
 
     @GetMapping("/{admissionNumber}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get student by admission number")
     public ResponseEntity<ApiResponse<StudentDTO>> getStudentByAdmissionNumber(
             @PathVariable Long admissionNumber) {
@@ -57,7 +57,7 @@ public class StudentController {
     }
 
     @GetMapping("/admission/{admissionNumber}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get student by admission number")
     public ResponseEntity<ApiResponse<StudentDTO>> getStudentByAdmissionNumberFromAdmissionRoute(
             @PathVariable Long admissionNumber) {
@@ -67,7 +67,7 @@ public class StudentController {
     }
 
     @GetMapping("/class/{classId}/section/{sectionName}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get all students by class and section")
     public ResponseEntity<ApiResponse<List<StudentDTO>>> getStudentsByClassAndSection(
             @PathVariable Long classId,
@@ -78,7 +78,7 @@ public class StudentController {
     }
 
     @GetMapping("/class/{classId}/section/{sectionName}/paginated")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'MANAGER')")
     @Operation(summary = "Get paginated students by class and section")
     public ResponseEntity<ApiResponse<Page<StudentDTO>>> getStudentsByClassAndSectionPaginated(
             @PathVariable Long classId,
@@ -90,7 +90,7 @@ public class StudentController {
     }
 
     @PutMapping("/{admissionNumber}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Update student")
     public ResponseEntity<ApiResponse<StudentDTO>> updateStudent(
             @PathVariable Long admissionNumber,
@@ -101,7 +101,7 @@ public class StudentController {
     }
 
     @DeleteMapping("/{admissionNumber}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Delete student")
     public ResponseEntity<ApiResponse<Void>> deleteStudent(@PathVariable Long admissionNumber) {
         log.info("Delete student request received for admission number: {}", admissionNumber);
@@ -110,7 +110,7 @@ public class StudentController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Get all students")
     public ResponseEntity<ApiResponse<List<StudentDTO>>> getAllStudents() {
         log.info("Get all students request received");

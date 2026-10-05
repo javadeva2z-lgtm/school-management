@@ -2,12 +2,15 @@ package com.school.userservice.service;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +21,8 @@ import com.school.common.exception.ResourceNotFoundException;
 import com.school.common.service.BaseService;
 import com.school.userservice.dto.LoginRequestDTO;
 import com.school.userservice.dto.LoginResponseDTO;
+import com.school.userservice.dto.ManagedUserDTO;
+import com.school.userservice.dto.PasswordManagedUserDTO;
 import com.school.userservice.dto.UserRegistrationDTO;
 import com.school.userservice.entity.User;
 import com.school.userservice.entity.UserRole;
@@ -32,6 +37,10 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 @Transactional
 public class UserService extends BaseService {
+    private static final Set<String> PASSWORD_MANAGED_ROLES = Set.of(
+            "ROLE_STUDENT", "ROLE_TEACHER", "ROLE_MANAGER");
+    private static final Set<String> ADMIN_ROLES = Set.of("ROLE_ADMIN", "ROLE_SUPER_ADMIN");
+
     private final UserRepository userRepository;
     private final UserRoleRepository userRoleRepository;
     private final SchoolService schoolService;
@@ -46,12 +55,119 @@ public class UserService extends BaseService {
         return register(registrationDTO);
     }
 
+    public LoginResponseDTO registerAdminOrManager(UserRegistrationDTO registrationDTO) {
+        String requestedRole = registrationDTO.getRole() == null
+                ? ""
+                : registrationDTO.getRole().trim().toUpperCase(Locale.ROOT);
+        if (!Set.of(com.school.common.enums.UserRole.ADMIN.getValue(),
+                com.school.common.enums.UserRole.MANAGER.getValue()).contains(requestedRole)) {
+            throw new IllegalArgumentException("Only ADMIN and MANAGER accounts can be created here");
+        }
+        registrationDTO.setRole(requestedRole);
+        return register(registrationDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public List<ManagedUserDTO> getManagers() {
+        Set<String> usernames = userRoleRepository.findByRole("ROLE_MANAGER").stream()
+                .map(UserRole::getUsername)
+                .collect(Collectors.toSet());
+        if (usernames.isEmpty()) {
+            return List.of();
+        }
+        return userRepository.findAllByUsernameIn(usernames).stream()
+                .map(user -> ManagedUserDTO.builder()
+                        .username(user.getUsername())
+                        .phoneNumber(user.getPhoneNumber())
+                        .build())
+                .sorted((left, right) -> left.getUsername().compareToIgnoreCase(right.getUsername()))
+                .toList();
+    }
+
+    public void deleteManager(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("Manager", "username", username));
+        if (!userRoleRepository.existsByUsernameAndRole(username, "ROLE_MANAGER")) {
+            throw new ResourceNotFoundException("Manager", "username", username);
+        }
+
+        userRoleRepository.deleteByUsernameAndRole(username, "ROLE_MANAGER");
+        if (!userRoleRepository.existsByUsername(username)) {
+            userRepository.delete(user);
+        }
+        log.info("Manager account deleted: {}", username);
+    }
+
     public void resetPassword(UserRegistrationDTO registrationDTO) {
         User user = userRepository.findByToken(registrationDTO.getToken())
                 .orElseThrow(() -> new UsernameNotFoundException(""));
         user.setPassword(passwordEncoder.encode(registrationDTO.getPassword()));
 
         userRepository.save(user);
+    }
+
+    public void changeOwnPassword(String currentPassword, String newPassword) {
+        String username = getCurrentUsername();
+        if (username == null) {
+            throw new IllegalStateException("An authenticated user is required to change the password");
+        }
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+        if (!passwordEncoder.matches(currentPassword, user.getPassword())) {
+            throw new IllegalArgumentException("Current password is incorrect");
+        }
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        log.info("Password changed by user: {}", username);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PasswordManagedUserDTO> getPasswordManagedUsers() {
+        requireAdministrator();
+        Map<String, Set<String>> rolesByUsername = userRoleRepository.findAll().stream()
+                .filter(userRole -> PASSWORD_MANAGED_ROLES.contains(userRole.getRole()))
+                .collect(Collectors.groupingBy(
+                        UserRole::getUsername,
+                        Collectors.mapping(UserRole::getRole, Collectors.toSet())));
+        Set<String> adminUsernames = userRoleRepository.findAll().stream()
+                .filter(userRole -> ADMIN_ROLES.contains(userRole.getRole()))
+                .map(UserRole::getUsername)
+                .collect(Collectors.toSet());
+
+        return userRepository.findAllByUsernameIn(rolesByUsername.keySet()).stream()
+                .filter(user -> !adminUsernames.contains(user.getUsername()))
+                .map(user -> PasswordManagedUserDTO.builder()
+                        .username(user.getUsername())
+                        .role(rolesByUsername.get(user.getUsername()).stream()
+                                .map(role -> role.substring("ROLE_".length()))
+                                .sorted()
+                                .collect(Collectors.joining(", ")))
+                        .build())
+                .sorted((left, right) -> left.getUsername().compareToIgnoreCase(right.getUsername()))
+                .toList();
+    }
+
+    public void adminResetPassword(String username, String newPassword) {
+        requireAdministrator();
+        Set<String> userRoles = userRoleRepository.findByUsername(username).stream()
+                .map(UserRole::getRole)
+                .collect(Collectors.toSet());
+        if (userRoles.stream().noneMatch(PASSWORD_MANAGED_ROLES::contains)
+                || userRoles.stream().anyMatch(ADMIN_ROLES::contains)) {
+            throw new ResourceNotFoundException("Password-manageable user", "username", username);
+        }
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User", "username", username));
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        log.info("Password reset by administrator for user: {}", username);
+    }
+
+    private void requireAdministrator() {
+        if (!hasRole(com.school.common.enums.UserRole.ADMIN)) {
+            throw new AccessDeniedException("Only administrators can reset other users' passwords");
+        }
     }
 
     public void setResetPasswordToken(String userName) {
@@ -147,7 +263,8 @@ public class UserService extends BaseService {
     public void createLoginUser(String userName, String password, String role) {
         boolean isValidRole = Objects.equals(com.school.common.enums.UserRole.STUDENT.getValue(), role)
                 || Objects.equals(com.school.common.enums.UserRole.TEACHER.getValue(), role)
-                || Objects.equals(com.school.common.enums.UserRole.ADMIN.getValue(), role);
+                || Objects.equals(com.school.common.enums.UserRole.ADMIN.getValue(), role)
+                || Objects.equals(com.school.common.enums.UserRole.MANAGER.getValue(), role);
         try {
             UserRegistrationDTO userRegistrationDTO = UserRegistrationDTO.builder()
                     .username(userName)

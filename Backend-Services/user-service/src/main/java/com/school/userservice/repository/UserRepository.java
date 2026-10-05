@@ -1,6 +1,8 @@
 package com.school.userservice.repository;
 
 import java.util.Optional;
+import java.util.Collection;
+import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import com.school.userservice.entity.User;
@@ -12,4 +14,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByToken(String token);
 
     Boolean existsByUsername(String username);
+
+    List<User> findAllByUsernameIn(Collection<String> usernames);
 }

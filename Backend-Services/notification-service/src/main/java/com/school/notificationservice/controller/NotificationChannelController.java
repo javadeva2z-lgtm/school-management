@@ -32,7 +32,7 @@ public class NotificationChannelController {
     private final NotificationLogService notificationLogService;
 
     @PostMapping("/whatsapp")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Send WhatsApp notification")
     public ResponseEntity<ApiResponse<String>> sendWhatsAppNotification(@Valid @RequestBody SendNotificationDTO sendNotificationDTO) {
         log.info("Send WhatsApp notification request for recipient: {}", sendNotificationDTO.getRecipientId());
@@ -42,7 +42,7 @@ public class NotificationChannelController {
     }
 
     @PostMapping("/email")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Send email notification")
     public ResponseEntity<ApiResponse<String>> sendEmailNotification(@Valid @RequestBody SendNotificationDTO sendNotificationDTO) {
         log.info("Send email notification request for recipient: {}", sendNotificationDTO.getRecipientId());
@@ -52,7 +52,7 @@ public class NotificationChannelController {
     }
 
     @PostMapping("/sms")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Send SMS notification")
     public ResponseEntity<ApiResponse<String>> sendSMSNotification(@Valid @RequestBody SendNotificationDTO sendNotificationDTO) {
         log.info("Send SMS notification request for recipient: {}", sendNotificationDTO.getRecipientId());
@@ -62,7 +62,7 @@ public class NotificationChannelController {
     }
 
     @PostMapping("/push")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Send push notification")
     public ResponseEntity<ApiResponse<String>> sendPushNotification(@Valid @RequestBody SendNotificationDTO sendNotificationDTO) {
         log.info("Send push notification request for recipient: {}", sendNotificationDTO.getRecipientId());
@@ -72,7 +72,7 @@ public class NotificationChannelController {
     }
 
     @GetMapping("/logs/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Get notification log by ID")
     public ResponseEntity<ApiResponse<NotificationLogDTO>> getLogById(@PathVariable Long id) {
         log.info("Get notification log request for id: {}", id);
@@ -81,7 +81,7 @@ public class NotificationChannelController {
     }
 
     @GetMapping("/logs/recipient/{recipientId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get notification logs for recipient")
     public ResponseEntity<ApiResponse<List<NotificationLogDTO>>> getLogsByRecipient(@PathVariable Long recipientId) {
         log.info("Get notification logs for recipient: {}", recipientId);
@@ -90,7 +90,7 @@ public class NotificationChannelController {
     }
 
     @GetMapping("/logs/recipient/{recipientId}/paginated")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get paginated notification logs")
     public ResponseEntity<ApiResponse<Page<NotificationLogDTO>>> getLogsByRecipientPaginated(
             @PathVariable Long recipientId,
@@ -101,7 +101,7 @@ public class NotificationChannelController {
     }
 
     @GetMapping("/logs/channel/{channel}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Get logs by notification channel")
     public ResponseEntity<ApiResponse<List<NotificationLogDTO>>> getLogsByChannel(
             @PathVariable String channel) {
@@ -111,7 +111,7 @@ public class NotificationChannelController {
     }
 
     @GetMapping("/logs/status/{status}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Get logs by status")
     public ResponseEntity<ApiResponse<List<NotificationLogDTO>>> getLogsByStatus(
             @PathVariable String status) {
@@ -121,7 +121,7 @@ public class NotificationChannelController {
     }
 
     @GetMapping("/logs/failed-retry")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Get failed logs for retry")
     public ResponseEntity<ApiResponse<List<NotificationLogDTO>>> getFailedLogsForRetry(
             @RequestParam(defaultValue = "3") Integer maxRetryCount) {
@@ -131,7 +131,7 @@ public class NotificationChannelController {
     }
 
     @GetMapping("/logs/date-range")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Get logs by date range")
     public ResponseEntity<ApiResponse<List<NotificationLogDTO>>> getLogsByDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
@@ -142,7 +142,7 @@ public class NotificationChannelController {
     }
 
     @PutMapping("/logs/{id}/status")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Update notification log status")
     public ResponseEntity<ApiResponse<Void>> updateLogStatus(
             @PathVariable Long id,
@@ -153,7 +153,7 @@ public class NotificationChannelController {
     }
 
     @PostMapping("/retry-failed")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Retry failed notifications")
     public ResponseEntity<ApiResponse<String>> retryFailedNotifications() {
         log.info("Retry failed notifications request");

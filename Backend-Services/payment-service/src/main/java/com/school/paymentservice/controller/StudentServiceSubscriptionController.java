@@ -26,7 +26,7 @@ public class StudentServiceSubscriptionController {
     private final StudentServiceSubscriptionService studentServiceSubscriptionService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Create student service subscription")
     public ResponseEntity<ApiResponse<StudentServiceSubscriptionDTO>> createStudentServiceSubscription(
             @Valid @RequestBody StudentServiceSubscriptionDTO dto) {
@@ -37,7 +37,7 @@ public class StudentServiceSubscriptionController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get subscription by id")
     public ResponseEntity<ApiResponse<StudentServiceSubscriptionDTO>> getById(@PathVariable Long id) {
         return ResponseEntity
@@ -45,7 +45,7 @@ public class StudentServiceSubscriptionController {
     }
 
     @GetMapping("/student/{admissionNumber}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get subscriptions by student")
     public ResponseEntity<ApiResponse<List<StudentServiceSubscriptionDTO>>> getByStudent(
             @PathVariable Long admissionNumber) {
@@ -54,7 +54,7 @@ public class StudentServiceSubscriptionController {
     }
 
     @GetMapping("/student/{admissionNumber}/fee-item/{feeItemId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get subscription by student and fee item")
     public ResponseEntity<ApiResponse<StudentServiceSubscriptionDTO>> getByStudentAndFeeItem(
             @PathVariable Long admissionNumber,
@@ -64,7 +64,7 @@ public class StudentServiceSubscriptionController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Delete subscription")
     public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
         studentServiceSubscriptionService.deleteStudentServiceSubscription(id);

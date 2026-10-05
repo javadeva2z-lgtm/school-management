@@ -112,6 +112,13 @@
   background: #fbfcf8;
 }
 
+.fee-type-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+}
+
 .fee-types-form label,
 .add-fee-type-form label {
   display: flex;
@@ -160,6 +167,22 @@
 
 .add-fee-type-form {
   grid-template-columns: minmax(160px, 1fr) minmax(120px, .6fr) auto auto;
+}
+
+.delete-fee-item-button {
+  min-height: 36px;
+  padding: 8px 11px;
+  border: 1px solid #c96450;
+  border-radius: 3px;
+  color: #a24332;
+  background: transparent;
+  font: 600 10px 'Trebuchet MS', sans-serif;
+  cursor: pointer;
+}
+
+.delete-fee-item-button:disabled {
+  opacity: .6;
+  cursor: wait;
 }
 
 .pending-count {
@@ -257,6 +280,14 @@
   }
 
   .fee-types-form {
+    grid-template-columns: 1fr;
+  }
+
+  .fee-type-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .fee-type-row {
     grid-template-columns: 1fr;
   }
 

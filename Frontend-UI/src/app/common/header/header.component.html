@@ -21,6 +21,7 @@
         @if (isProfileMenuOpen()) {
           <div class="profile-menu-panel">
             <a routerLink="/profile" (click)="isProfileMenuOpen.set(false)">My profile</a>
+            <a routerLink="/change-password" (click)="isProfileMenuOpen.set(false)">Change password</a>
             <button type="button" (click)="logout()">Logout</button>
           </div>
         }

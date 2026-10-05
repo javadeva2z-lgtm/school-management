@@ -1,0 +1,77 @@
+<main class="dashboard feature-page admin-user-accounts-page">
+  <a class="back-link" routerLink="/" [queryParams]="{ role: 'Admin' }">&#8592; Back to workspace</a>
+  <section class="feature-panel admin-user-accounts-panel">
+    <p class="eyebrow">Admin workspace</p>
+    <h1>Admin and Manager accounts</h1>
+    <p>Create privileged staff logins and manage existing Manager accounts.</p>
+
+    <div class="account-tabs" role="tablist" aria-label="User account actions">
+      <button type="button" role="tab" [attr.aria-selected]="activeTab() === 'new'"
+        [class.active]="activeTab() === 'new'" (click)="selectTab('new')">New</button>
+      <button type="button" role="tab" [attr.aria-selected]="activeTab() === 'existing'"
+        [class.active]="activeTab() === 'existing'" (click)="selectTab('existing')">Existing</button>
+    </div>
+
+    @if (activeTab() === 'new') {
+    <form class="user-account-form" (submit)="$event.preventDefault(); submit()">
+      <label>Username
+        <input type="text" name="username" [ngModel]="username()"
+          (ngModelChange)="username.set($event)" required minlength="3" maxlength="100" autocomplete="off">
+      </label>
+      <label>Phone number
+        <input type="tel" name="phoneNumber" [ngModel]="phoneNumber()"
+          (ngModelChange)="phoneNumber.set($event)" required maxlength="30" autocomplete="tel">
+      </label>
+      <label>Temporary password
+        <input type="password" name="password" [ngModel]="password()"
+          (ngModelChange)="password.set($event)" required minlength="6" autocomplete="new-password">
+      </label>
+      <label>Role
+        <select name="role" [ngModel]="role()" (ngModelChange)="role.set($event)">
+          <option value="ADMIN">Admin</option>
+          <option value="MANAGER">Manager</option>
+        </select>
+      </label>
+      <p class="role-description">
+        Managers can access the Admin workspace except Import/Export and creating fee types. Admins retain full access.
+      </p>
+      <button class="save-attendance" type="submit" [disabled]="isSaving()">
+        {{ isSaving() ? 'Creating account...' : 'Create account' }}
+      </button>
+    </form>
+    }
+
+    @if (successMessage()) {
+    <p class="account-success" role="status">{{ successMessage() }}</p>
+    }
+    @if (errorMessage()) {
+    <p class="account-error" role="alert">{{ errorMessage() }}</p>
+    }
+
+    @if (activeTab() === 'existing') {
+    <section class="manager-list" aria-labelledby="manager-list-title">
+      <h2 id="manager-list-title">Manager accounts</h2>
+      @if (isLoadingManagers()) {
+      <p role="status">Loading Manager accounts...</p>
+      } @else if (managers().length) {
+      <div class="manager-list-items">
+        @for (manager of managers(); track manager.username) {
+        <article class="manager-account">
+          <div>
+            <strong>{{ manager.username }}</strong>
+            <small>{{ manager.phoneNumber || 'No phone number provided' }}</small>
+          </div>
+          <button type="button" class="delete-manager-button" [disabled]="deletingManager() !== ''"
+            (click)="deleteManager(manager.username)">
+            {{ deletingManager() === manager.username ? 'Deleting...' : 'Delete manager' }}
+          </button>
+        </article>
+        }
+      </div>
+      } @else {
+      <p>No Manager accounts are available.</p>
+      }
+    </section>
+    }
+  </section>
+</main>

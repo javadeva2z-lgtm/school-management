@@ -1,4 +1,4 @@
-export type Role = 'Teacher' | 'Student' | 'Admin';
+export type Role = 'Teacher' | 'Student' | 'Admin' | 'Manager';
 export type ClassLevel = 'PRE_PRIMARY' | 'PRIMARY' | 'UPPER_PRIMARY' | 'SECONDARY' | 'HIGHER_SECONDARY' | 'COMMON';
 
 export interface MenuItem {
@@ -147,7 +147,12 @@ export interface UserRegistrationRequest {
   username: string;
   password: string;
   phoneNumber?: string;
-  role: 'TEACHER' | 'STUDENT' | 'ADMIN';
+  role: 'TEACHER' | 'STUDENT' | 'ADMIN' | 'MANAGER';
+}
+
+export interface PasswordManagedUser {
+  username: string;
+  role: string;
 }
 
 export interface UserRegistrationResponse {

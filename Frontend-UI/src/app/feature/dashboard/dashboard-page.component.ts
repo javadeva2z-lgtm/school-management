@@ -39,6 +39,7 @@ export class DashboardPageComponent {
     switch (value?.toLowerCase()) {
       case 'student': return 'Student';
       case 'admin': return 'Admin';
+      case 'manager': return 'Manager';
       default: return 'Teacher';
     }
   }

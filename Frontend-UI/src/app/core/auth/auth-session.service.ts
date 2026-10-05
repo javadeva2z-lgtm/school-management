@@ -54,6 +54,7 @@ export class AuthSessionService {
       case 'teacher': return 'Teacher';
       case 'student': return 'Student';
       case 'admin': return 'Admin';
+      case 'manager': return 'Manager';
       default: return null;
     }
   }

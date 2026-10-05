@@ -46,7 +46,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get attendance by ID")
     public ResponseEntity<ApiResponse<AttendanceDTO>> getAttendanceById(@PathVariable Long id) {
         log.info("Get attendance request received for id: {}", id);
@@ -55,7 +55,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/history/params")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get attendance between dates")
     public ResponseEntity<ApiResponse<List<AttendanceDTO>>> getStudentAttendanceDateRange1(
             @RequestParam Long classId,
@@ -70,7 +70,7 @@ public class AttendanceController {
 
     
     @GetMapping("/history/self/params")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get attendance between dates")
     public ResponseEntity<ApiResponse<List<AttendanceDTO>>> getMyAttendanceDateRange(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromDate,
@@ -81,7 +81,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/student/{admissionNumber}/date-range")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT', 'MANAGER')")
     @Operation(summary = "Get attendance between dates")
     public ResponseEntity<ApiResponse<List<AttendanceDTO>>> getStudentAttendanceDateRange(
             @PathVariable Long admissionNumber,
@@ -93,7 +93,7 @@ public class AttendanceController {
     }
 
     @GetMapping("/class/{classId}/section/{sectionName}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'MANAGER')")
     @Operation(summary = "Get class/section attendance")
     public ResponseEntity<ApiResponse<List<AttendanceDTO>>> getClassSectionAttendance(
             @PathVariable Long classId,
@@ -116,7 +116,7 @@ public class AttendanceController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Delete attendance")
     public ResponseEntity<ApiResponse<Void>> deleteAttendance(@PathVariable Long id) {
         log.info("Delete attendance request received for id: {}", id);

@@ -40,22 +40,32 @@
       <div class="fee-types-form">
         @for (feeItem of feeItems(); track feeItem.id) {
         <div class="fee-type-row">
-          <label>{{ feeItem.serviceName }}
-            <input type="number" min="0" step="1" [value]="feeItem.defaultAmount"
-              (input)="updateFee(feeItem, $event)">
-          </label>
-          <label class="optional-fee-toggle">
-            <input type="checkbox" [checked]="!feeItem.mandatory"
-              (change)="updateFeeOptional(feeItem, $event)">
-            Optional
-          </label>
+          <div class="fee-type-fields">
+            <label>{{ feeItem.serviceName }}
+              <input type="number" min="0" step="1" [value]="feeItem.defaultAmount"
+                (input)="updateFee(feeItem, $event)">
+            </label>
+            <label class="optional-fee-toggle">
+              <input type="checkbox" [checked]="!feeItem.mandatory"
+                (change)="updateFeeOptional(feeItem, $event)">
+              Optional
+            </label>
+          </div>
+          @if (isAdmin) {
+          <button class="delete-fee-item-button" type="button"
+            [disabled]="isSavingStructure() || deletingFeeItemId() !== null"
+            (click)="deleteFeeItem(feeItem)">
+            {{ deletingFeeItemId() === feeItem.id ? 'Deleting...' : 'Delete' }}
+          </button>
+          }
         </div>
         }
       </div>
       <button class="save-attendance" type="button"
-        [disabled]="isLoadingStructure() || isSavingStructure() || !!structureError() || !feeItems().length"
+        [disabled]="isLoadingStructure() || isSavingStructure() || deletingFeeItemId() !== null || !!structureError() || !feeItems().length"
         (click)="saveClassFees()">{{ isSavingStructure() ? 'Saving...' : 'Save fee changes' }}</button>
 
+      @if (isAdmin) {
       <section class="add-fee-type" aria-labelledby="add-fee-type-title">
         <h3 id="add-fee-type-title">Add a fee type for this class</h3>
         <form class="add-fee-type-form" (submit)="$event.preventDefault(); addFeeType()">
@@ -78,6 +88,7 @@
           </button>
         </form>
       </section>
+      }
 
     </section>
     }

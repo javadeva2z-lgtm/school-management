@@ -35,14 +35,14 @@ public class ClassSubjectController {
     private final ClassSubjectService classSubjectService;
 
     @GetMapping("/class/{classId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Get subjects for a class")
     public ResponseEntity<ApiResponse<List<ClassSubjectDTO>>> getSubjectsByClass(@PathVariable Long classId) {
         return ResponseEntity.ok(ApiResponse.success(classSubjectService.getSubjectsByClass(classId)));
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Add a subject to a class")
     public ResponseEntity<ApiResponse<ClassSubjectDTO>> createSubject(@Valid @RequestBody ClassSubjectDTO subjectDTO) {
         log.info("Create subject request received for class: {}", subjectDTO.getClassId());
@@ -52,7 +52,7 @@ public class ClassSubjectController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Update a class subject")
     public ResponseEntity<ApiResponse<ClassSubjectDTO>> updateSubject(
             @PathVariable Long id,
@@ -62,7 +62,7 @@ public class ClassSubjectController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Delete a class subject")
     public ResponseEntity<ApiResponse<Void>> deleteSubject(@PathVariable Long id) {
         classSubjectService.deleteSubject(id);

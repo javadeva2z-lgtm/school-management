@@ -61,7 +61,7 @@ public class SchoolController {
     }
 
     @PutMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Update an existing school")
     public ResponseEntity<ApiResponse<SchoolDTO>> updateSchool(@Valid @RequestBody SchoolDTO schoolDTO) {
         log.info("Update school request received for school name: {}", schoolDTO.getSchoolName());
@@ -71,7 +71,7 @@ public class SchoolController {
     }
 
     @PostMapping("/announcement")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Update school announcement")
     public ResponseEntity<ApiResponse<SchoolDTO>> updateAnnouncement(@Valid @RequestBody SchoolDTO schoolDTO) {
         log.info("Update school announcement request received for school name: {}", schoolDTO.getSchoolName());

@@ -37,7 +37,7 @@ public class TeacherController {
     private final TeacherService teacherService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Create a new teacher")
     public ResponseEntity<ApiResponse<TeacherDTO>> createTeacher(@Valid @RequestBody TeacherDTO teacherDTO) {
         log.info("Create teacher request received for employee id: {}", teacherDTO.getEmployeeId());
@@ -47,7 +47,7 @@ public class TeacherController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'MANAGER')")
     @Operation(summary = "Get teacher by ID")
     public ResponseEntity<ApiResponse<TeacherDTO>> getTeacherById(@PathVariable Long id) {
         log.info("Get teacher request received for id: {}", id);
@@ -56,7 +56,7 @@ public class TeacherController {
     }
 
     @GetMapping("/user/{username}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'MANAGER')")
     @Operation(summary = "Get teacher by user ID")
     public ResponseEntity<ApiResponse<TeacherDTO>> getTeacherByUserId(@PathVariable String username) {
         log.info("Get teacher request received for username: {}", username);
@@ -65,7 +65,7 @@ public class TeacherController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'MANAGER')")
     @Operation(summary = "Update teacher")
     public ResponseEntity<ApiResponse<TeacherDTO>> updateTeacher(
             @PathVariable Long id,
@@ -76,7 +76,7 @@ public class TeacherController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Delete teacher")
     public ResponseEntity<ApiResponse<Void>> deleteTeacher(@PathVariable Long id) {
         log.info("Delete teacher request received for id: {}", id);
@@ -85,7 +85,7 @@ public class TeacherController {
     }
 
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
     @Operation(summary = "Get all teachers")
     public ResponseEntity<ApiResponse<List<TeacherDTO>>> getAllTeachers() {
         log.info("Get all teachers request received");

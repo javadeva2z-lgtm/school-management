@@ -3,8 +3,8 @@ import { CanActivateFn, Router } from '@angular/router';
 
 import { AuthSessionService } from './auth-session.service';
 
-export const adminGuard: CanActivateFn = () => {
+export const adminOnlyGuard: CanActivateFn = () => {
   const router = inject(Router);
   const session = inject(AuthSessionService);
-  return session.role === 'Admin' || session.role === 'Manager' ? true : router.createUrlTree(['/']);
+  return session.role === 'Admin' ? true : router.createUrlTree(['/']);
 };

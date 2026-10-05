@@ -13,16 +13,21 @@ export class DashboardService {
       map(data => {
         const adminMenus = data.menus.Admin ?? [];
         const requiredAdminMenus = FALLBACK_DASHBOARD_DATA.menus.Admin.filter(item =>
-          item.id === 'classes-sections' || item.id === 'subjects' || item.id === 'optional-fee-mapping'
+          ['classes-sections', 'subjects', 'optional-fee-mapping', 'user-accounts'].includes(item.id)
         );
         const missingRequiredMenus = requiredAdminMenus.filter(menu =>
           !adminMenus.some(item => item.id === menu.id)
         );
+        const adminMenuItems = [...adminMenus, ...missingRequiredMenus];
+        const managerMenus = adminMenuItems
+          .filter(item => item.id !== 'import-data' && item.id !== 'user-accounts')
+          .map(item => ({ ...item, roles: ['Manager' as const] }));
         return {
           ...data,
           menus: {
             ...data.menus,
-            Admin: [...adminMenus, ...missingRequiredMenus]
+            Admin: adminMenuItems,
+            Manager: managerMenus
           }
         };
       }),

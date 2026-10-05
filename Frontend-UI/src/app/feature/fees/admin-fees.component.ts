@@ -11,6 +11,7 @@ import {
 } from './fees.service';
 import { PeopleService } from '../people/people.service';
 import { forkJoin, map, of, switchMap } from 'rxjs';
+import { AuthSessionService } from '../../core/auth/auth-session.service';
 
 interface PendingFee {
   monthlyFeeId: number;
@@ -36,11 +37,16 @@ export class AdminFeesComponent {
   private readonly classSectionService = inject(ClassSectionService);
   private readonly peopleService = inject(PeopleService);
   private readonly feesService = inject(FeesService);
+  private readonly authSession = inject(AuthSessionService);
+  protected get isAdmin(): boolean {
+    return this.authSession.role === 'Admin';
+  }
   protected activeTab: 'structure' | 'pending' = 'structure';
   protected readonly classOptions = signal<ClassSectionOption[]>([]);
   protected readonly selectedClass = signal('');
   protected readonly isLoadingStructure = signal(false);
   protected readonly isSavingStructure = signal(false);
+  protected readonly deletingFeeItemId = signal<number | null>(null);
   protected readonly structureError = signal('');
   protected readonly feeItems = signal<FeeItem[]>([]);
   protected readonly newFeeType = signal('');
@@ -111,6 +117,33 @@ export class AdminFeesComponent {
       : item));
     this.statusMessage = '';
     this.statusError = false;
+  }
+
+  protected deleteFeeItem(feeItem: FeeItem): void {
+    if (!this.isAdmin || this.isSavingStructure() || this.deletingFeeItemId() !== null) {
+      return;
+    }
+    const confirmed = window.confirm(
+      `Delete "${feeItem.serviceName}"? Students' enrollments for this fee type will also be removed. Previously generated monthly fees will not change.`
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    this.deletingFeeItemId.set(feeItem.id);
+    this.statusMessage = '';
+    this.statusError = false;
+    this.feesService.deleteFeeItem(feeItem.id).subscribe({
+      next: () => {
+        this.feeItems.update(items => items.filter(item => item.id !== feeItem.id));
+        this.statusMessage = `"${feeItem.serviceName}" was deleted.`;
+        this.deletingFeeItemId.set(null);
+      },
+      error: () => {
+        this.structureError.set(`Unable to delete "${feeItem.serviceName}". Please try again.`);
+        this.deletingFeeItemId.set(null);
+      }
+    });
   }
 
   protected updateNewFeeAmount(event: Event): void {

@@ -4,14 +4,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.school.common.response.ApiResponse;
 import com.school.userservice.dto.LoginResponseDTO;
+import com.school.userservice.dto.AdminPasswordResetRequestDTO;
+import com.school.userservice.dto.ChangePasswordRequestDTO;
+import com.school.userservice.dto.ManagedUserDTO;
+import com.school.userservice.dto.PasswordManagedUserDTO;
 import com.school.userservice.dto.ProfileDTO;
 import com.school.userservice.dto.UserRegistrationDTO;
 import com.school.userservice.service.ProfileService;
@@ -22,6 +28,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -73,6 +80,31 @@ public class UserController {
                 .body(ApiResponse.success("Password reset successfully"));
     }
 
+    @PutMapping("/password/change")
+    @Operation(summary = "Change the current user's password")
+    public ResponseEntity<ApiResponse<String>> changePassword(
+            @Valid @RequestBody ChangePasswordRequestDTO request) {
+        userService.changeOwnPassword(request.getCurrentPassword(), request.getNewPassword());
+        return ResponseEntity.ok(ApiResponse.success("Password changed successfully"));
+    }
+
+    @GetMapping("/password/managed-users")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "List users whose passwords can be reset by an administrator")
+    public ResponseEntity<ApiResponse<List<PasswordManagedUserDTO>>> getPasswordManagedUsers() {
+        return ResponseEntity.ok(ApiResponse.success(userService.getPasswordManagedUsers()));
+    }
+
+    @PutMapping("/password/admin-reset/{username}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Reset a Student, Teacher, or Manager password")
+    public ResponseEntity<ApiResponse<String>> adminResetPassword(
+            @PathVariable String username,
+            @Valid @RequestBody AdminPasswordResetRequestDTO request) {
+        userService.adminResetPassword(username, request.getNewPassword());
+        return ResponseEntity.ok(ApiResponse.success("Password reset successfully"));
+    }
+
     @GetMapping("/register/admin/token")
     @Operation(summary = "Get registration token for admin")
     public ResponseEntity<ApiResponse<String>> getToken() {
@@ -99,6 +131,31 @@ public class UserController {
         LoginResponseDTO response = userService.register(registrationDTO);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success(response, "User registered successfully"));
+    }
+
+    @PostMapping("/register/admin-manager")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Create an Admin or Manager account")
+    public ResponseEntity<ApiResponse<LoginResponseDTO>> registerAdminOrManager(
+            @Valid @RequestBody UserRegistrationDTO registrationDTO) {
+        LoginResponseDTO response = userService.registerAdminOrManager(registrationDTO);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(response, "User registered successfully"));
+    }
+
+    @GetMapping("/managers")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "List Manager accounts")
+    public ResponseEntity<ApiResponse<List<ManagedUserDTO>>> getManagers() {
+        return ResponseEntity.ok(ApiResponse.success(userService.getManagers()));
+    }
+
+    @DeleteMapping("/managers/{username}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Delete a Manager account")
+    public ResponseEntity<ApiResponse<Void>> deleteManager(@PathVariable String username) {
+        userService.deleteManager(username);
+        return ResponseEntity.ok(ApiResponse.success(null, "Manager account deleted successfully"));
     }
 
     @GetMapping("/disable/user/{username}")
