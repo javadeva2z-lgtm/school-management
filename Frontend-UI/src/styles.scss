@@ -1,0 +1,16 @@
+@use '@angular/material' as mat;
+
+$theme: mat.define-theme((
+  color: (theme-type: light, primary: mat.$azure-palette),
+));
+
+@include mat.core();
+@include mat.form-field-theme($theme);
+@include mat.input-theme($theme);
+@include mat.autocomplete-theme($theme);
+@include mat.option-theme($theme);
+
+* { box-sizing: border-box; }
+html, body { margin: 0; min-width: 320px; min-height: 100%; background: #f7f6ef; }
+body { font-family: 'Trebuchet MS', sans-serif; }
+button { font: inherit; }

@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -15,12 +15,12 @@ import { Role } from '../../common/model/models';
   imports: [WelcomeComponent, WorkspaceComponent],
   templateUrl: './dashboard-page.component.html'
 })
-export class DashboardPageComponent {
+export class DashboardPageComponent implements OnInit {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly dashboardService = inject(DashboardService);
   private readonly authSession = inject(AuthSessionService);
   private readonly schoolService = inject(SchoolService);
-  private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   protected readonly role = signal<Role>(
     this.authSession.role ?? 'Student');
   protected readonly dashboard = toSignal(this.dashboardService.getDashboardData(), {
@@ -28,19 +28,14 @@ export class DashboardPageComponent {
   });
   protected readonly school = computed(() => this.schoolService.getBranding(this.authSession.selectedSchoolIdState()));
 
-  protected selectRole(role: Role): void {
-    this.role.set(role);
-    void this.router.navigate([], {
-      replaceUrl: true
-    });
-  }
-
-  private getRole(value: string | null): Role {
-    switch (value?.toLowerCase()) {
-      case 'student': return 'Student';
-      case 'admin': return 'Admin';
-      case 'manager': return 'Manager';
-      default: return 'Teacher';
+  ngOnInit(): void {
+    if (this.route.snapshot.queryParamMap.has('role')) {
+      void this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { role: null },
+        queryParamsHandling: 'merge',
+        replaceUrl: true
+      });
     }
   }
 }

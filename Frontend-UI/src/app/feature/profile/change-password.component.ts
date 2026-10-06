@@ -1,6 +1,11 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { startWith } from 'rxjs';
 
 import { PasswordManagedUser } from '../../common/model/models';
 import { AuthService } from '../../core/auth/auth.service';
@@ -8,7 +13,14 @@ import { AuthSessionService } from '../../core/auth/auth-session.service';
 
 @Component({
   selector: 'app-change-password',
-  imports: [FormsModule, RouterLink],
+  imports: [
+    FormsModule,
+    MatAutocompleteModule,
+    MatFormFieldModule,
+    MatInputModule,
+    ReactiveFormsModule,
+    RouterLink
+  ],
   templateUrl: './change-password.component.html',
   styleUrl: './change-password.component.css'
 })
@@ -20,10 +32,32 @@ export class ChangePasswordComponent implements OnInit {
   protected readonly currentPassword = signal('');
   protected readonly newPassword = signal('');
   protected readonly confirmPassword = signal('');
-  protected readonly selectedUsername = signal('');
   protected readonly adminNewPassword = signal('');
   protected readonly adminConfirmPassword = signal('');
   protected readonly managedUsers = signal<PasswordManagedUser[]>([]);
+  protected readonly searchControl = new FormControl('', { nonNullable: true });
+  private readonly searchTerm = toSignal(
+    this.searchControl.valueChanges.pipe(startWith(this.searchControl.value)),
+    { initialValue: this.searchControl.value }
+  );
+  protected readonly selectedUsername = computed(() => {
+    const username = this.searchTerm();
+    return this.managedUsers().some(user => user.username === username) ? username : '';
+  });
+  protected readonly filteredUsers = computed(() => {
+    const query = this.searchTerm().trim().toLowerCase();
+    return this.managedUsers().filter(user =>
+      `${user.username} ${user.role} ${user.displayName}`.toLowerCase().includes(query)
+    );
+  });
+  protected readonly displayFn = (username: string | null): string => {
+    if (!username) {
+      return '';
+    }
+
+    const user = this.managedUsers().find(managedUser => managedUser.username === username);
+    return user ? `${user.role} — ${user.displayName}` : username;
+  };
   protected readonly isLoadingUsers = signal(false);
   protected readonly isSaving = signal(false);
   protected readonly errorMessage = signal('');
@@ -63,7 +97,12 @@ export class ChangePasswordComponent implements OnInit {
   protected resetUserPassword(): void {
     const username = this.selectedUsername();
     const newPassword = this.adminNewPassword();
-    if (!username || newPassword.length < 6 || newPassword !== this.adminConfirmPassword()) {
+    if (
+      !username ||
+      !this.managedUsers().some(user => user.username === username) ||
+      newPassword.length < 6 ||
+      newPassword !== this.adminConfirmPassword()
+    ) {
       this.setError('Select a user and enter a new password of at least 6 characters with matching confirmation.');
       return;
     }

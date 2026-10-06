@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { MenuItem, Role } from '../model/models';
@@ -11,15 +11,6 @@ import { MenuItem, Role } from '../model/models';
 export class WorkspaceComponent {
   @Input({ required: true }) role!: Role;
   @Input({ required: true }) menus!: Record<Role, MenuItem[]>;
-  @Output() roleChange = new EventEmitter<Role>();
-
-  protected get roles(): Role[] {
-    return [this.role];
-  }
-
-  protected selectRole(role: Role): void {
-    this.roleChange.emit(role);
-  }
 
   protected routeFor(item: MenuItem, role: Role): string[] {
     if (role === 'Teacher' && item.id === 'announcements') return ['/workspace/announcements'];

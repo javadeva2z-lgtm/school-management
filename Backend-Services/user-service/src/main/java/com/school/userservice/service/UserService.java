@@ -157,8 +157,7 @@ public class UserService extends BaseService {
         if (roles.contains("ROLE_STUDENT")) {
             try {
                 return studentRepository.findByAdmissionNumber(Long.valueOf(username))
-                        .map(student -> student.getAdmissionNumber() + "-" + student.getRollNumber()
-                                + "-" + student.getName())
+                        .map(student -> student.getAdmissionNumber() + "-" + student.getName())
                         .orElse(username);
             } catch (NumberFormatException ignored) {
                 return username;
@@ -166,7 +165,7 @@ public class UserService extends BaseService {
         }
         if (roles.contains("ROLE_TEACHER")) {
             return teacherRepository.findByUsername(username)
-                    .map(teacher -> username + "-" + teacher.getEmployeeId() + "-" + teacher.getName())
+                    .map(teacher -> teacher.getEmployeeId() + "-" + teacher.getName())
                     .orElse(username);
         }
         return username;
