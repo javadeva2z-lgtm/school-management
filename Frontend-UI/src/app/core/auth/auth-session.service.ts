@@ -44,9 +44,7 @@ export class AuthSessionService {
   clearSession(): void {
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(ROLE_KEY);
-    sessionStorage.removeItem(SCHOOL_CODE_KEY);
     this.tokenState.set(null);
-    this.schoolCodeState.set(null);
   }
 
   private toRole(value: string | null): Role | null {

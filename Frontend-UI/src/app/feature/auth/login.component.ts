@@ -37,7 +37,13 @@ export class LoginComponent {
       next: schools => {
         this.schools.set(schools);
         this.isLoadingSchools.set(false);
-        if (schools.length === 1) {
+        const savedSchool = schools.find(
+          school => school.schoolCode === this.authService.schoolHeaderValue
+        );
+        if (savedSchool) {
+          this.selectedSchoolId.set(String(savedSchool.id));
+          this.getAdminToken();
+        } else if (schools.length === 1) {
           this.setSelectedSchool(String(schools[0].id));
         }
       },
@@ -95,7 +101,11 @@ export class LoginComponent {
 
     this.isSubmitting.set(true);
     this.errorMessage.set('');
-    this.authService.setSchoolCode(selectedSchool?.schoolCode ?? 'school_management');
+    if (selectedSchool) {
+      this.authService.setSchoolCode(selectedSchool.schoolCode);
+    } else if (!this.authService.schoolHeaderValue) {
+      this.authService.setSchoolCode('school_management');
+    }
     this.authService.login({
       username: this.username().trim(),
       password: this.password()

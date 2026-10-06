@@ -1,16 +1,11 @@
 <section class="dashboard-content" aria-labelledby="workspace-title">
   <div class="section-heading">
     <div><p class="eyebrow">Your workspace</p><h2 id="workspace-title">What would you like to do?</h2></div>
-    <div class="role-switcher" role="tablist" aria-label="Choose dashboard role">
-      @for (availableRole of roles; track availableRole) {
-        <button type="button" role="tab" [attr.aria-selected]="role === availableRole" [class.active]="role === availableRole" (click)="selectRole(availableRole)">{{ availableRole }}</button>
-      }
-    </div>
   </div>
 
   <div class="menu-grid">
     @for (item of menus[role]; track item.id) {
-      <a class="menu-card" [routerLink]="routeFor(item, role)" [queryParams]="{ role }">
+      <a class="menu-card" [routerLink]="routeFor(item, role)">
         <span class="menu-icon" [class]="item.tone" aria-hidden="true">
           @switch (item.icon) {
             @case ('calendar') { <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg> }

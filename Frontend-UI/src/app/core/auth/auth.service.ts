@@ -115,6 +115,10 @@ export class AuthService {
     this.session.setSchoolCode(schoolCode);
   }
 
+  get schoolHeaderValue(): string | null {
+    return this.session.schoolHeaderValue;
+  }
+
   logout(): void {
     this.session.clearSession();
   }
