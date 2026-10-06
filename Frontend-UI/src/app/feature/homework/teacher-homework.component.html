@@ -3,7 +3,7 @@
 
   <section class="homework-heading">
     <div>
-      <p class="eyebrow">Teacher workspace</p>
+      <p class="eyebrow">{{ workspaceRole() }} workspace</p>
       <h1>Share work with your class</h1>
       <p>Create a classwork or homework post and attach a file when your students need one.</p>
     </div>
@@ -49,17 +49,62 @@
         <small>Loading students...</small>
         } @else if (students().length) {
         <div class="student-chip-list">
-          @for (student of students(); track student.admissionNumber) {
+          @for (student of students().slice(0, 5); track student.admissionNumber) {
           <span>{{ student.name }}</span>
+          }
+          @if (students().length > 5) {
+          <div class="student-chip-overflow">
+            <button type="button" class="student-chip-more" [attr.aria-label]="
+                'Show ' + (students().length - 5) + ' more students'
+              " aria-describedby="student-chip-popover">
+              <span aria-hidden="true">+</span>{{ students().length - 5 }}
+            </button>
+            <div id="student-chip-popover" class="student-chip-popover" role="tooltip">
+              <strong>More students</strong>
+              @for (student of students().slice(5); track student.admissionNumber) {
+              <span>{{ student.name }}</span>
+              }
+            </div>
+          </div>
           }
         </div>
         } @else {
         <small>No students found for this class and section.</small>
         }
       </label>
-      <label>Title
-        <input type="text" placeholder="e.g. Fractions practice" [value]="title()" (input)="onTitleChange($event)" />
-      </label>
+      <div class="homework-lines full-width">
+        <div class="homework-lines-heading">
+          <strong>Homework by subject</strong>
+          @if (isLoadingSubjects()) {
+          <small>Loading subjects...</small>
+          }
+        </div>
+        @for (line of homeworkLines(); track line.id; let index = $index) {
+        <div class="homework-line">
+          <label>Subject
+            <select [name]="'homeworkSubject' + line.id" [ngModel]="line.subjectValue"
+              (ngModelChange)="updateHomeworkLine(line.id, 'subjectValue', $event)" [disabled]="isLoadingSubjects()">
+              <option value="">Select a subject</option>
+              @for (subject of subjectOptions(); track subject.value) {
+              <option [value]="subject.value">{{ subject.subjectName }}</option>
+              }
+            </select>
+          </label>
+          <label>Homework
+            <textarea rows="3" [name]="'homeworkText' + line.id" [ngModel]="line.work"
+              (ngModelChange)="updateHomeworkLine(line.id, 'work', $event)"
+              placeholder="Enter the work for this subject"></textarea>
+          </label>
+          @if (!editingAssignment() && homeworkLines().length > 1) {
+          <button class="remove-homework-line" type="button" (click)="removeHomeworkLine(line.id)"
+            [attr.aria-label]="'Remove subject line ' + (index + 1)">Remove</button>
+          }
+        </div>
+        }
+        @if (!editingAssignment()) {
+        <button class="add-homework-line" type="button" (click)="addHomeworkLine()">+ Add another subject</button>
+        }
+      </div>
       <label>Due date
         <input type="date" [value]="dueDate()" (change)="onDueDateChange($event)" />
       </label>
@@ -68,10 +113,6 @@
           <option value="CLASSWORK">CLASSWORK</option>
           <option value="HOMEWORK">HOMEWORK</option>
         </select>
-      </label>
-      <label class="full-width">Description
-        <textarea rows="6" placeholder="Add instructions or context for your students" [value]="description()"
-          (input)="onDescriptionChange($event)"></textarea>
       </label>
       <label class="file-field full-width">Attachment <span class="optional-label">Optional</span>
         <input type="file" multiple (change)="onFileChange($event)" />
@@ -85,7 +126,7 @@
       </label>
     </div>
     <div class="homework-form-footer">
-      <span>Accepted file types depend on the connected API.</span>
+      <span>Each subject line creates a separate assignment. Any selected attachment is included with each line.</span>
       <div class="homework-form-actions">
         @if (editingAssignment()) {
         <button class="homework-cancel-button" type="button" [disabled]="isUploading()" (click)="cancelEdit()">Cancel edit</button>

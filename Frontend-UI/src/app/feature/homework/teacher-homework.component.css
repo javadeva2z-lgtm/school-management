@@ -176,6 +176,127 @@
   font: 12px 'Trebuchet MS', sans-serif;
 }
 
+.student-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.student-chip-list > span,
+.student-chip-more {
+  padding: 6px 9px;
+  border: 1px solid #d9e0d8;
+  border-radius: 999px;
+  color: #527174;
+  background: #fff;
+  font: 600 11px 'Trebuchet MS', sans-serif;
+}
+
+.student-chip-overflow {
+  position: relative;
+  display: inline-flex;
+}
+
+.student-chip-more {
+  color: #2e8581;
+  cursor: pointer;
+}
+
+.student-chip-more span {
+  margin-right: 2px;
+}
+
+.student-chip-popover {
+  position: absolute;
+  z-index: 5;
+  top: 100%;
+  right: 0;
+  display: none;
+  min-width: 190px;
+  max-width: min(320px, 80vw);
+  max-height: 220px;
+  overflow-y: auto;
+  padding: 10px;
+  border: 1px solid #d9e0d8;
+  border-radius: 5px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(23, 56, 59, .16);
+}
+
+.student-chip-overflow:hover .student-chip-popover,
+.student-chip-overflow:focus-within .student-chip-popover {
+  display: grid;
+  gap: 7px;
+}
+
+.student-chip-popover strong {
+  padding-bottom: 5px;
+  border-bottom: 1px solid #edf0e9;
+  color: #17383b;
+  font: 700 11px 'Trebuchet MS', sans-serif;
+}
+
+.student-chip-popover > span {
+  color: #527174;
+  font: 11px 'Trebuchet MS', sans-serif;
+  overflow-wrap: anywhere;
+}
+
+.homework-lines {
+  display: grid;
+  gap: 12px;
+}
+
+.homework-lines-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #17383b;
+  font: 600 13px 'Trebuchet MS', sans-serif;
+}
+
+.homework-lines-heading small {
+  color: #829191;
+  font: 11px 'Trebuchet MS', sans-serif;
+}
+
+.homework-line {
+  display: grid;
+  grid-template-columns: minmax(170px, 0.7fr) minmax(240px, 1.3fr) auto;
+  align-items: end;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid #e4e5d9;
+  border-radius: 5px;
+  background: #f8f9f4;
+}
+
+.homework-line label {
+  min-width: 0;
+}
+
+.homework-line textarea {
+  min-height: 74px;
+}
+
+.add-homework-line,
+.remove-homework-line {
+  justify-self: start;
+  padding: 8px 11px;
+  border: 1px solid #d9e0d8;
+  border-radius: 4px;
+  color: #2e8581;
+  background: #fff;
+  font: 600 11px 'Trebuchet MS', sans-serif;
+  cursor: pointer;
+}
+
+.remove-homework-line {
+  color: #b84f42;
+}
+
 @media (max-width: 520px) {
   .homework-assignment-header {
     flex-direction: column;
@@ -183,5 +304,9 @@
 
   .homework-assignment-badge {
     align-self: flex-start;
+  }
+
+  .homework-line {
+    grid-template-columns: 1fr;
   }
 }

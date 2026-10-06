@@ -5,6 +5,7 @@ const adminMenus: DashboardData['menus']['Admin'] = [
   { id: 'class-teachers', label: 'Class teacher mapping', detail: 'Assign a teacher to a class and section', icon: 'teacher', tone: 'blue', roles: ['Admin'] },
   { id: 'classes-sections', label: 'Classes & sections', detail: 'Create and update classes and sections', icon: 'book', tone: 'violet', roles: ['Admin'] },
   { id: 'subjects', label: 'Subjects', detail: 'Manage subjects assigned to each class', icon: 'book', tone: 'gold', roles: ['Admin'] },
+  { id: 'homework', label: 'Homework & classwork', detail: 'Assign work by subject to any class', icon: 'book', tone: 'gold', roles: ['Admin'] },
   { id: 'students', label: 'Manage students', detail: 'Keep student records current', icon: 'users', tone: 'coral', roles: ['Admin'] },
   { id: 'fees', label: 'Fee management', detail: 'Track fees and payments', icon: 'fee', tone: 'gold', roles: ['Admin'] },
   { id: 'optional-fee-mapping', label: 'Optional fee mapping', detail: 'Map optional class fees to students', icon: 'fee', tone: 'orange', roles: ['Admin'] },
@@ -44,7 +45,7 @@ export const FALLBACK_DASHBOARD_DATA: DashboardData = {
     ],
     Admin: adminMenus,
     Manager: adminMenus
-      .filter(item => item.id !== 'import-data' && item.id !== 'user-accounts')
+      .filter(item => item.id !== 'import-data' && item.id !== 'user-accounts' && item.id !== 'homework')
       .map(item => ({ ...item, roles: ['Manager'] })),
     SuperAdmin: superAdminMenus
   }

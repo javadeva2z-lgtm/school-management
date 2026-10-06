@@ -3,17 +3,27 @@ import { RouterLink } from '@angular/router';
 
 import { HomeworkService } from './homework.service';
 import { ClassSectionService } from '../class-section/class-section.service';
+import { ClassManagementService, ManagedSubject } from '../class-section/class-management.service';
 import { PeopleService } from '../people/people.service';
 import { classDisplayName, ClassSectionOption, HomeworkRecord, Student } from '../../common/model/models';
 import { ProfileService } from '../profile/profile.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { concatMap, from, tap, toArray } from 'rxjs';
 
 type HomeworkTab = 'new' | 'list';
+type HomeworkLine = { id: number; subjectValue: string; work: string };
+type HomeworkSubjectOption = { value: string; subjectId: number | null; subjectName: string };
+
+let nextHomeworkLineId = 0;
+
+function createHomeworkLine(): HomeworkLine {
+  return { id: nextHomeworkLineId++, subjectValue: '', work: '' };
+}
 
 function defaultDueDate(): string {
   const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setDate(tomorrow.getDate());
   const year = tomorrow.getFullYear();
   const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
   const day = String(tomorrow.getDate()).padStart(2, '0');
@@ -30,12 +40,12 @@ export class TeacherHomeworkComponent {
   protected readonly classDisplayName = classDisplayName;
   private readonly homeworkService = inject(HomeworkService);
   private readonly classSectionService = inject(ClassSectionService);
+  private readonly classManagementService = inject(ClassManagementService);
   private readonly peopleService = inject(PeopleService);
   protected readonly profileService = inject(ProfileService);
 
   protected readonly activeTab = signal<HomeworkTab>('new');
-  protected readonly title = signal('');
-  protected readonly description = signal('');
+  protected readonly homeworkLines = signal<HomeworkLine[]>([createHomeworkLine()]);
   protected readonly dueDate = signal(defaultDueDate());
   protected readonly workType = signal<'CLASSWORK' | 'HOMEWORK'>('HOMEWORK');
   protected readonly editingAssignment = signal<HomeworkRecord | null>(null);
@@ -47,6 +57,19 @@ export class TeacherHomeworkComponent {
   protected readonly selectedClass = signal('');
   protected readonly selectedSection = signal('');
   protected readonly sectionOptions = computed(() => this.classOptions().find(option => option.classId === this.selectedClass())?.sections ?? []);
+  protected readonly subjects = signal<ManagedSubject[]>([]);
+  protected readonly isLoadingSubjects = signal(false);
+  protected readonly subjectOptions = computed<HomeworkSubjectOption[]>(() => [
+    ...this.subjects()
+      .filter(subject => subject.isActive)
+      .map(subject => ({
+        value: String(subject.id),
+        subjectId: subject.id,
+        subjectName: subject.subjectName
+      })),
+    { value: 'special:others', subjectId: null, subjectName: 'Others' },
+    { value: 'special:diary', subjectId: null, subjectName: 'Diary' }
+  ]);
   protected readonly students = signal<Student[]>([]);
   protected readonly assignments = signal<HomeworkRecord[]>([]);
   protected readonly groupedAssignments = computed(() => {
@@ -74,7 +97,7 @@ export class TeacherHomeworkComponent {
   protected readonly isLoadingStudents = signal(false);
   protected readonly isLoadingAssignments = signal(false);
   protected readonly profile = toSignal(this.profileService.getProfile());
-  protected readonly teacherId = computed(() => this.profile()?.role === 'TEACHER' ? this.profile()?.id ?? null : null);
+  protected readonly workspaceRole = computed(() => this.profile()?.role === 'ADMIN' ? 'Admin' : 'Teacher');
 
   constructor() {
     this.loadClasses();
@@ -87,6 +110,7 @@ export class TeacherHomeworkComponent {
         const resolved = this.classSectionService.resolveDefaultClassSection(classOptions, defaultSelection);
         this.selectedClass.set(resolved.classId);
         this.selectedSection.set(resolved.sectionName);
+        this.loadSubjects(resolved.classId);
         this.loadStudents();
         this.loadAssignments();
       },
@@ -101,6 +125,10 @@ export class TeacherHomeworkComponent {
     this.selectedClass.set(className);
     const firstSection = this.classOptions().find(option => option.classId === className)?.sections[0]?.sectionName ?? '';
     this.selectedSection.set(firstSection);
+    if (!this.editingAssignment()) {
+      this.homeworkLines.set([createHomeworkLine()]);
+    }
+    this.loadSubjects(className);
     this.loadStudents();
     this.loadAssignments();
   }
@@ -119,18 +147,22 @@ export class TeacherHomeworkComponent {
     }
   }
 
-  protected onTitleChange(event: Event): void {
-    this.title.set((event.target as HTMLInputElement).value);
-    this.uploadMessage.set('');
-  }
-
   protected onDueDateChange(event: Event): void {
     this.dueDate.set((event.target as HTMLInputElement).value);
     this.uploadMessage.set('');
   }
 
-  protected onDescriptionChange(event: Event): void {
-    this.description.set((event.target as HTMLTextAreaElement).value);
+  protected updateHomeworkLine(id: number, field: 'subjectValue' | 'work', value: string): void {
+    this.homeworkLines.update(lines => lines.map(line => line.id === id ? { ...line, [field]: value } : line));
+    this.uploadMessage.set('');
+  }
+
+  protected addHomeworkLine(): void {
+    this.homeworkLines.update(lines => [...lines, createHomeworkLine()]);
+  }
+
+  protected removeHomeworkLine(id: number): void {
+    this.homeworkLines.update(lines => lines.length > 1 ? lines.filter(line => line.id !== id) : lines);
     this.uploadMessage.set('');
   }
 
@@ -157,20 +189,24 @@ export class TeacherHomeworkComponent {
     this.editingAssignment.set(assignment);
     this.selectedClass.set(String(assignment.classId));
     this.selectedSection.set(assignment.sectionName);
-    this.title.set(assignment.title);
-    this.description.set(assignment.description ?? '');
+    const subjectValue = assignment.subjectId
+      ? String(assignment.subjectId)
+      : assignment.title.toLowerCase() === 'diary'
+        ? 'special:diary'
+        : 'special:others';
+    this.homeworkLines.set([{ id: nextHomeworkLineId++, subjectValue, work: assignment.description ?? '' }]);
     this.dueDate.set(assignment.dueDate);
     this.workType.set(assignment.workType);
     this.selectedFiles.set([]);
     this.uploadMessage.set('');
     this.activeTab.set('new');
+    this.loadSubjects(String(assignment.classId));
     this.loadStudents();
   }
 
   protected cancelEdit(): void {
     this.editingAssignment.set(null);
-    this.title.set('');
-    this.description.set('');
+    this.homeworkLines.set([createHomeworkLine()]);
     this.dueDate.set(defaultDueDate());
     this.workType.set('HOMEWORK');
     this.selectedFiles.set([]);
@@ -198,41 +234,108 @@ export class TeacherHomeworkComponent {
   }
 
   protected uploadWork(): void {
-    if (!this.title().trim() || !this.description().trim()) {
-      this.uploadMessage.set('Enter a title and description before uploading.');
-      return;
-    }
-
     if (!this.selectedClass() || !this.selectedSection()) {
       this.uploadMessage.set('Select a class and section before uploading.');
       return;
     }
 
+    const lines = this.homeworkLines();
+    const invalidLine = lines.find(line =>
+      !this.subjectOptions().some(option => option.value === line.subjectValue) || !line.work.trim()
+    );
+    if (invalidLine) {
+      this.uploadMessage.set('Select a subject and enter its homework for every line.');
+      return;
+    }
+
+    if (this.isLoadingSubjects()) {
+      this.uploadMessage.set('Wait for the class subjects to finish loading.');
+      return;
+    }
+
     this.isUploading.set(true);
     this.uploadMessage.set('');
-    this.homeworkService.uploadWork({
-      id: this.editingAssignment()?.id,
-      title: this.title().trim(),
-      description: this.description().trim(),
-      workType: this.workType(),
-      classId: Number(this.selectedClass()),
-      sectionName: this.selectedSection(),
-      files: this.selectedFiles(),
-      teacherId: this.profile()?.id ?? 0,
-      dueDate: this.dueDate()
-    }).subscribe({
-      next: response => {
+    let uploadedCount = 0;
+    const editingAssignment = this.editingAssignment();
+    const upload$ = editingAssignment
+      ? this.homeworkService.uploadWork(this.buildHomework(lines[0], editingAssignment.id)).pipe(toArray())
+      : from(lines).pipe(
+        concatMap(line => this.homeworkService.uploadWork(this.buildHomework(line)).pipe(
+          tap(() => uploadedCount++)
+        )),
+        toArray()
+      );
+
+    upload$.subscribe({
+      next: () => {
         this.isUploading.set(false);
-        const successMessage = response.message;
         this.cancelEdit();
-        this.uploadMessage.set(successMessage);
+        this.uploadMessage.set(editingAssignment ? 'Work updated successfully.' : 'Homework added for all subjects.');
         this.loadAssignments();
       },
       error: () => {
         this.isUploading.set(false);
-        this.uploadMessage.set(this.editingAssignment()
+        this.uploadMessage.set(editingAssignment
           ? 'Work could not be updated. Please try again.'
-          : 'Work could not be uploaded. Please try again.');
+          : `Could not upload all homework lines. ${uploadedCount} of ${lines.length} were saved; review the list before retrying.`);
+      }
+    });
+  }
+
+  private buildHomework(line: HomeworkLine, id?: number): {
+    id?: number;
+    title: string;
+    description: string;
+    workType: 'CLASSWORK' | 'HOMEWORK';
+    classId: number;
+    sectionName: string;
+    subjectId: number | null;
+    files: File[];
+    teacherId: number;
+    dueDate: string;
+  } {
+    const subject = this.subjectOptions().find(option => option.value === line.subjectValue);
+    if (!subject) {
+      throw new Error(`Unknown homework subject: ${line.subjectValue}`);
+    }
+    return {
+      id,
+      title: subject.subjectName,
+      description: line.work.trim(),
+      workType: this.workType(),
+      classId: Number(this.selectedClass()),
+      sectionName: this.selectedSection(),
+      subjectId: subject.subjectId,
+      files: this.selectedFiles(),
+      teacherId: this.profile()?.id ?? 0,
+      dueDate: this.dueDate()
+    };
+  }
+
+  private loadSubjects(classId: string): void {
+    const parsedClassId = Number(classId);
+    if (!Number.isFinite(parsedClassId) || parsedClassId === 0) {
+      this.subjects.set([]);
+      this.isLoadingSubjects.set(false);
+      return;
+    }
+
+    this.isLoadingSubjects.set(true);
+    this.classManagementService.getSubjects(parsedClassId).subscribe({
+      next: response => {
+        if (this.selectedClass() !== classId) {
+          return;
+        }
+        this.subjects.set(response.data);
+        this.isLoadingSubjects.set(false);
+      },
+      error: () => {
+        if (this.selectedClass() !== classId) {
+          return;
+        }
+        this.subjects.set([]);
+        this.isLoadingSubjects.set(false);
+        this.uploadMessage.set('Subjects could not be loaded. Please retry before adding homework.');
       }
     });
   }

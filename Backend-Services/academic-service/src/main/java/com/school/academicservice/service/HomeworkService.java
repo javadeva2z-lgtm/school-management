@@ -105,6 +105,7 @@ public class HomeworkService {
 
         homework.setClassId(homeworkDTO.getClassId());
         homework.setSectionName(homeworkDTO.getSectionName());
+        homework.setSubjectId(homeworkDTO.getSubjectId());
         homework.setWorkType(homeworkDTO.getWorkType());
         homework.setTitle(homeworkDTO.getTitle());
         homework.setDescription(homeworkDTO.getDescription());
@@ -121,6 +122,7 @@ public class HomeworkService {
                 .orElseThrow(() -> new ResourceNotFoundException("Homework", "id", id));
         homework.setClassId(homeworkDTO.getClassId());
         homework.setSectionName(homeworkDTO.getSectionName());
+        homework.setSubjectId(homeworkDTO.getSubjectId());
         homework.setWorkType(homeworkDTO.getWorkType());
         homework.setTitle(homeworkDTO.getTitle());
         homework.setDescription(homeworkDTO.getDescription());

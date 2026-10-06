@@ -415,7 +415,7 @@ export interface HomeworkUploadPayload {
   teacherId: number;
   classId: number;
   sectionName: string;
-  subjectId: number;
+  subjectId: number | null;
   title: string;
   description: string;
   fileUrl: string;
@@ -436,7 +436,7 @@ export interface HomeworkRecord {
   teacherId: number;
   classId: number;
   sectionName: string;
-  subjectId: number;
+  subjectId: number | null;
   title: string;
   description: string;
   fileUrl: string;
@@ -456,7 +456,7 @@ export interface Homework {
   teacherId: number;
   classId: number;
   sectionName?: string;
-  subjectId?: number;
+  subjectId?: number | null;
   title: string;
   description: string;
   fileUrl?: string;
