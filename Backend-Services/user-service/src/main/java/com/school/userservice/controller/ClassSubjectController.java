@@ -35,7 +35,7 @@ public class ClassSubjectController {
     private final ClassSubjectService classSubjectService;
 
     @GetMapping("/class/{classId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'TEACHER')")
     @Operation(summary = "Get subjects for a class")
     public ResponseEntity<ApiResponse<List<ClassSubjectDTO>>> getSubjectsByClass(@PathVariable Long classId) {
         return ResponseEntity.ok(ApiResponse.success(classSubjectService.getSubjectsByClass(classId)));

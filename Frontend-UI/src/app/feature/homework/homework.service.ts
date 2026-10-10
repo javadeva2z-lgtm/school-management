@@ -27,7 +27,7 @@ export class HomeworkService {
       teacherId: homework.teacherId,
       classId: homework.classId,
       sectionName: homework.sectionName || '',
-      subjectId: homework.subjectId ?? 0,
+      subjectId: homework.subjectId ?? null,
       title: homework.title,
       description: homework.description,
       fileUrl: homework.fileUrl || '',

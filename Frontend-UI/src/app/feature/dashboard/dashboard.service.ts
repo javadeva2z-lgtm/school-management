@@ -13,14 +13,14 @@ export class DashboardService {
       map(data => {
         const adminMenus = data.menus.Admin ?? [];
         const requiredAdminMenus = FALLBACK_DASHBOARD_DATA.menus.Admin.filter(item =>
-          ['classes-sections', 'subjects', 'optional-fee-mapping', 'user-accounts'].includes(item.id)
+          ['classes-sections', 'subjects', 'homework', 'optional-fee-mapping', 'user-accounts'].includes(item.id)
         );
         const missingRequiredMenus = requiredAdminMenus.filter(menu =>
           !adminMenus.some(item => item.id === menu.id)
         );
         const adminMenuItems = [...adminMenus, ...missingRequiredMenus];
         const managerMenus = adminMenuItems
-          .filter(item => item.id !== 'import-data' && item.id !== 'user-accounts')
+          .filter(item => item.id !== 'import-data' && item.id !== 'user-accounts' && item.id !== 'homework')
           .map(item => ({ ...item, roles: ['Manager' as const] }));
         const superAdminMenus = data.menus.SuperAdmin?.length
           ? data.menus.SuperAdmin

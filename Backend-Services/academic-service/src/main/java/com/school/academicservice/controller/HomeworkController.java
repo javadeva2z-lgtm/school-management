@@ -38,7 +38,7 @@ public class HomeworkController {
     private final HomeworkService homeworkService;
 
     @PostMapping
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     @Operation(summary = "Assign new homework")
     public ResponseEntity<ApiResponse<HomeworkDTO>> createHomework(@Valid @RequestBody HomeworkDTO homeworkDTO) {
         log.info("Create homework request received for class: {}", homeworkDTO.getClassId());
@@ -48,7 +48,7 @@ public class HomeworkController {
     }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     @Operation(summary = "Assign new homework with files")
     public ResponseEntity<ApiResponse<HomeworkDTO>> createHomeworkWithFiles(
             @Valid @RequestPart("homework") HomeworkDTO homeworkDTO,
@@ -112,7 +112,7 @@ public class HomeworkController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     @Operation(summary = "Update homework")
     public ResponseEntity<ApiResponse<HomeworkDTO>> updateHomework(
             @PathVariable Long id,
@@ -123,7 +123,7 @@ public class HomeworkController {
     }
 
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     @Operation(summary = "Update homework with files")
     public ResponseEntity<ApiResponse<HomeworkDTO>> updateHomeworkWithFiles(
             @PathVariable Long id,
@@ -156,7 +156,7 @@ public class HomeworkController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     @Operation(summary = "Delete homework")
     public ResponseEntity<ApiResponse<Void>> deleteHomework(@PathVariable Long id) {
         log.info("Delete homework request received for id: {}", id);

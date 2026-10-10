@@ -4,7 +4,7 @@ import { RouterLink } from '@angular/router';
 import { HomeworkService } from './homework.service';
 import { HomeworkRecord, StudentWorkItem } from '../../common/model/models';
 import { ProfileService } from '../profile/profile.service';
-import { ProfileApiResponse, ProfilePayload, ProfileSummary } from '../../common/model/models';
+import { ProfileSummary } from '../../common/model/models';
 
 interface WeekDay { date: string; label: string; dayNumber: number; }
 
