@@ -3,6 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 
 import { ProfileService } from './profile.service';
+import { displayNameForClass, SPECIAL_CLASS_NAMES } from '../../common/model/models';
 
 @Component({
   selector: 'app-profile-page',
@@ -13,14 +14,25 @@ export class ProfilePageComponent {
   protected readonly profile = toSignal(inject(ProfileService).getProfile(), {
     initialValue: {
       id: 0,
-      name: 'Pawan Singh',
-      username: 'pawan',
-      className: 'Class 12A',
+      name: '',
+      username: '',
+      className: '',
       email: '',
       mobile: 'Not available',
-      role: 'Student',
+      role: '',
       active: true,
-      photoUrl: null
+      photoUrl: null,
+      rollNumber: null,
+      classId: null,
+      sectionName: '',
+      isEWS: null
     }
   });
+
+
+  displayClassName(classId: number | string): string {
+
+    return displayNameForClass(classId);
+
+  }
 }

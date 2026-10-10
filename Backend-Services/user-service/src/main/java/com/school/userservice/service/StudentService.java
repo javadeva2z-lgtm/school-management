@@ -99,6 +99,11 @@ public class StudentService {
         student.setAdmissionDate(studentDTO.getAdmissionDate());
         student.setAddress(studentDTO.getAddress());
         student.setParentPhone(studentDTO.getParentPhone());
+        student.setEmail(studentDTO.getEmail());
+        student.setRollNumber(studentDTO.getRollNumber());
+        student.setClassId(studentDTO.getClassId());
+        student.setSectionName(studentDTO.getSectionName());
+        student.setIsEWS(studentDTO.getIsEws());
 
         student = studentRepository.save(student);
         log.info("Student updated successfully with admission number: {}", student.getAdmissionNumber());

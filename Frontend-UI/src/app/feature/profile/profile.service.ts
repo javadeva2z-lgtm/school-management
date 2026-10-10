@@ -37,6 +37,7 @@ export class ProfileService {
             phone: studentProfile.parentPhone,
             className: studentProfile.classId?.toString(),
             sectionName: studentProfile.sectionName,
+            rollNumber: studentProfile.rollNumber,
             role: 'Student',
           }
           return this.toProfile(profile);
@@ -70,7 +71,8 @@ export class ProfileService {
       mobile: profile.mobile ?? profile.phone ?? 'Not available',
       role: profile.role ?? 'Not available',
       active: profile.active ?? true,
-      photoUrl: profile.photoUrl ?? profile.profilePic ?? profile.profileImage ?? null
+      photoUrl: profile.photoUrl ?? profile.profilePic ?? profile.profileImage ?? null,
+      rollNumber: profile.rollNumber ?? null
     };
   }
 }

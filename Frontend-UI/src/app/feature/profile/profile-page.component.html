@@ -10,6 +10,12 @@
       <div><strong>{{ profile().role }}</strong><small>Role</small></div>
       <div><strong>{{ profile().mobile }}</strong><small>Mobile</small></div>
       <div><strong>{{ profile().email }}</strong><small>Email</small></div>
+      @if(profile().role === 'Student') {
+      <div><strong>{{ profile().username }}</strong><small>Admission Number</small></div>
+      <div><strong>{{ profile().rollNumber }}</strong><small>Roll Number</small></div>
+      <div><strong>{{ displayClassName(profile().className) }}</strong><small>Class</small></div>
+      <div><strong>{{ profile().sectionName }}</strong><small>Section</small></div>
+      }
       <div><strong>{{ profile().active ? 'Active' : 'Inactive' }}</strong><small>Status</small></div>
     </div>
     <div class="feature-status"><span></span>Showing the local preview until the API is connected.</div>
